@@ -1,0 +1,439 @@
+.settings-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #90EE90 0%, #7dd87d 50%, #6bc26b 100%);
+  background-size: 200% 200%;
+  animation: gradient-pan 14s var(--ease-inout) infinite;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.settings-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Header */
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 48px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: rgba(102, 187, 106, 0.1);
+  transform: translateX(-4px);
+}
+
+.back-arrow {
+  font-size: 24px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.settings-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  flex: 1;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.notification-icon {
+  width: 22px;
+  height: 22px;
+  color: #424242;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.notification-icon:hover {
+  color: #2e7d32;
+  transform: scale(1.1);
+}
+
+/* Main Content */
+.settings-main {
+  flex: 1;
+  padding: 40px 48px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.settings-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  animation: fade-up 680ms var(--ease-out) both;
+}
+
+.settings-card:nth-of-type(1) { animation-delay: 120ms; }
+.settings-card:nth-of-type(2) { animation-delay: 200ms; }
+.settings-card:nth-of-type(3) { animation-delay: 280ms; }
+
+.settings-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #66bb6a, #4caf50, #2e7d32);
+}
+
+.settings-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  letter-spacing: -0.3px;
+}
+
+/* Profile Section */
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(102, 187, 106, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: white;
+  font-weight: 700;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.profile-email {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.edit-profile-link {
+  color: #2e7d32;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.edit-profile-link:hover {
+  color: #4caf50;
+  text-decoration: underline;
+}
+
+/* Settings List */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item:hover {
+  background: rgba(102, 187, 106, 0.05);
+  transform: translateX(4px);
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.settings-icon-wrapper {
+  width: 24px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #2e7d32;
+}
+
+.payment-methods-header .settings-icon-wrapper {
+  width: 20px;
+  height: 20px;
+}
+
+.item-label {
+  font-size: 16px;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.item-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.item-status {
+  font-size: 13px;
+  color: #2e7d32;
+  font-weight: 600;
+  background: rgba(102, 187, 106, 0.1);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.item-arrow {
+  font-size: 18px;
+  color: #999;
+  transition: transform 0.3s ease;
+}
+
+.settings-item:hover .item-arrow {
+  transform: translateX(4px);
+  color: #2e7d32;
+}
+
+/* Current Plan Section */
+.current-plan-section {
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.plan-subtitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
+}
+
+.plan-badge {
+  background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(102, 187, 106, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.plan-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plan-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
+}
+
+.plan-price {
+  font-size: 18px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.plan-renewal {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.change-plan-link {
+  color: #2e7d32;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.change-plan-link:hover {
+  color: #4caf50;
+  text-decoration: underline;
+}
+
+/* Payment Methods Section */
+.payment-methods-section {
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+.payment-methods-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.payment-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
+}
+
+.payment-card-info {
+  padding-left: 38px;
+}
+
+.card-number {
+  font-size: 18px;
+  color: #1a1a1a;
+  font-weight: 600;
+  letter-spacing: 3px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Footer */
+.settings-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 48px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 10;
+}
+
+.version {
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.sign-out-btn {
+  background: none;
+  border: none;
+  color: #d32f2f;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.sign-out-btn:hover {
+  background-color: rgba(211, 47, 47, 0.1);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .settings-header {
+    padding: 20px 24px;
+  }
+
+  .settings-main {
+    padding: 24px;
+  }
+
+  .profile-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .settings-footer {
+    padding: 20px 24px;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+
+

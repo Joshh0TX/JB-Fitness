@@ -1,0 +1,215 @@
+.nutrition-page {
+  min-height: 100vh;
+  background-color: #90EE90;
+}
+
+/* Header */
+.nutrition-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 40px;
+  background-color: white;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-arrow {
+  font-size: 24px;
+  color: #424242;
+}
+
+.nutrition-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #424242;
+  flex: 1;
+  text-align: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.notification-icon {
+  width: 20px;
+  height: 20px;
+  color: #424242;
+  cursor: pointer;
+}
+
+.notification-icon:hover {
+  color: #616161;
+}
+
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #424242;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.profile-icon:hover {
+  background-color: #616161;
+}
+
+/* Main Content */
+.nutrition-main {
+  padding: 30px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 30px;
+}
+
+.page-header h2 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #424242;
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: #757575;
+}
+
+/* Meals Grid */
+.meals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.meal-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.meal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.meal-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.meal-category {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #66bb6a;
+  background-color: #90EE90;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.meal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #424242;
+  margin: 0;
+}
+
+.prep-time {
+  font-size: 14px;
+  color: #757575;
+  white-space: nowrap;
+}
+
+.meal-description {
+  font-size: 14px;
+  color: #757575;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.meal-nutrition {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+.nutrition-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nutrition-label {
+  font-size: 12px;
+  color: #757575;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nutrition-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #424242;
+}
+
+.add-meal-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #424242;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-meal-btn:hover {
+  background-color: #616161;
+}
+
+@media (max-width: 768px) {
+  .nutrition-header {
+    padding: 15px 20px;
+  }
+
+  .nutrition-main {
+    padding: 20px;
+  }
+
+  .meals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
