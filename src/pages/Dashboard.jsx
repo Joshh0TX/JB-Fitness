@@ -5,9 +5,7 @@ import NotificationIcon from "../components/NotificationIcon";
 import Logo from "../components/Logo";
 import "./Dashboard.css";
 
-
 function Dashboard() {
-  
   const navigate = useNavigate();
 
   // Existing summary data
@@ -17,270 +15,224 @@ function Dashboard() {
     water: { current: 3, goal: 8, label: "Glasses" },
   });
 
-  // New: Daily summary
+  // Daily summary
   const [dailySummary, setDailySummary] = useState({
-  totalCalories: 0,
-  totalProtein: 0,
-  totalCarbs: 0,
-  totalFats: 0,
-});
+    totalCalories: 0,
+    totalProtein: 0,
+    totalCarbs: 0,
+    totalFats: 0,
+  });
 
-
-  // Weekly summary for charts
+  // Weekly summary for nutrition & charts
   const [weeklySummary, setWeeklySummary] = useState([]);
 
+  // Weekly data for bar charts (SVG)
   const [weeklyData, setWeeklyData] = useState([]);
   const [savedWorkouts, setSavedWorkouts] = useState([]);
   const [savedMeals, setSavedMeals] = useState([]);
   const [weeklyWorkoutSummary, setWeeklyWorkoutSummary] = useState([]);
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    navigate("/login");
-    return;
-  }
-
-  const fetchData = async () => {
-    try {
-      // 1️⃣ Fetch dashboard (workouts, water, etc.)
-      const dashRes = await API.get("/dashboard", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const dashData = dashRes.data ?? {};
-
-      // 2️⃣ Fetch daily nutrition summary (THIS is calories)
-      const dailyRes = await API.get("/meals/daily-summary", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const dailyData = dailyRes.data ?? {
-        totalCalories: 0,
-        totalProtein: 0,
-        totalCarbs: 0,
-        totalFats: 0,
-      };
-
-      // 3️⃣ Set summary cards
-      setSummaryData({
-        calories: {
-          current: dailyData.totalCalories,
-          goal: 2200,
-          label: "Cal",
-        },
-        workouts: {
-          current: dashData.workouts ?? 0,
-          goal: 5,
-          label: "Workouts",
-        },
-        water: {
-          current: dashData.water ?? 0,
-          goal: 8,
-          label: "Glasses",
-        },
-      });
-
-      setDailySummary(dailyData);
-
-      // 4️⃣ Weekly nutrition
-      const weeklyRes = await API.get("/meals/weekly-summary", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWeeklySummary(weeklyRes.data ?? []);
-
-      // 5️⃣ Weekly chart (dashboard progress)
-      const weeklyProgress = Array.isArray(dashData.weeklyProgress)
-        ? dashData.weeklyProgress
-        : [];
-
-      setWeeklyData(
-        weeklyProgress.map((cal, index) => ({
-          day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index] ?? `Day ${index + 1}`,
-          burned: cal,
-          consumed: cal,
-        }))
-      );
-
-      const workoutsWeeklyRes = await API.get("/workouts/weekly-summary", {
-      headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setWeeklyWorkoutSummary(workoutsWeeklyRes.data ?? []);
-
-
-      // 6️⃣ Saved items
-      const workoutsRes = await API.get("/workouts", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSavedWorkouts(workoutsRes.data ?? []);
-
-      const mealsRes = await API.get("/meals", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSavedMeals(mealsRes.data ?? []);
-
-    } catch (error) {
-      console.error("Failed to fetch dashboard data", error);
+  // 🔹 Fetch everything on page load
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
     }
-  };
-  fetchData();
-}, [navigate]);
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    navigate("/login");
-    return;
-  }
-
-  const fetchData = async () => {
-    try {
-      // Dashboard summary
-      const dashRes = await API.get("/dashboard", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = dashRes.data ?? {};
-
-      
-
-      setSummaryData({
-        calories: { current: data.calories ?? 0, goal: 2200, label: "Cal" },
-        workouts: { current: totalWorkoutsThisWeek ?? 0, goal: 5, label: "Workouts" },
-        water: { current: data.water ?? 0, goal: 8, label: "Glasses" },
-      });
-
-      // Weekly chart data
-      const weeklyProgress = Array.isArray(data.weeklyProgress) ? data.weeklyProgress : [];
-      setWeeklyData(
-        weeklyProgress.map((cal, index) => ({
-          day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index] ?? `Day ${index + 1}`,
-          burned: cal,
-          consumed: cal,
-        }))
-      );
-
-      // Saved workouts
-      const workoutsRes = await API.get("/workouts", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSavedWorkouts(workoutsRes.data ?? []);
-
-      const handleStartWorkout = async (workout) => {
+    const fetchData = async () => {
       try {
-    const response = await API.post("/workouts/start", {
-      workoutId: workout.id,
-      });
+        // 1️⃣ Fetch dashboard summary
+        const dashRes = await API.get("/dashboard", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const dashData = dashRes.data ?? {};
 
-    if (!response.data) {
-      throw new Error("No response");
-    }
+        // 2️⃣ Fetch daily nutrition summary
+        const dailyRes = await API.get("/meals/daily-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const dailyData = dailyRes.data ?? {
+          totalCalories: 0,
+          totalProtein: 0,
+          totalCarbs: 0,
+          totalFats: 0,
+        };
 
-    navigate("/active-workout", {
-      state: { workout },
-    });
-  } catch (error) {
-    console.error(error);
-    alert("Failed to start workout");
-  }
-      };
+        setSummaryData({
+          calories: {
+            current: dailyData.totalCalories,
+            goal: 2200,
+            label: "Cal",
+          },
+          workouts: {
+            current: dashData.workouts ?? 0,
+            goal: 5,
+            label: "Workouts",
+          },
+          water: {
+            current: dashData.water ?? 0,
+            goal: 8,
+            label: "Glasses",
+          },
+        });
 
-      setSummaryData(prev => ({
-  ...prev,
-  workouts: {
-    current: totalWorkoutsThisWeek,
-    goal: 5,
-    label: "Workouts",
-  },
+        setDailySummary(dailyData);
+
+        // 3️⃣ Weekly nutrition summary
+        const weeklyRes = await API.get("/meals/weekly-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setWeeklySummary(weeklyRes.data ?? []);
+
+        // 4️⃣ Weekly chart data (burned vs consumed)
+        const weeklyProgress = Array.isArray(dashData.weeklyProgress)
+          ? dashData.weeklyProgress
+          : [];
+        setWeeklyData(
+          weeklyProgress.map((cal, index) => ({
+            day:
+              ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index] ??
+              `Day ${index + 1}`,
+            burned: cal,
+            consumed: cal,
+          }))
+        );
+
+        // 5️⃣ Weekly workout summary
+        const workoutsWeeklyRes = await API.get("/workouts/weekly-summary", {
+  headers: { Authorization: `Bearer ${token}` },
+});
+const data = workoutsWeeklyRes.data ?? [];
+
+// Ensure every item has totalCalories and day
+const formattedData = data.map(d => ({
+  day: d.day || new Date().toISOString(), // fallback today
+  totalCalories: d.totalCalories ?? 0
 }));
 
+setWeeklyWorkoutSummary(formattedData);
 
-      // Saved meals
+        // 🔹 FIX: convert missing totalWorkouts to 0 to avoid NaN
+        const safeWorkoutData = (workoutsWeeklyRes.data ?? []).map((d) => ({
+          day: d.day,
+          totalWorkouts: d.totalWorkouts ?? 0,
+        }));
+        setWeeklyWorkoutSummary(safeWorkoutData);
+
+        // 6️⃣ Saved workouts
+        const workoutsRes = await API.get("/workouts", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSavedWorkouts(workoutsRes.data ?? []);
+
+        // 7️⃣ Saved meals
+        const mealsRes = await API.get("/meals", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSavedMeals(mealsRes.data ?? []);
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+      }
+    };
+
+    fetchData();
+  }, [navigate]);
+
+  // 🔹 Single function to fetch weekly summary safely (used by chart)
+  const fetchWeeklySummary = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await API.get("/workouts/weekly-summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const safeData = (res.data ?? []).map((d) => ({
+        day: d.day,
+        totalWorkouts: d.totalWorkouts ?? 0,
+      }));
+      setWeeklyWorkoutSummary(safeData);
+      console.log("Weekly workout summary:", safeData);
+    } catch (err) {
+      console.error("Failed to fetch weekly workout summary", err);
+    }
+  };
+
+  // 🔹 Delete meal
+  const handleDeleteMeal = async (mealId) => {
+    const token = localStorage.getItem("token");
+    if (!token) return navigate("/login");
+    try {
+      await API.delete(`/meals/${mealId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const mealsRes = await API.get("/meals", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSavedMeals(mealsRes.data ?? []);
-
-      // Daily summary
       const dailyRes = await API.get("/meals/daily-summary", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setDailySummary(dailyRes.data ?? {
-        totalCalories: 0,
-        totalProtein: 0,
-        totalCarbs: 0,
-        totalFats: 0,
-      });
-
-      // Weekly summary
+      setDailySummary(
+        dailyRes.data ?? { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFats: 0 }
+      );
       const weeklyRes = await API.get("/meals/weekly-summary", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWeeklySummary(weeklyRes.data ?? []);
-
-      console.log("Weekly summary from backend:", weeklyRes.data); // 🔍 Inspect backend data
     } catch (error) {
-      console.error("Failed to fetch dashboard data", error);
+      console.error("Delete meal failed", error);
+      alert("Failed to delete meal");
     }
   };
 
-  fetchData();
-}, [navigate]);
+  // 🔹 Delete workout
+  const handleDeleteWorkout = async (workoutId) => {
+    try {
+      await API.delete(`/workouts/${workoutId}`);
+      setSavedWorkouts((prev) =>
+        prev.filter((workout) => workout.id !== workoutId)
+      );
+    } catch (error) {
+      console.error("Failed to delete workout", error);
+    }
+  };
 
-const handleDeleteMeal = async (mealId) => {
-  const token = localStorage.getItem("token");
-  if (!token) return navigate("/login");
+  // 🔹 Start workout
+  const handleStartWorkout = async (workoutId) => {
+    try {
+      const workout = savedWorkouts.find((w) => w.id === workoutId);
+      if (!workout) throw new Error("Workout not found");
 
-  try {
-    await API.delete(`/meals/${mealId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      const response = await API.post(
+        "/workouts/start",
+        { workoutId },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
 
-    // Refresh meals & summaries after deletion
-    const mealsRes = await API.get("/meals", { headers: { Authorization: `Bearer ${token}` }});
-    setSavedMeals(mealsRes.data ?? []);
+      if (!response.data) throw new Error("No response");
 
-    const dailyRes = await API.get("/meals/daily-summary", { headers: { Authorization: `Bearer ${token}` }});
-    setDailySummary(dailyRes.data ?? { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFats: 0 });
+      navigate("/active-workout", { state: { workout } });
+    } catch (error) {
+      console.error("Start workout error:", error);
+      alert("Failed to start workout");
+    }
+  };
 
-    const weeklyRes = await API.get("/meals/weekly-summary", { headers: { Authorization: `Bearer ${token}` }});
-    setWeeklySummary(weeklyRes.data ?? []);
-  } catch (error) {
-    console.error("Delete meal failed", error);
-    alert("Failed to delete meal");
-  }
-};
-
-const handleDeleteWorkout = async (workoutId) => {
-  try {
-    await API.delete(`/workouts/${workoutId}`);
-
-    setSavedWorkouts((prev) =>
-      prev.filter((workout) => workout.id !== workoutId)
-    );
-  } catch (error) {
-    console.error("Failed to delete workout", error);
-  }
-};
-
-
-
+  // 🔹 Utility
   const calculateProgress = (current, goal) => Math.min((current / goal) * 100, 100);
-
   const maxCalories = Math.max(
     ...weeklyData.map((d) => Math.max(d.burned || 0, d.consumed || 0)),
     1
   );
+  const maxWorkouts = Math.max(...weeklyWorkoutSummary.map((d) => d.totalWorkouts), 1);
 
   const dailyMacroData = [
-  { label: "Calories", value: dailySummary.totalCalories, max: 2500 },
-  { label: "Protein", value: dailySummary.totalProtein, max: 200 },
-  { label: "Carbs", value: dailySummary.totalCarbs, max: 300 },
-  { label: "Fats", value: dailySummary.totalFats, max: 100 },
-];
-
-  const maxWorkouts = Math.max(
-  ...weeklyWorkoutSummary.map(d => d.totalWorkouts),
-  1
-);
+    { label: "Calories", value: dailySummary.totalCalories, max: 2500 },
+    { label: "Protein", value: dailySummary.totalProtein, max: 200 },
+    { label: "Carbs", value: dailySummary.totalCarbs, max: 300 },
+    { label: "Fats", value: dailySummary.totalFats, max: 100 },
+  ];
 
 
 
@@ -418,70 +370,68 @@ const handleDeleteWorkout = async (workoutId) => {
 
 
 
-        {/* Weekly Summary Chart */}
         <div className="weekly-progress">
-          <h2 className="section-title">Weekly Progress</h2>
-          <div className="graph-container">
-            <div className="graph-legend">
-              <div className="legend-item">
-                <span className="legend-line burned"></span>Calories Burned
-              </div>
-              <div className="legend-item">
-                <span className="legend-line consumed"></span>Calories Consumed
-              </div>
+  <h2 className="section-title">Weekly Progress</h2>
+  <div className="graph-container">
+    <div className="graph">
+      <div className="graph-y-axis">
+        {[3500, 3000, 2500, 2000, 1500, 1000, 500, 0].map((v) => (
+          <div key={v} className="y-tick">{v}</div>
+        ))}
+      </div>
+      <div className="graph-content">
+        <svg
+          className="graph-svg"
+          viewBox="0 0 700 200"
+          preserveAspectRatio="none"
+        >
+          {/* Horizontal grid lines */}
+          {[0, 50, 100, 150, 200].map((y, i) => (
+            <line
+              key={i}
+              x1="0"
+              y1={y}
+              x2="700"
+              y2={y}
+              stroke="#00000033"
+              strokeWidth="1"
+            />
+          ))}
+
+          {/* Calories line */}
+          <polyline
+            points={weeklyWorkoutSummary
+              .map((d, i) => {
+                const maxCalories = Math.max(
+                  ...weeklyWorkoutSummary.map(w => w.totalCalories ?? 1)
+                );
+                const y = 200 - ((d.totalCalories ?? 0) / maxCalories) * 180;
+                const x = i * 100 + 50;
+                return `${x},${y}`;
+              })
+              .join(" ")}
+            fill="none"
+            stroke="#ff5722"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+
+        {/* X-axis */}
+        <div className="graph-x-axis">
+          {weeklyWorkoutSummary.map((d, i) => (
+            <div key={i} className="x-tick">
+              {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
             </div>
-            <div className="graph">
-              <div className="graph-y-axis">
-                {[3500, 3000, 2500, 2000, 0].map((v) => (
-                  <div key={v} className="y-tick">
-                    {v}
-                  </div>
-                ))}
-              </div>
-              <div className="graph-content">
-                <svg
-                  className="graph-svg"
-                  viewBox="0 0 700 200"
-                  preserveAspectRatio="none"
-                >
-                  {[0, 50, 100, 150, 200].map((y, i) => (
-                    <line
-                      key={i}
-                      x1="0"
-                      y1={y}
-                      x2="700"
-                      y2={y}
-                      stroke="#000000"
-                      strokeWidth="1"
-                    />
-                  ))}
-                  <polyline
-                    points={weeklySummary
-                      .map(
-                        (d, i) =>
-                          `${i * 100 + 50},${
-                            200 - (d.totalCalories / Math.max(...weeklySummary.map(w => w.totalCalories || 1))) * 180
-                          }`
-                      )
-                      .join(" ")}
-                    fill="none"
-                    stroke="#424242"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <div className="graph-x-axis">
-                  {weeklySummary.map((d, i) => (
-                    <div key={i} className="x-tick">
-                      {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
         {/* Saved Workouts */}
         <div className="saved-section">

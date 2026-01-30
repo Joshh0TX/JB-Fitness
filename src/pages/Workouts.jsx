@@ -79,55 +79,76 @@ function Workouts({ setSummaryData }) {
     fetchData()
   }, [navigate, token])
 
-  // 🔹 Start workout
-  const handleStartWorkout = async (workout) => {
-    try {
-      const startRes = await API.post(
-        '/workouts/start',
-        { workoutId: workout.id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+  // 🔹 Start workout (FIXED)
+const handleStartWorkout  = async (workout) => {
+    if (!token) {
+      alert("Session expired. Please log in again.");
+      navigate("/login");
+      return;
+    }
 
-      if (!startRes?.data) {
-        throw new Error('No response from server')
+    try {
+      const res = await fetch("http://localhost:5000/api/workouts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          workoutId: workout.id,
+        duration: workout.duration,
+        calories: workout.calories,
+        exercises: workout.exercises,
+        equipment: workout.equipment,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message);
       }
 
-      // Fetch updated weekly summary
-      const weeklyRes = await API.get('/workouts/weekly-summary', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      alert("Workout added to today ✅");
 
-      const updatedSummary = weeklyRes.data ?? []
-      setWeeklySummary(updatedSummary)
+    // 2️⃣ Fetch updated weekly summary
+    const weeklyRes = await API.get("/workouts/weekly-summary", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const totalWorkoutsThisWeek = updatedSummary.reduce(
-        (sum, day) => sum + (day.count ?? 0),
-        0
-      )
+    const updatedSummary = weeklyRes.data ?? [];
+    setWeeklySummary(updatedSummary);
 
-      setSummaryData(prev => ({
-        ...prev,
-        workouts: {
-          current: totalWorkoutsThisWeek,
-          goal: 5,
-          label: 'Workouts'
-        }
-      }))
+    // 3️⃣ Recalculate total workouts this week
+    const totalWorkoutsThisWeek = updatedSummary.reduce(
+      (sum, day) => sum + (day.count ?? 0),
+      0
+    );
 
-      navigate('/active-workout', { state: { workout } })
+    // 4️⃣ Update dashboard
+    setSummaryData((prev) => ({
+      ...prev,
+      workouts: {
+        current: totalWorkoutsThisWeek,
+        goal: 5,
+        label: "Workouts",
+      },
+    }));
 
-    } catch (error) {
-      console.error("FULL ERROR:", error);
-      
-      if (error.response) {
-    console.error("STATUS:", error.response.status);
-    console.error("DATA:", error.response.data);
-  }
+    // 5️⃣ Navigate
+    navigate("/active-workout", { state: { workout } });
 
-  alert("Failed to start workout");
+  } catch (error) {
+    console.error("FULL ERROR:", error);
 
+    if (error.response) {
+      console.error("STATUS:", error.response.status);
+      console.error("DATA:", error.response.data);
     }
+
+    alert("Failed to start workout");
   }
+};
+
 
   return (
     <div className="workouts-page">
