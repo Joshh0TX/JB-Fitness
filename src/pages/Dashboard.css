@@ -299,6 +299,7 @@
 }
 
 .graph-y-axis {
+  padding-bottom: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -538,6 +539,25 @@
   background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
 }
 
+.meal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-meal-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #d32f2f;
+}
+
+.delete-meal-btn:hover {
+  transform: scale(1.1);
+}
+
+
 @media (max-width: 768px) {
   .dashboard-header {
     padding: 20px 24px;
@@ -565,4 +585,16 @@
   }
 }
 
+.workout-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
 
+.delete-workout-btn {
+  background: transparent;
+  color: #e53935;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
