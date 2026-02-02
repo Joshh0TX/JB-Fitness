@@ -92,11 +92,10 @@ function Workouts({ setSummaryData }) {
       await API.post(
         '/workouts',
         {
-          name: workout.title,
+          // Backend expects { title, duration, calories_burned }
+          title: workout.title,
           duration: workout.duration,
-          calories: workout.calories,
-          exercises: workout.exercises,
-          equipment: workout.equipment,
+          calories_burned: workout.calories,
         },
         { headers: { Authorization: `Bearer ${token}` } },
       )
