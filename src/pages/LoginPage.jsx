@@ -1,38 +1,75 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import NotificationIcon from '../components/NotificationIcon'
-import LockIcon from '../components/LockIcon'
-import Logo from '../components/Logo'
-import './LoginPage.css'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import NotificationIcon from "../components/NotificationIcon";
+import LockIcon from "../components/LockIcon";
+import Logo from "../components/Logo";
+import API from "../api.js";
+import "./LoginPage.css";
 
 function LoginPage() {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    agreeToTerms: false
-  })
-  const navigate = useNavigate()
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    agreeToTerms: false,
+  });
+
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setFormData(prev => ({
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
-  }
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (formData.password === formData.confirmPassword && formData.agreeToTerms) {
-      navigate('/dashboard')
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) {
+      alert("Name is required");
+      return;
     }
-  }
+
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords must match!");
+      return;
+    }
+
+    if (!formData.agreeToTerms) {
+      alert("You must agree to the Terms of Service and Privacy Policy.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await API.post("/auth/register", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Save token
+      localStorage.setItem("token", response.data.token);
+
+      // Redirect to dashboard
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSocialLogin = (provider) => {
-    console.log(`Login with ${provider}`)
-    navigate('/dashboard')
-  }
+    console.log(`Login with ${provider}`);
+    navigate("/dashboard");
+  };
 
   return (
     <div className="login-page page-animate">
@@ -51,18 +88,34 @@ function LoginPage() {
       {/* Main Content */}
       <main className="login-main">
         <div className="login-card">
-          {/* Profile Placeholder */}
           <div className="profile-placeholder"></div>
 
           <h1 className="login-title">Create Your Account</h1>
-          <p className="login-subtitle">Join JBFitness and start your fitness journey today.</p>
+          <p className="login-subtitle">
+            Join JBFitness and start your fitness journey today.
+          </p>
 
           <form onSubmit={handleSubmit} className="login-form">
-            {/* Email Field */}
+            {/* Name */}
+            <div className="form-group">
+              <label htmlFor="name">Full Name</label>
+              <div className="input-wrapper">
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Email */}
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <div className="input-wrapper">
-                <span className="input-icon email-icon"></span>
                 <input
                   type="email"
                   id="email"
@@ -75,7 +128,7 @@ function LoginPage() {
               </div>
             </div>
 
-            {/* Password Field */}
+            {/* Password */}
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <div className="input-wrapper">
@@ -93,10 +146,12 @@ function LoginPage() {
                   minLength="8"
                 />
               </div>
-              <small className="password-hint">Must be at least 8 characters.</small>
+              <small className="password-hint">
+                Must be at least 8 characters.
+              </small>
             </div>
 
-            {/* Confirm Password Field */}
+            {/* Confirm Password */}
             <div className="form-group">
               <label htmlFor="confirmPassword">Confirm Password</label>
               <div className="input-wrapper">
@@ -115,7 +170,7 @@ function LoginPage() {
               </div>
             </div>
 
-            {/* Terms Checkbox */}
+            {/* Terms */}
             <div className="form-group checkbox-group">
               <label className="checkbox-label">
                 <input
@@ -125,32 +180,39 @@ function LoginPage() {
                   onChange={handleChange}
                   required
                 />
-                <span>I agree to the <a href="#terms">Terms of Service</a> and <a href="#privacy">Privacy Policy</a></span>
+                <span>
+                  I agree to the <a href="#terms">Terms of Service</a> and{" "}
+                  <a href="#privacy">Privacy Policy</a>
+                </span>
               </label>
             </div>
 
-            {/* Submit Button */}
-            <button type="submit" className="create-account-btn">Create Account</button>
+            <button
+              type="submit"
+              className="create-account-btn"
+              disabled={loading}
+            >
+              {loading ? "Creating account..." : "Create Account"}
+            </button>
           </form>
 
-          {/* Divider */}
           <div className="divider">
             <span>Or continue with</span>
           </div>
 
-          {/* Social Login Buttons */}
           <div className="social-login">
-            <button 
+            <button
               className="social-btn google-btn"
-              onClick={() => handleSocialLogin('Google')}
+              onClick={() => handleSocialLogin("Google")}
               type="button"
             >
               <span className="google-icon">G</span>
               <span>Google</span>
             </button>
-            <button 
+
+            <button
               className="social-btn facebook-btn"
-              onClick={() => handleSocialLogin('Facebook')}
+              onClick={() => handleSocialLogin("Facebook")}
               type="button"
             >
               <span className="facebook-icon">f</span>
@@ -158,33 +220,28 @@ function LoginPage() {
             </button>
           </div>
 
-          {/* Sign In Link */}
           <p className="sign-in-link">
-            Already have an account? <a href="#signin" onClick={(e) => { e.preventDefault(); navigate('/signin') }}>Sign in here</a>
+            Already have an account?{" "}
+            <a
+              href="#signin"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/signin");
+              }}
+            >
+              Sign in here
+            </a>
           </p>
         </div>
-
-        {/* Back to Login Link */}
-        <a href="#back" className="back-link" onClick={(e) => { e.preventDefault(); navigate('/login') }}>
-          <span className="back-arrow">←</span> Back to Login
-        </a>
       </main>
 
-      {/* Footer */}
       <footer className="login-footer">
         <div className="footer-content">
-          <p className="copyright">© 2026 JBFitness. All rights reserved.</p>
-          <nav className="footer-nav">
-            <a href="#privacy">Privacy</a>
-            <a href="#terms">Terms</a>
-            <a href="#support">Support</a>
-          </nav>
+          <p>© 2026 JBFitness. All rights reserved.</p>
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
-export default LoginPage
-
-
+export default LoginPage;

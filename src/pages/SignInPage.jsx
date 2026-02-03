@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import API from "../api.js"
 import LockIcon from '../components/LockIcon'
 import Logo from '../components/Logo'
 import './SignInPage.css'
@@ -9,6 +10,7 @@ function SignInPage() {
     email: '',
     password: ''
   })
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate()
 
   const handleChange = (e) => {
@@ -19,11 +21,32 @@ function SignInPage() {
     }))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Navigate to dashboard on successful sign in
-    navigate('/dashboard')
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+    console.log("LOGIN SUBMITTED");
+  setLoading(true);
+
+  try {
+    const response = await API.post("/auth/login", {
+      email: formData.email,
+      password: formData.password,
+    });
+
+    // Save token
+    const token = response.data.token;
+    localStorage.setItem("token", token);
+
+    // Redirect to dashboard
+    navigate("/dashboard");
+
+  } catch (error) {
+    console.error(error);
+    alert(error.response?.data?.message || "Login failed");
+  } finally {
+    setLoading(false);
   }
+};
+
 
   const handleSocialLogin = (provider) => {
     console.log(`Login with ${provider}`)
