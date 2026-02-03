@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import NotificationIcon from "../components/NotificationIcon";
+import API from "../api.js";
 import "./Nutrition.css";
 
 function Nutrition() {
@@ -58,20 +59,16 @@ function Nutrition() {
 
     try {
       const [dailyRes, weeklyRes] = await Promise.all([
-        fetch("http://localhost:5000/api/meals/summary/daily", {
+        API.get("/meals/daily-summary", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/meals/summary/weekly", {
+        API.get("/meals/weekly-summary", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
-      if (!dailyRes.ok || !weeklyRes.ok)
-        throw new Error("Failed to fetch summaries");
-
-      const dailyData = await dailyRes.json();
-      const weeklyData = await weeklyRes.json();
-      console.log("DAILY SUMMARY JSON FROM BACKEND:", dailyData);
+      const dailyData = dailyRes.data;
+      const weeklyData = weeklyRes.data;
 
       setDailySummary(dailyData);
       setWeeklySummary(weeklyData);
@@ -89,15 +86,17 @@ function Nutrition() {
     if (!token) return;
 
     try {
-      const dailyRes = await fetch("http://localhost:5000/api/meals/summary/daily", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (dailyRes.ok) setDailySummary(await dailyRes.json());
+      const [dailyRes, weeklyRes] = await Promise.all([
+        API.get("/meals/daily-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        API.get("/meals/weekly-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      const weeklyRes = await fetch("http://localhost:5000/api/meals/summary/weekly", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (weeklyRes.ok) setWeeklySummary(await weeklyRes.json());
+      setDailySummary(dailyRes.data);
+      setWeeklySummary(weeklyRes.data);
     } catch (error) {
       console.error("Failed to refresh nutrition data:", error);
     }
@@ -117,6 +116,37 @@ function Nutrition() {
     }
 
     try {
+      const res = await API.post(
+        "/meals",
+        {
+          name: meal.title,
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fats: meal.fats,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res?.data) {
+        throw new Error("Failed to add meal");
+      }
+
+      alert("Meal added to today");
+
+      // 🔄 Refresh daily and weekly summaries immediately
+      fetchSummaries();
+    } catch (error) {
+      console.error("Add meal error:", error);
+      alert(error.response?.data?.message || "Failed to add meal");
+    }
+
+    return;
+    /* legacy fetch version
       const res = await fetch("http://localhost:5000/api/meals", {
         method: "POST",
         headers: {
@@ -137,14 +167,15 @@ function Nutrition() {
         throw new Error(err.message || "Failed to add meal");
       }
 
-      alert("Meal added to today ✅");
+      alert("Meal added to today");
 
       // 🔄 Refresh daily and weekly summaries immediately
       fetchSummaries();
     } catch (error) {
       console.error("Add meal error:", error);
-      alert("Failed to add meal ❌");
+      alert("Failed to add meal");
     }
+    */
   };
 
   return (

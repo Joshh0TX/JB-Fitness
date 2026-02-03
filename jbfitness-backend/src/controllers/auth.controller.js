@@ -11,7 +11,18 @@ export const register = async (req, res) => {
       "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
       [name, email, hashedPassword]
     );
-    res.status(201).json({ id: result.insertId, name, email });
+    
+    // Generate JWT (match login behavior)
+    const token = jwt.sign(
+      { id: result.insertId, email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.status(201).json({
+      token,
+      user: { id: result.insertId, name, email },
+    });
   } catch (error) {
     console.error("Register ERROR:", error);
     res.status(500).json({ message: error.message });

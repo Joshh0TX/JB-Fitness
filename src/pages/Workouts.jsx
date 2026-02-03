@@ -79,75 +79,58 @@ function Workouts({ setSummaryData }) {
     fetchData()
   }, [navigate, token])
 
-  // 🔹 Start workout (FIXED)
-const handleStartWorkout  = async (workout) => {
+  // 🔹 Start workout (save to backend)
+  const handleStartWorkout = async (workout) => {
     if (!token) {
-      alert("Session expired. Please log in again.");
-      navigate("/login");
-      return;
+      alert('Session expired. Please log in again.')
+      navigate('/login')
+      return
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/workouts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      // recommendedWorkouts don't have ids; send useful fields.
+      await API.post(
+        '/workouts',
+        {
+          // Backend expects { title, duration, calories_burned }
+          title: workout.title,
+          duration: workout.duration,
+          calories_burned: workout.calories,
         },
-        body: JSON.stringify({
-          workoutId: workout.id,
-        duration: workout.duration,
-        calories: workout.calories,
-        exercises: workout.exercises,
-        equipment: workout.equipment,
-        }),
-      });
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message);
+      alert('Workout added to today')
+
+      // Refresh weekly summary
+      const weeklyRes = await API.get('/workouts/weekly-summary', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      const updatedSummary = weeklyRes.data ?? []
+      setWeeklySummary(updatedSummary)
+
+      // Update dashboard summary if provided (route doesn't pass it today)
+      const totalWorkoutsThisWeek = updatedSummary.reduce(
+        (sum, day) => sum + (day.count ?? day.totalWorkouts ?? 0),
+        0,
+      )
+
+      if (typeof setSummaryData === 'function') {
+        setSummaryData((prev) => ({
+          ...prev,
+          workouts: {
+            current: totalWorkoutsThisWeek,
+            goal: 5,
+            label: 'Workouts',
+          },
+        }))
       }
-
-      alert("Workout added to today ✅");
-
-    // 2️⃣ Fetch updated weekly summary
-    const weeklyRes = await API.get("/workouts/weekly-summary", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const updatedSummary = weeklyRes.data ?? [];
-    setWeeklySummary(updatedSummary);
-
-    // 3️⃣ Recalculate total workouts this week
-    const totalWorkoutsThisWeek = updatedSummary.reduce(
-      (sum, day) => sum + (day.count ?? 0),
-      0
-    );
-
-    // 4️⃣ Update dashboard
-    setSummaryData((prev) => ({
-      ...prev,
-      workouts: {
-        current: totalWorkoutsThisWeek,
-        goal: 5,
-        label: "Workouts",
-      },
-    }));
-
-    // 5️⃣ Navigate
-    navigate("/active-workout", { state: { workout } });
-
-  } catch (error) {
-    console.error("FULL ERROR:", error);
-
-    if (error.response) {
-      console.error("STATUS:", error.response.status);
-      console.error("DATA:", error.response.data);
+    } catch (error) {
+      console.error('Failed to start workout:', error)
+      alert(error.response?.data?.message || 'Failed to start workout')
     }
-
-    alert("Failed to start workout");
   }
-};
 
 
   return (
