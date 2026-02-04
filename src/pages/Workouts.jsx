@@ -1,9 +1,15 @@
 import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import NotificationIcon from '../components/NotificationIcon'
+import API from '../api'
 import './Workouts.css'
 
-function Workouts() {
+function Workouts({ setSummaryData }) {
   const navigate = useNavigate()
+  const token = localStorage.getItem('token')
+
+  const [savedWorkouts, setSavedWorkouts] = useState([])
+  const [weeklySummary, setWeeklySummary] = useState([])
 
   const recommendedWorkouts = [
     {
@@ -35,137 +41,162 @@ function Workouts() {
       exercises: 12,
       type: 'Flexibility',
       equipment: 'Yoga Mat'
-    },
-    {
-      title: 'Upper Body Power',
-      description: 'Intense upper body workout focusing on chest, back, and arms',
-      duration: 35,
-      calories: 280,
-      difficulty: 'Intermediate',
-      exercises: 9,
-      type: 'Strength',
-      equipment: 'Dumbbells, Pull-up Bar'
-    },
-    {
-      title: 'Core Crusher',
-      description: 'Targeted core workout for a strong and stable midsection',
-      duration: 25,
-      calories: 200,
-      difficulty: 'Intermediate',
-      exercises: 7,
-      type: 'Core',
-      equipment: 'Mat'
-    },
-    {
-      title: 'Leg Day Blast',
-      description: 'Comprehensive lower body workout for strength and power',
-      duration: 50,
-      calories: 380,
-      difficulty: 'Advanced',
-      exercises: 11,
-      type: 'Strength',
-      equipment: 'Barbell, Squat Rack'
-    },
-    {
-      title: 'Morning Stretch',
-      description: 'Gentle stretching routine to start your day right',
-      duration: 20,
-      calories: 80,
-      difficulty: 'Beginner',
-      exercises: 6,
-      type: 'Flexibility',
-      equipment: 'Mat'
-    },
-    {
-      title: 'Tabata Intervals',
-      description: 'Short bursts of high-intensity exercise with rest periods',
-      duration: 20,
-      calories: 250,
-      difficulty: 'Advanced',
-      exercises: 4,
-      type: 'Cardio',
-      equipment: 'None'
     }
   ]
 
-  const handleStartWorkout = (workout) => {
-    console.log('Starting workout:', workout.title)
-    // Start workout logic here
-  }
-
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
-      case 'Beginner':
-        return '#66bb6a'
-      case 'Intermediate':
-        return '#ffa726'
-      case 'Advanced':
-        return '#ef5350'
-      default:
-        return '#757575'
+      case 'Beginner': return '#66bb6a'
+      case 'Intermediate': return '#ffa726'
+      case 'Advanced': return '#ef5350'
+      default: return '#757575'
     }
   }
 
+  // 🔹 Fetch saved workouts + weekly summary
+  useEffect(() => {
+    if (!token) {
+      navigate('/login')
+      return
+    }
+
+    const fetchData = async () => {
+      try {
+        const workoutsRes = await API.get('/workouts', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setSavedWorkouts(workoutsRes.data ?? [])
+
+        const weeklyRes = await API.get('/workouts/weekly-summary', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setWeeklySummary(weeklyRes.data ?? [])
+      } catch (error) {
+        console.error('Failed to fetch workouts:', error)
+      }
+    }
+
+    fetchData()
+  }, [navigate, token])
+
+  // 🔹 Start workout (save to backend)
+  const handleStartWorkout = async (workout) => {
+    if (!token) {
+      alert('Session expired. Please log in again.')
+      navigate('/login')
+      return
+    }
+
+    try {
+      // recommendedWorkouts don't have ids; send useful fields.
+      await API.post(
+        '/workouts',
+        {
+          // Backend expects { title, duration, calories_burned }
+          title: workout.title,
+          duration: workout.duration,
+          calories_burned: workout.calories,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+
+      alert('Workout added to today')
+
+      // Refresh weekly summary
+      const weeklyRes = await API.get('/workouts/weekly-summary', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      const updatedSummary = weeklyRes.data ?? []
+      setWeeklySummary(updatedSummary)
+
+      // Update dashboard summary if provided (route doesn't pass it today)
+      const totalWorkoutsThisWeek = updatedSummary.reduce(
+        (sum, day) => sum + (day.count ?? day.totalWorkouts ?? 0),
+        0,
+      )
+
+      if (typeof setSummaryData === 'function') {
+        setSummaryData((prev) => ({
+          ...prev,
+          workouts: {
+            current: totalWorkoutsThisWeek,
+            goal: 5,
+            label: 'Workouts',
+          },
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to start workout:', error)
+      alert(error.response?.data?.message || 'Failed to start workout')
+    }
+  }
+
+
   return (
     <div className="workouts-page">
-      {/* Header */}
       <header className="workouts-header">
         <button className="back-button" onClick={() => navigate('/dashboard')}>
-          <span className="back-arrow">←</span>
+          ←
         </button>
         <h1 className="workouts-title">Workouts</h1>
         <div className="header-right">
           <NotificationIcon />
           <div className="profile-icon" onClick={() => navigate('/settings')}>
-            <span>JD</span>
+            JD
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="workouts-main">
         <div className="page-header">
           <h2>Recommended Workouts</h2>
-          <p className="page-subtitle">Choose from a variety of workouts designed to help you reach your fitness goals</p>
+          <p className="page-subtitle">
+            Choose from a variety of workouts designed to help you reach your fitness goals
+          </p>
         </div>
 
         <div className="workouts-grid">
           {recommendedWorkouts.map((workout, index) => (
             <div key={index} className="workout-card">
               <div className="workout-card-header">
-                <div>
-                  <div className="workout-badges">
-                    <span 
-                      className="difficulty-badge"
-                      style={{ backgroundColor: getDifficultyColor(workout.difficulty) + '20', color: getDifficultyColor(workout.difficulty) }}
-                    >
-                      {workout.difficulty}
-                    </span>
-                    <span className="type-badge">{workout.type}</span>
-                  </div>
-                  <h3 className="workout-title">{workout.title}</h3>
+                <div className="workout-badges">
+                  <span
+                    className="difficulty-badge"
+                    style={{
+                      backgroundColor: getDifficultyColor(workout.difficulty) + '20',
+                      color: getDifficultyColor(workout.difficulty)
+                    }}
+                  >
+                    {workout.difficulty}
+                  </span>
+                  <span className="type-badge">{workout.type}</span>
                 </div>
+                <h3 className="workout-title">{workout.title}</h3>
               </div>
+
               <p className="workout-description">{workout.description}</p>
+
               <div className="workout-info">
                 <div className="info-item">
-                  <span className="info-label">Duration</span>
-                  <span className="info-value">{workout.duration} min</span>
+                  <span>Duration</span>
+                  <span>{workout.duration} min</span>
                 </div>
                 <div className="info-item">
-                  <span className="info-label">Calories</span>
-                  <span className="info-value">{workout.calories} cal</span>
+                  <span>Calories</span>
+                  <span>{workout.calories} cal</span>
                 </div>
                 <div className="info-item">
-                  <span className="info-label">Exercises</span>
-                  <span className="info-value">{workout.exercises}</span>
+                  <span>Exercises</span>
+                  <span>{workout.exercises}</span>
                 </div>
                 <div className="info-item">
-                  <span className="info-label">Equipment</span>
-                  <span className="info-value">{workout.equipment}</span>
+                  <span>Equipment</span>
+                  <span>{workout.equipment}</span>
                 </div>
               </div>
-              <button 
+
+              <button
                 className="start-workout-btn"
                 onClick={() => handleStartWorkout(workout)}
               >
@@ -180,5 +211,3 @@ function Workouts() {
 }
 
 export default Workouts
-
-

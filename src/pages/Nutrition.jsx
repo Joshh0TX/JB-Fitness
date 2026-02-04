@@ -1,164 +1,256 @@
-import { useNavigate } from 'react-router-dom'
-import NotificationIcon from '../components/NotificationIcon'
-import './Nutrition.css'
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import NotificationIcon from "../components/NotificationIcon";
+import API from "../api.js";
+import "./Nutrition.css";
 
 function Nutrition() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
+  // ✅ States
+  const [dailySummary, setDailySummary] = useState({
+    totalCalories: 0,
+    totalProtein: 0,
+    totalCarbs: 0,
+    totalFats: 0,
+  });
+
+  const [weeklySummary, setWeeklySummary] = useState([]);
+
+  // Recommended meals
   const recommendedMeals = [
     {
-      title: 'Mediterranean Quinoa Bowl',
-      description: 'A balanced meal with quinoa, vegetables, and healthy fats',
+      title: "Mediterranean Quinoa Bowl",
+      description: "A balanced meal with quinoa, vegetables, and healthy fats",
       calories: 420,
       protein: 18,
       carbs: 55,
       fats: 12,
-      category: 'Lunch',
-      prepTime: '25 min'
+      category: "Lunch",
+      prepTime: "25 min",
     },
     {
-      title: 'Overnight Oats with Berries',
-      description: 'High-fiber breakfast with protein and antioxidants',
+      title: "Overnight Oats with Berries",
+      description: "High-fiber breakfast with protein and antioxidants",
       calories: 320,
       protein: 12,
       carbs: 48,
       fats: 8,
-      category: 'Breakfast',
-      prepTime: '5 min'
+      category: "Breakfast",
+      prepTime: "5 min",
     },
     {
-      title: 'Grilled Salmon with Vegetables',
-      description: 'Lean protein with roasted seasonal vegetables',
+      title: "Grilled Salmon with Vegetables",
+      description: "Lean protein with roasted seasonal vegetables",
       calories: 450,
       protein: 38,
       carbs: 25,
       fats: 20,
-      category: 'Dinner',
-      prepTime: '30 min'
+      category: "Dinner",
+      prepTime: "30 min",
     },
-    {
-      title: 'Greek Yogurt Parfait',
-      description: 'Protein-rich snack with fresh fruits and granola',
-      calories: 280,
-      protein: 20,
-      carbs: 35,
-      fats: 6,
-      category: 'Snack',
-      prepTime: '5 min'
-    },
-    {
-      title: 'Chicken and Vegetable Stir-Fry',
-      description: 'Quick and nutritious meal with lean chicken and colorful veggies',
-      calories: 380,
-      protein: 35,
-      carbs: 32,
-      fats: 12,
-      category: 'Dinner',
-      prepTime: '20 min'
-    },
-    {
-      title: 'Avocado Toast with Eggs',
-      description: 'Healthy fats and protein to start your day',
-      calories: 350,
-      protein: 18,
-      carbs: 28,
-      fats: 18,
-      category: 'Breakfast',
-      prepTime: '10 min'
-    },
-    {
-      title: 'Turkey and Hummus Wrap',
-      description: 'Lean protein wrap with vegetables and hummus',
-      calories: 390,
-      protein: 28,
-      carbs: 42,
-      fats: 12,
-      category: 'Lunch',
-      prepTime: '10 min'
-    },
-    {
-      title: 'Protein Smoothie Bowl',
-      description: 'Refreshing smoothie bowl with protein powder and toppings',
-      calories: 310,
-      protein: 25,
-      carbs: 38,
-      fats: 6,
-      category: 'Breakfast',
-      prepTime: '8 min'
-    }
-  ]
+  ];
 
-  const handleAddMeal = (meal) => {
-    console.log('Adding meal:', meal.title)
-    // Add to today's meals logic here
-  }
+
+  // ✅ Fetch initial daily & weekly summaries
+  const fetchSummaries = async () => {
+    if (!token) return;
+
+    try {
+      const [dailyRes, weeklyRes] = await Promise.all([
+        API.get("/meals/daily-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        API.get("/meals/weekly-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      const dailyData = dailyRes.data;
+      const weeklyData = weeklyRes.data;
+
+      setDailySummary(dailyData);
+      setWeeklySummary(weeklyData);
+    } catch (error) {
+      console.error("Summary fetch error:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSummaries();
+  }, []);
+
+  // ✅ Refresh daily & weekly summaries
+  const refreshNutritionData = async () => {
+    if (!token) return;
+
+    try {
+      const [dailyRes, weeklyRes] = await Promise.all([
+        API.get("/meals/daily-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        API.get("/meals/weekly-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      setDailySummary(dailyRes.data);
+      setWeeklySummary(weeklyRes.data);
+    } catch (error) {
+      console.error("Failed to refresh nutrition data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return navigate("/login");
+    refreshNutritionData();
+  }, [token, navigate]);
+
+  // ✅ Add meal and refresh summaries immediately
+  const addToToday = async (meal) => {
+    if (!token) {
+      alert("Session expired. Please log in again.");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const res = await API.post(
+        "/meals",
+        {
+          name: meal.title,
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fats: meal.fats,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res?.data) {
+        throw new Error("Failed to add meal");
+      }
+
+      alert("Meal added to today");
+
+      // 🔄 Refresh daily and weekly summaries immediately
+      fetchSummaries();
+    } catch (error) {
+      console.error("Add meal error:", error);
+      alert(error.response?.data?.message || "Failed to add meal");
+    }
+
+    return;
+    /* legacy fetch version
+      const res = await fetch("http://localhost:5000/api/meals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: meal.title,
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fats: meal.fats,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to add meal");
+      }
+
+      alert("Meal added to today");
+
+      // 🔄 Refresh daily and weekly summaries immediately
+      fetchSummaries();
+    } catch (error) {
+      console.error("Add meal error:", error);
+      alert("Failed to add meal");
+    }
+    */
+  };
 
   return (
     <div className="nutrition-page">
-      {/* Header */}
       <header className="nutrition-header">
-        <button className="back-button" onClick={() => navigate('/dashboard')}>
-          <span className="back-arrow">←</span>
+        <button className="back-button" onClick={() => navigate("/dashboard")}>
+          ←
         </button>
-        <h1 className="nutrition-title">Nutrition</h1>
-        <div className="header-right">
-          <NotificationIcon />
-          <div className="profile-icon" onClick={() => navigate('/settings')}>
-            <span>JD</span>
-          </div>
-        </div>
+        <h1>Nutrition</h1>
+        <NotificationIcon />
       </header>
 
-      {/* Main Content */}
       <main className="nutrition-main">
-        <div className="page-header">
-          <h2>Recommended Meals</h2>
-          <p className="page-subtitle">Discover healthy meal options tailored to your fitness goals</p>
-        </div>
-
         <div className="meals-grid">
           {recommendedMeals.map((meal, index) => (
             <div key={index} className="meal-card">
-              <div className="meal-card-header">
-                <div>
-                  <span className="meal-category">{meal.category}</span>
-                  <h3 className="meal-title">{meal.title}</h3>
-                </div>
-                <span className="prep-time">{meal.prepTime}</span>
-              </div>
-              <p className="meal-description">{meal.description}</p>
+              <h3>{meal.title}</h3>
+              <p>{meal.description}</p>
+
               <div className="meal-nutrition">
-                <div className="nutrition-item">
-                  <span className="nutrition-label">Calories</span>
-                  <span className="nutrition-value">{meal.calories}</span>
-                </div>
-                <div className="nutrition-item">
-                  <span className="nutrition-label">Protein</span>
-                  <span className="nutrition-value">{meal.protein}g</span>
-                </div>
-                <div className="nutrition-item">
-                  <span className="nutrition-label">Carbs</span>
-                  <span className="nutrition-value">{meal.carbs}g</span>
-                </div>
-                <div className="nutrition-item">
-                  <span className="nutrition-label">Fats</span>
-                  <span className="nutrition-value">{meal.fats}g</span>
-                </div>
+                <span>{meal.calories} cal</span>
+                <span>{meal.protein}g protein</span>
+                <span>{meal.carbs}g carbs</span>
+                <span>{meal.fats}g fats</span>
               </div>
-              <button 
+
+              <button
                 className="add-meal-btn"
-                onClick={() => handleAddMeal(meal)}
+                onClick={() => addToToday(meal)}
               >
                 Add to Today
               </button>
             </div>
           ))}
         </div>
+
+        {/* ✅ Updated Daily Summary */}
+        <div className="daily-summary">
+          <h2>Today's Meals Summary</h2>
+          <p>Calories: {dailySummary.totalCalories}</p>
+          <p>Protein: {dailySummary.totalProtein}g</p>
+          <p>Carbs: {dailySummary.totalCarbs}g</p>
+          <p>Fats: {dailySummary.totalFats}g</p>
+        </div>
+
+        {/* ✅ Weekly Chart */}
+        <div className="weekly-summary">
+          <h2>Weekly Progress (Calories)</h2>
+          <div className="chart">
+            {weeklySummary.length === 0 ? (
+              <p>No meals this week</p>
+            ) : (
+              <div className="bar-chart">
+                {weeklySummary.map((day, i) => (
+                  <div key={i} className="bar-container">
+                    <div
+                      className="bar"
+                      style={{
+                        height: `${(day.totalCalories / 3000) * 100}%`,
+                      }}
+                    ></div>
+                    <span className="bar-label">
+                      {new Date(day.day).toLocaleDateString("en-US", {
+                        weekday: "short",
+                      })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </main>
     </div>
-  )
+  );
 }
 
-export default Nutrition
-
-
+export default Nutrition;
