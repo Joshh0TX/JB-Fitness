@@ -11,8 +11,8 @@ function Dashboard() {
   // Existing summary data
   const [summaryData, setSummaryData] = useState({
     calories: { current: 0, goal: 2200, label: "Cal" },
-    workouts: { current: 1, goal: 5, label: "Workouts" },
-    water: { current: 3, goal: 8, label: "Glasses" },
+    workouts: { current: 0, goal: 5, label: "Workouts" },
+    water: { current: 0, goal: 8, label: "Glasses" },
   });
 
   // Daily summary
@@ -46,18 +46,30 @@ function Dashboard() {
         const dashRes = await API.get("/dashboard", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const dashData = dashRes.data ?? {};
+      
 
         // 2️⃣ Fetch daily nutrition summary
         const dailyRes = await API.get("/meals/daily-summary", {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+
+        // 3️⃣ Weekly workouts summary
+        const weeklyRes = await API.get("/workouts/weekly-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      
+
         const dailyData = dailyRes.data ?? {
           totalCalories: 0,
           totalProtein: 0,
           totalCarbs: 0,
           totalFats: 0,
         };
+
+        const dashData = weeklyRes.data ?? {
+          totalCalories: 0
+        }
 
         setSummaryData({
           calories: {
@@ -78,12 +90,9 @@ function Dashboard() {
         });
 
         setDailySummary(dailyData);
-
-        // 3️⃣ Weekly nutrition summary
-        const weeklyRes = await API.get("/meals/weekly-summary", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setWeeklySummary(weeklyRes.data ?? []);
+        setWeeklyWorkoutSummary(dashData);
+        
+        
 
         // 4️⃣ Weekly chart data (burned vs consumed)
         const weeklyProgress = Array.isArray(dashData.weeklyProgress)
@@ -101,24 +110,23 @@ function Dashboard() {
 
         // 5️⃣ Weekly workout summary
         const workoutsWeeklyRes = await API.get("/workouts/weekly-summary", {
-  headers: { Authorization: `Bearer ${token}` },
-});
-const data = workoutsWeeklyRes.data ?? [];
+        headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = workoutsWeeklyRes.data ?? [{
+        day: "",
+        burned: 0,
+        consumed: 1000
 
-// Ensure every item has totalCalories and day
-const formattedData = data.map(d => ({
-  day: d.day || new Date().toISOString(), // fallback today
-  totalCalories: d.totalCalories ?? 0
+      }];
+
+const weeklyWorkoutData = (workoutsWeeklyRes.data ?? []).map(d => ({
+  day: d.day || new Date().toISOString(),   // fallback day
+  totalCalories: d.totalCalories ?? 0,      // used by calorie line
+  totalWorkouts: d.totalWorkouts ?? 0       // used by workout stats
 }));
 
-setWeeklyWorkoutSummary(formattedData);
+setWeeklyWorkoutSummary(weeklyWorkoutData);
 
-        // 🔹 FIX: convert missing totalWorkouts to 0 to avoid NaN
-        const safeWorkoutData = (workoutsWeeklyRes.data ?? []).map((d) => ({
-          day: d.day,
-          totalWorkouts: d.totalWorkouts ?? 0,
-        }));
-        setWeeklyWorkoutSummary(safeWorkoutData);
 
         // 6️⃣ Saved workouts
         const workoutsRes = await API.get("/workouts", {
@@ -138,25 +146,6 @@ setWeeklyWorkoutSummary(formattedData);
 
     fetchData();
   }, [navigate]);
-
-  // 🔹 Single function to fetch weekly summary safely (used by chart)
-  const fetchWeeklySummary = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    try {
-      const res = await API.get("/workouts/weekly-summary", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const safeData = (res.data ?? []).map((d) => ({
-        day: d.day,
-        totalWorkouts: d.totalWorkouts ?? 0,
-      }));
-      setWeeklyWorkoutSummary(safeData);
-      console.log("Weekly workout summary:", safeData);
-    } catch (err) {
-      console.error("Failed to fetch weekly workout summary", err);
-    }
-  };
 
   // 🔹 Delete meal
   const handleDeleteMeal = async (mealId) => {
@@ -371,7 +360,7 @@ setWeeklyWorkoutSummary(formattedData);
 
 
         <div className="weekly-progress">
-  <h2 className="section-title">Weekly Progress</h2>
+  <h2 className="section-title">Daily Progress</h2>
   <div className="graph-container">
     <div className="graph">
       <div className="graph-y-axis">
@@ -393,8 +382,8 @@ setWeeklyWorkoutSummary(formattedData);
               y1={y}
               x2="700"
               y2={y}
-              stroke="#00000033"
-              strokeWidth="1"
+              stroke="#0c0c0c33"
+              strokeWidth="1.5"
             />
           ))}
 

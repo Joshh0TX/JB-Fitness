@@ -33,7 +33,11 @@ export const createWorkout = async (req, res) => {
     const { title, duration, calories_burned } = req.body;
 
     const [result] = await db.query(
-      "INSERT INTO workouts (user_id, title, duration, calories_burned) VALUES (?, ?, ?, ?)",
+      `
+      INSERT INTO workouts 
+      (user_id, title, duration, calories_burned, created_at)
+      VALUES (?, ?, ?, ?, NOW())
+      `,
       [userId, title, duration, calories_burned]
     );
 
@@ -49,6 +53,7 @@ export const createWorkout = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // PUT update a workout by ID
 export const updateWorkout = async (req, res) => {

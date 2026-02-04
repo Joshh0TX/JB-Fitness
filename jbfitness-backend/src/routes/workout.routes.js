@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/", authMiddleware, getWorkouts);
 router.get("/weekly-summary", authMiddleware, getWeeklyWorkoutSummary);
-router.post("/", authMiddleware, createWorkout);
+router.post("/start", authMiddleware, createWorkout);
 router.put("/:id", authMiddleware, updateWorkout);
 router.delete("/:id", authMiddleware, deleteWorkout);
 
