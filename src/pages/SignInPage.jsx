@@ -1,57 +1,65 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import API from "../api.js"
-import LockIcon from '../components/LockIcon'
-import Logo from '../components/Logo'
-import './SignInPage.css'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import API from "../api.js";
+import LockIcon from '../components/LockIcon';
+import Logo from '../components/Logo';
+import './SignInPage.css';
 
 function SignInPage() {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
-  })
+    password: '',
+    rememberMe: false,
+  });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-    console.log("LOGIN SUBMITTED");
-  setLoading(true);
+    e.preventDefault();
 
-  try {
-    const response = await API.post("/auth/login", {
-      email: formData.email,
-      password: formData.password,
-    });
+    // Basic validation
+    if (!formData.email.trim() || !formData.password.trim()) {
+      alert("Email and password are required");
+      return;
+    }
 
-    // Save token
-    const token = response.data.token;
-    localStorage.setItem("token", token);
+    setLoading(true);
 
-    // Redirect to dashboard
-    navigate("/dashboard");
+    try {
+      const response = await API.post("/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
 
-  } catch (error) {
-    console.error(error);
-    alert(error.response?.data?.message || "Login failed");
-  } finally {
-    setLoading(false);
-  }
-};
+      const { token, user } = response.data;
 
+      // Save token & user info
+      localStorage.setItem("token", token);
+      if (user) localStorage.setItem("user", JSON.stringify(user));
+
+      // Redirect to dashboard
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login error:", error);
+      const msg = error.response?.data?.msg || error.response?.data?.message || "Login failed";
+      alert(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSocialLogin = (provider) => {
-    console.log(`Login with ${provider}`)
-    navigate('/dashboard')
-  }
+    console.log(`Login with ${provider}`);
+    navigate('/dashboard');
+  };
 
   return (
     <div className="signin-page page-animate">
@@ -74,7 +82,7 @@ function SignInPage() {
           <p className="signin-subtitle">Sign in to continue your fitness journey</p>
 
           <form onSubmit={handleSubmit} className="signin-form">
-            {/* Email Field */}
+            {/* Email */}
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <div className="input-wrapper">
@@ -91,7 +99,7 @@ function SignInPage() {
               </div>
             </div>
 
-            {/* Password Field */}
+            {/* Password */}
             <div className="form-group">
               <div className="password-label-row">
                 <label htmlFor="password">Password</label>
@@ -113,19 +121,23 @@ function SignInPage() {
               </div>
             </div>
 
-            {/* Remember Me Checkbox */}
+            {/* Remember Me */}
             <div className="form-group checkbox-group">
               <label className="checkbox-label">
                 <input
                   type="checkbox"
                   name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
                 />
                 <span>Remember me</span>
               </label>
             </div>
 
             {/* Submit Button */}
-            <button type="submit" className="signin-btn">Sign In</button>
+            <button type="submit" className="signin-btn" disabled={loading}>
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
           </form>
 
           {/* Divider */}
@@ -133,7 +145,7 @@ function SignInPage() {
             <span>Or continue with</span>
           </div>
 
-          {/* Social Login Buttons */}
+          {/* Social Login */}
           <div className="social-login">
             <button 
               className="social-btn google-btn"
@@ -177,9 +189,7 @@ function SignInPage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
-export default SignInPage
-
-
+export default SignInPage;

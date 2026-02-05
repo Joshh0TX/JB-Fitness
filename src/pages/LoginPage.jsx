@@ -8,7 +8,7 @@ import "./LoginPage.css";
 
 function LoginPage() {
   const [formData, setFormData] = useState({
-    name: "",
+    username: "", // renamed from 'name'
     email: "",
     password: "",
     confirmPassword: "",
@@ -29,16 +29,23 @@ function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
-      alert("Name is required");
+    // Validation
+    if (!formData.username.trim()) {
+      alert("Username is required");
       return;
     }
-
+    if (!formData.email.trim()) {
+      alert("Email is required");
+      return;
+    }
+    if (formData.password.length < 8) {
+      alert("Password must be at least 8 characters");
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords must match!");
       return;
     }
-
     if (!formData.agreeToTerms) {
       alert("You must agree to the Terms of Service and Privacy Policy.");
       return;
@@ -48,19 +55,24 @@ function LoginPage() {
 
     try {
       const response = await API.post("/auth/register", {
-        name: formData.name,
+        username: formData.username,
         email: formData.email,
         password: formData.password,
       });
 
-      // Save token
+      // Save JWT token & user info
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
       // Redirect to dashboard
       navigate("/dashboard");
     } catch (error) {
-      console.error(error);
-      alert(error.response?.data?.message || "Registration failed");
+      console.error("Registration error:", error);
+      const msg =
+        error.response?.data?.msg ||
+        error.response?.data?.message ||
+        "Registration failed";
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -96,16 +108,16 @@ function LoginPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="login-form">
-            {/* Name */}
+            {/* Username */}
             <div className="form-group">
-              <label htmlFor="name">Full Name</label>
+              <label htmlFor="username">Full Name</label>
               <div className="input-wrapper">
                 <input
                   type="text"
-                  id="name"
-                  name="name"
+                  id="username"
+                  name="username"
                   placeholder="John Doe"
-                  value={formData.name}
+                  value={formData.username}
                   onChange={handleChange}
                   required
                 />
