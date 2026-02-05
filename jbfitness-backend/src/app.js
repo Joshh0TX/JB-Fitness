@@ -22,7 +22,7 @@ const app = express();
 
 /* Middleware */
 app.use(cors({
-  origin: "https://jb-fitness.vercel.app", // <-- your Vercel frontend URL
+  origin: process.env.ALLOWED_ORIGINS, // <-- your Vercel frontend URL
   credentials: true
 }));
 app.use(express.json()); // parse JSON bodies
