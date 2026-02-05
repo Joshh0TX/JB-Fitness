@@ -201,7 +201,7 @@ const demoAdapter = async (config) => {
 
 const API = axios.create({
   // Prefer env for prod (Vercel), fallback for local dev.
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://jbfitness-backend.onrender.com",
   adapter: DEMO_MODE ? demoAdapter : undefined,
 });
 
