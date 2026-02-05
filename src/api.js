@@ -91,14 +91,12 @@ function makeDemoResponse(config, data, status = 200) {
 }
 
 const demoAdapter = async (config) => {
-  // Normalize url (axios passes `/path` typically)
-  const url = (config.url || "").replace(/^\//, "");
+  const url = (config.url || "").replace(/^\/+/, ""); // Remove leading slashes
   const method = (config.method || "get").toLowerCase();
   const body = safeJsonParse(config.data, {});
 
   // Auth
   if (url === "auth/register" && method === "post") {
-    // Minimal demo user creation; stores token just like real flow.
     const demoUser = { id: 1, name: body.name || "Demo User", email: body.email || "demo@jbfitness.com" };
     setStore("demo.user", demoUser);
     return makeDemoResponse(config, { token: "demo-token", user: demoUser }, 201);
@@ -179,39 +177,32 @@ const demoAdapter = async (config) => {
     const { daily, weekly } = computeMealSummaries(meals);
     const workoutWeekly = computeWorkoutWeekly(workouts);
 
-    // mimic backend response shape
     const weeklyProgress = weekly.map((d) => d.totalCalories);
     const todayWorkouts = workoutWeekly.find((d) => d.day === todayISO())?.totalWorkouts || 0;
 
-    return makeDemoResponse(
-      config,
-      {
-        calories: daily.totalCalories,
-        workouts: todayWorkouts,
-        water: 3,
-        weeklyProgress,
-      },
-      200
-    );
+    return makeDemoResponse(config, { calories: daily.totalCalories, workouts: todayWorkouts, water: 3, weeklyProgress }, 200);
   }
 
-  // Default: return empty success for unknown endpoint so UI remains demo-friendly
+  // Default demo
   return makeDemoResponse(config, {}, 200);
 };
 
+// ----------------------------
+// Axios instance
+// ----------------------------
 const API = axios.create({
-  // Prefer env for prod (Vercel), fallback for local dev.
-  baseURL: import.meta.env.VITE_API_BASE_URL || "https://jbfitness-backend.onrender.com",
+  baseURL: (import.meta.env.VITE_API_BASE_URL || "https://jbfitness-backend.onrender.com").replace(/\/+$/, ""), // remove trailing slash
   adapter: DEMO_MODE ? demoAdapter : undefined,
 });
 
-// 🔐 Attach token automatically to every request
+// Automatically attach token + normalize URL
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (config.url) {
+      config.url = config.url.replace(/^\/+/, ""); // remove leading slash
     }
 
     return config;
