@@ -51,6 +51,11 @@ app.get("/", (req, res) => {
   res.json({ message: "JBFitness API is running" });
 });
 
+app.get("/test", (req, res) => {
+  res.send("Backend is working");
+});
+
+
 /* Global error handler (optional but recommended) */
 app.use((err, req, res, next) => {
   console.error(err.stack);
