@@ -54,7 +54,7 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await API.post("/auth/register", {
+      const response = await API.post("/api/auth/register", {
         username: formData.username,
         email: formData.email,
         password: formData.password,
