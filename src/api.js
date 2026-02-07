@@ -108,19 +108,19 @@ const demoAdapter = async (config) => {
   }
 
   // Meals
-  if (url === "/api/meals/daily-summary" && method === "get") {
+  if (url === "/meals/daily-summary" && method === "get") {
     const meals = getStore("demo.meals", []);
     const { daily } = computeMealSummaries(meals);
     return makeDemoResponse(config, daily, 200);
   }
 
-  if (url === "/api/meals/weekly-summary" && method === "get") {
+  if (url === "/meals/weekly-summary" && method === "get") {
     const meals = getStore("demo.meals", []);
     const { weekly } = computeMealSummaries(meals);
     return makeDemoResponse(config, weekly, 200);
   }
 
-  if (url === "/api/meals" && method === "post") {
+  if (url === "/meals" && method === "post") {
     const meals = getStore("demo.meals", []);
     const nextId = meals.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1;
     meals.unshift({
@@ -137,18 +137,18 @@ const demoAdapter = async (config) => {
     return makeDemoResponse(config, { message: "Meal added successfully", mealId: nextId }, 201);
   }
 
-  if (url === "/api/meals" && method === "get") {
+  if (url === "/meals" && method === "get") {
     const meals = getStore("demo.meals", []);
     return makeDemoResponse(config, meals, 200);
   }
 
   // Workouts
-  if (url === "/api/workouts/weekly-summary" && method === "get") {
+  if (url === "/workouts/weekly-summary" && method === "get") {
     const workouts = getStore("demo.workouts", []);
     return makeDemoResponse(config, computeWorkoutWeekly(workouts), 200);
   }
 
-  if (url === "/api/workouts" && method === "post") {
+  if (url === "/workouts" && method === "post") {
     const workouts = getStore("demo.workouts", []);
     const nextId = workouts.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1;
     workouts.unshift({
@@ -163,13 +163,13 @@ const demoAdapter = async (config) => {
     return makeDemoResponse(config, { id: nextId }, 201);
   }
 
-  if (url === "/api/workouts" && method === "get") {
+  if (url === "/workouts" && method === "get") {
     const workouts = getStore("demo.workouts", []);
     return makeDemoResponse(config, workouts, 200);
   }
 
   // Dashboard
-  if (url === "/api/dashboard" && method === "get") {
+  if (url === "/dashboard" && method === "get") {
     const meals = getStore("demo.meals", []);
     const workouts = getStore("demo.workouts", []);
 
@@ -190,7 +190,7 @@ const demoAdapter = async (config) => {
 // Axios instance
 // ----------------------------
 const API = axios.create({
-  baseURL: (import.meta.env.VITE_API_BASE_URL || "https://jbfitness-backend.onrender.com").replace(/\/+$/, ""), // remove trailing slash
+  baseURL: (import.meta.env.VITE_API_BASE_URL || "https://jbfitness-backend.onrender.com/api").replace(/\/+$/, ""), // remove trailing slash
   adapter: DEMO_MODE ? demoAdapter : undefined,
 });
 
