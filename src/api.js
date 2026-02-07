@@ -91,7 +91,6 @@ function makeDemoResponse(config, data, status = 200) {
 }
 
 const demoAdapter = async (config) => {
-  const url = (config.url || "").replace(/^\/+/, ""); // Remove leading slashes
   const method = (config.method || "get").toLowerCase();
   const body = safeJsonParse(config.data, {});
 
