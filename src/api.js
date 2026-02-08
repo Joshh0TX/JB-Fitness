@@ -191,7 +191,7 @@ const demoAdapter = async (config) => {
 // Axios instance
 // ----------------------------
 const API = axios.create({
-  baseURL: (import.meta.env.VITE_API_BASE_URL || "https://jbfitness-backend.onrender.com/api").replace(/\/+$/, ""), // remove trailing slash
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   adapter: DEMO_MODE ? demoAdapter : undefined,
 });
 
