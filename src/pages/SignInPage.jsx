@@ -34,7 +34,7 @@ function SignInPage() {
     setLoading(true);
 
     try {
-      const response = await API.post("/auth/login", {
+      const response = await API.post("auth/login", {
         email: formData.email,
         password: formData.password,
       });
