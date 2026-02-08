@@ -146,36 +146,6 @@ function Nutrition() {
     }
 
     return;
-    /* legacy fetch version
-      const res = await fetch("http://localhost:5000/api/meals", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: meal.title,
-          calories: meal.calories,
-          protein: meal.protein,
-          carbs: meal.carbs,
-          fats: meal.fats,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Failed to add meal");
-      }
-
-      alert("Meal added to today");
-
-      // 🔄 Refresh daily and weekly summaries immediately
-      fetchSummaries();
-    } catch (error) {
-      console.error("Add meal error:", error);
-      alert("Failed to add meal");
-    }
-    */
   };
 
   return (
@@ -210,43 +180,6 @@ function Nutrition() {
               </button>
             </div>
           ))}
-        </div>
-
-        {/* ✅ Updated Daily Summary */}
-        <div className="daily-summary">
-          <h2>Today's Meals Summary</h2>
-          <p>Calories: {dailySummary.totalCalories}</p>
-          <p>Protein: {dailySummary.totalProtein}g</p>
-          <p>Carbs: {dailySummary.totalCarbs}g</p>
-          <p>Fats: {dailySummary.totalFats}g</p>
-        </div>
-
-        {/* ✅ Weekly Chart */}
-        <div className="weekly-summary">
-          <h2>Weekly Progress (Calories)</h2>
-          <div className="chart">
-            {weeklySummary.length === 0 ? (
-              <p>No meals this week</p>
-            ) : (
-              <div className="bar-chart">
-                {weeklySummary.map((day, i) => (
-                  <div key={i} className="bar-container">
-                    <div
-                      className="bar"
-                      style={{
-                        height: `${(day.totalCalories / 3000) * 100}%`,
-                      }}
-                    ></div>
-                    <span className="bar-label">
-                      {new Date(day.day).toLocaleDateString("en-US", {
-                        weekday: "short",
-                      })}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </main>
     </div>
