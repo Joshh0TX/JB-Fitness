@@ -36,26 +36,26 @@ function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      navigate("/login");
+      navigate("/api/login");
       return;
     }
 
     const fetchData = async () => {
       try {
         // 1️⃣ Fetch dashboard summary
-        const dashRes = await API.get("/dashboard", {
+        const dashRes = await API.get("/api/dashboard", {
           headers: { Authorization: `Bearer ${token}` },
         });
       
 
         // 2️⃣ Fetch daily nutrition summary
-        const dailyRes = await API.get("/meals/daily-summary", {
+        const dailyRes = await API.get("/api/meals/daily-summary", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
 
         // 3️⃣ Weekly workouts summary
-        const weeklyRes = await API.get("/workouts/weekly-summary", {
+        const weeklyRes = await API.get("/api/workouts/weekly-summary", {
           headers: { Authorization: `Bearer ${token}` },
         });
       
@@ -109,7 +109,7 @@ function Dashboard() {
         );
 
         // 5️⃣ Weekly workout summary
-        const workoutsWeeklyRes = await API.get("/workouts/weekly-summary", {
+        const workoutsWeeklyRes = await API.get("/api/workouts/weekly-summary", {
         headers: { Authorization: `Bearer ${token}` },
         });
         const data = workoutsWeeklyRes.data ?? [{
@@ -129,13 +129,13 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
 
 
         // 6️⃣ Saved workouts
-        const workoutsRes = await API.get("/workouts", {
+        const workoutsRes = await API.get("/api/workouts", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSavedWorkouts(workoutsRes.data ?? []);
 
         // 7️⃣ Saved meals
-        const mealsRes = await API.get("/meals", {
+        const mealsRes = await API.get("/api/meals", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSavedMeals(mealsRes.data ?? []);
@@ -150,22 +150,22 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
   // 🔹 Delete meal
   const handleDeleteMeal = async (mealId) => {
     const token = localStorage.getItem("token");
-    if (!token) return navigate("/login");
+    if (!token) return navigate("/api/login");
     try {
-      await API.delete(`/meals/${mealId}`, {
+      await API.delete(`/api/meals/${mealId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const mealsRes = await API.get("/meals", {
+      const mealsRes = await API.get("/api/meals", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSavedMeals(mealsRes.data ?? []);
-      const dailyRes = await API.get("/meals/daily-summary", {
+      const dailyRes = await API.get("/api/meals/daily-summary", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDailySummary(
         dailyRes.data ?? { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFats: 0 }
       );
-      const weeklyRes = await API.get("/meals/weekly-summary", {
+      const weeklyRes = await API.get("/api/meals/weekly-summary", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWeeklySummary(weeklyRes.data ?? []);
@@ -178,7 +178,7 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
   // 🔹 Delete workout
   const handleDeleteWorkout = async (workoutId) => {
     try {
-      await API.delete(`/workouts/${workoutId}`);
+      await API.delete(`/api/workouts/${workoutId}`);
       setSavedWorkouts((prev) =>
         prev.filter((workout) => workout.id !== workoutId)
       );
@@ -194,7 +194,7 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
       if (!workout) throw new Error("Workout not found");
 
       const response = await API.post(
-        "/workouts/start",
+        "/api/workouts/start",
         { workoutId },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
