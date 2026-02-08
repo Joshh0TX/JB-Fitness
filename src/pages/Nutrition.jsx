@@ -59,10 +59,10 @@ function Nutrition() {
 
     try {
       const [dailyRes, weeklyRes] = await Promise.all([
-        API.get("/meals/daily-summary", {
+        API.get("/api/meals/daily-summary", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        API.get("/meals/weekly-summary", {
+        API.get("/api/meals/weekly-summary", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -87,10 +87,10 @@ function Nutrition() {
 
     try {
       const [dailyRes, weeklyRes] = await Promise.all([
-        API.get("/meals/daily-summary", {
+        API.get("/api/meals/daily-summary", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        API.get("/meals/weekly-summary", {
+        API.get("/api/meals/weekly-summary", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -103,7 +103,7 @@ function Nutrition() {
   };
 
   useEffect(() => {
-    if (!token) return navigate("/login");
+    if (!token) return navigate("/api/login");
     refreshNutritionData();
   }, [token, navigate]);
 
@@ -111,13 +111,13 @@ function Nutrition() {
   const addToToday = async (meal) => {
     if (!token) {
       alert("Session expired. Please log in again.");
-      navigate("/login");
+      navigate("/api/login");
       return;
     }
 
     try {
       const res = await API.post(
-        "/meals",
+        "/api/meals",
         {
           name: meal.title,
           calories: meal.calories,
