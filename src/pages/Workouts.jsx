@@ -62,7 +62,7 @@ function Workouts({ setSummaryData }) {
 
     const fetchData = async () => {
       try {
-        const workoutsRes = await API.get('/api/workouts/start', {
+        const workoutsRes = await API.get('/api/workouts', {
           headers: { Authorization: `Bearer ${token}` }
         })
         setSavedWorkouts(workoutsRes.data ?? [])
@@ -90,7 +90,7 @@ function Workouts({ setSummaryData }) {
     try {
       // recommendedWorkouts don't have ids; send useful fields.
       await API.post(
-        '/api/workouts',
+        '/api/workouts/start',
         {
           // Backend expects { title, duration, calories_burned }
           title: workout.title,
