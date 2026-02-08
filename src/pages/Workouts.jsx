@@ -62,7 +62,7 @@ function Workouts({ setSummaryData }) {
 
     const fetchData = async () => {
       try {
-        const workoutsRes = await API.get('/api/workouts', {
+        const workoutsRes = await API.get('/api/workouts/start', {
           headers: { Authorization: `Bearer ${token}` }
         })
         setSavedWorkouts(workoutsRes.data ?? [])
