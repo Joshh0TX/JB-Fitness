@@ -56,7 +56,7 @@ function Workouts({ setSummaryData }) {
   // 🔹 Fetch saved workouts + weekly summary
   useEffect(() => {
     if (!token) {
-      navigate('/login')
+      navigate('/api/login')
       return
     }
 
@@ -83,14 +83,14 @@ function Workouts({ setSummaryData }) {
   const handleStartWorkout = async (workout) => {
     if (!token) {
       alert('Session expired. Please log in again.')
-      navigate('/login')
+      navigate('/api/login')
       return
     }
 
     try {
       // recommendedWorkouts don't have ids; send useful fields.
       await API.post(
-        '/workouts',
+        '/api/workouts',
         {
           // Backend expects { title, duration, calories_burned }
           title: workout.title,
@@ -103,7 +103,7 @@ function Workouts({ setSummaryData }) {
       alert('Workout added to today')
 
       // Refresh weekly summary
-      const weeklyRes = await API.get('/workouts/weekly-summary', {
+      const weeklyRes = await API.get('/api/workouts/weekly-summary', {
         headers: { Authorization: `Bearer ${token}` },
       })
 
