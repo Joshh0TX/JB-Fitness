@@ -387,24 +387,26 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
             />
           ))}
 
-          {/* Calories line */}
-          <polyline
-            points={weeklyWorkoutSummary
-              .map((d, i) => {
-                const maxCalories = Math.max(
-                  ...weeklyWorkoutSummary.map(w => w.totalCalories ?? 1)
-                );
-                const y = 200 - ((d.totalCalories ?? 0) / maxCalories) * 180;
-                const x = i * 100 + 50;
-                return `${x},${y}`;
-              })
-              .join(" ")}
-            fill="none"
-            stroke="#ff5722"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          {/* Calories bars */}
+          {weeklyWorkoutSummary.map((d, i) => {
+            const maxCalories = Math.max(
+              ...weeklyWorkoutSummary.map(w => w.totalCalories ?? 1)
+            );
+            const height = ((d.totalCalories ?? 0) / maxCalories) * 180;
+            const x = i * 90 + 20;
+            const y = 200 - height;
+            return (
+              <rect
+                key={i}
+                x={x}
+                y={y}
+                width="60"
+                height={height}
+                rx="6"
+                fill="#ff5722"
+              />
+            );
+          })}
         </svg>
 
         {/* X-axis */}
