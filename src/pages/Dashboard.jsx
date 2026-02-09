@@ -393,14 +393,16 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
               ...weeklyWorkoutSummary.map(w => w.totalCalories ?? 1)
             );
             const height = ((d.totalCalories ?? 0) / maxCalories) * 180;
-            const x = i * 90 + 20;
+            const barWidth = 50;
+            const dayWidth = 700 / 7;
+            const x = i * dayWidth + (dayWidth - barWidth) / 2;
             const y = 200 - height;
             return (
               <rect
                 key={i}
                 x={x}
                 y={y}
-                width="60"
+                width={barWidth}
                 height={height}
                 rx="6"
                 fill="#ff5722"
