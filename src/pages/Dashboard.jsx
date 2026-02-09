@@ -178,7 +178,7 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
   // 🔹 Delete workout
   const handleDeleteWorkout = async (workoutId) => {
     try {
-      await API.delete(`/api/workouts/start/${workoutId}`);
+      await API.delete(`/api/workouts/${workoutId}`);
       setSavedWorkouts((prev) =>
         prev.filter((workout) => workout.id !== workoutId)
       );
