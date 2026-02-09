@@ -15,6 +15,9 @@ function Dashboard() {
     water: { current: 0, goal: 8, label: "Glasses" },
   });
 
+  // User initials
+  const [userInitials, setUserInitials] = useState("JD");
+
   // Daily summary
   const [dailySummary, setDailySummary] = useState({
     totalCalories: 0,
@@ -38,6 +41,24 @@ function Dashboard() {
     if (!token) {
       navigate("/api/login");
       return;
+    }
+
+    // 🔹 Get user initials from localStorage
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        const username = user.username || user.name || "User";
+        const initials = username
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+        setUserInitials(initials || "JD");
+      }
+    } catch (error) {
+      console.error("Failed to parse user from localStorage:", error);
     }
 
     const fetchData = async () => {
@@ -242,7 +263,7 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
         <div className="header-right">
           <NotificationIcon />
           <div className="profile-icon" onClick={() => navigate("/settings")}>
-            <span>JD</span>
+            <span>{userInitials}</span>
           </div>
         </div>
       </header>
