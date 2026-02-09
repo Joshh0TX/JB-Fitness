@@ -129,7 +129,7 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
 
 
         // 6️⃣ Saved workouts
-        const workoutsRes = await API.get("/api/workouts/start", {
+        const workoutsRes = await API.get("/api/workouts", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSavedWorkouts(workoutsRes.data ?? []);
