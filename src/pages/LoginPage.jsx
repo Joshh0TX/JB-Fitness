@@ -212,26 +212,6 @@ function LoginPage() {
             <span>Or continue with</span>
           </div>
 
-          <div className="social-login">
-            <button
-              className="social-btn google-btn"
-              onClick={() => handleSocialLogin("Google")}
-              type="button"
-            >
-              <span className="google-icon">G</span>
-              <span>Google</span>
-            </button>
-
-            <button
-              className="social-btn facebook-btn"
-              onClick={() => handleSocialLogin("Facebook")}
-              type="button"
-            >
-              <span className="facebook-icon">f</span>
-              <span>Facebook</span>
-            </button>
-          </div>
-
           <p className="sign-in-link">
             Already have an account?{" "}
             <a
