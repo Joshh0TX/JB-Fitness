@@ -1,9 +1,18 @@
 import axios from "axios";
 
-/**
- * Search for nutrition data from Nutritionix API
- * Free API endpoint (no key required)
- */
+const USDA_SEARCH = "https://api.nal.usda.gov/fdc/v1/foods/search";
+const USDA_FOOD = "https://api.nal.usda.gov/fdc/v1/food";
+
+function findNutrientValue(nutrients = [], matchWords = []) {
+  const lower = (s) => (s || "").toLowerCase();
+  for (const n of nutrients) {
+    const name = lower(n.nutrientName || n.name || (n.nutrient && n.nutrient.name) || "");
+    const value = n.value ?? n.amount ?? (n.nutrient && n.nutrient.value) ?? 0;
+    if (matchWords.some((w) => name.includes(w))) return value || 0;
+  }
+  return 0;
+}
+
 export const searchNutrition = async (req, res) => {
   try {
     const { query } = req.body;
@@ -12,126 +21,91 @@ export const searchNutrition = async (req, res) => {
       return res.status(400).json({ message: "Search query is required" });
     }
 
-    // Nutritionix Natural Nutrients Endpoint
-    // No API key required for this endpoint
-    const nutritionixUrl = "https://api.nutritionix.com/v2/natural/nutrients";
+    if (!process.env.USDA_API_KEY) {
+      return res.status(500).json({
+        message: "USDA API key not configured. Set USDA_API_KEY in your backend .env",
+      });
+    }
 
     const response = await axios.post(
-      nutritionixUrl,
-      { query: query.trim() },
-      {
-        headers: {
-          "x-app-id": process.env.NUTRITIONIX_APP_ID || "1",
-          "x-app-key": process.env.NUTRITIONIX_API_KEY || "nix_application_id",
-          "Content-Type": "application/json",
-        },
-      }
+      `${USDA_SEARCH}?api_key=${process.env.USDA_API_KEY}`,
+      { query: query.trim(), pageSize: 10 },
+      { headers: { "Content-Type": "application/json" } }
     );
 
-    // Extract nutrition data from response
-    const results = response.data.foods || [];
+    const foods = response.data.foods || [];
 
-    if (results.length === 0) {
-      return res.status(404).json({
-        message: "No nutrition data found for that query",
-        results: [],
-      });
+    if (foods.length === 0) {
+      return res.status(404).json({ message: "No foods found", results: [] });
     }
 
-    // Parse and return clean nutrition data
-    const cleanedResults = results.map((food) => ({
-      name: food.food_name || "Unknown",
-      serving_qty: food.serving_qty || 1,
-      serving_unit: food.serving_unit || "serving",
-      calories: Math.round(food.nf_calories || 0),
-      protein: Math.round(food.nf_protein || 0),
-      carbs: Math.round(food.nf_total_carbohydrate || 0),
-      fats: Math.round(food.nf_total_fat || 0),
-      fiber: Math.round(food.nf_dietary_fiber || 0),
-      sugar: Math.round(food.nf_sugars || 0),
-    }));
+    const cleaned = foods.map((f) => {
+      const nutrients = f.foodNutrients || f.foodNutrients || [];
 
-    res.status(200).json({
-      message: "Nutrition data found",
-      results: cleanedResults,
+      const calories = findNutrientValue(nutrients, ["energy", "calories"]) || 0;
+      const protein = findNutrientValue(nutrients, ["protein"]) || 0;
+      const carbs = findNutrientValue(nutrients, ["carbohydrate", "carb"]) || 0;
+      const fats = findNutrientValue(nutrients, ["fat", "total lipid"]) || 0;
+
+      return {
+        name: f.description || f.foodName || f.brandName || "Unknown",
+        fdcId: f.fdcId,
+        brandOwner: f.brandOwner || f.brandName || null,
+        calories: Math.round(calories),
+        protein: Math.round(protein),
+        carbs: Math.round(carbs),
+        fats: Math.round(fats),
+      };
     });
+
+    res.status(200).json({ message: "Found", results: cleaned });
   } catch (error) {
-    console.error("Nutritionix API error:", error.message);
-
-    // Handle specific error cases
-    if (error.response?.status === 401) {
-      return res.status(401).json({
-        message: "Nutritionix API authentication failed",
-      });
-    }
-
-    if (error.response?.status === 404) {
-      return res.status(404).json({
-        message: "No foods found matching your search",
-        results: [],
-      });
-    }
-
-    res.status(500).json({
-      message: "Failed to fetch nutrition data",
+    console.error("USDA search error:", error?.response?.data || error.message);
+    const status = error.response?.status || 500;
+    return res.status(status).json({
+      message: error.response?.data?.message || "USDA search failed",
       error: error.message,
     });
   }
 };
 
-/**
- * Get detailed nutrition info with optional serving size multiplier
- */
 export const getNutritionDetails = async (req, res) => {
   try {
-    const { food_name, quantity = 1 } = req.body;
+    const { fdcId, quantity = 1 } = req.body;
 
-    if (!food_name) {
-      return res
-        .status(400)
-        .json({ message: "Food name is required" });
+    if (!fdcId) {
+      return res.status(400).json({ message: "fdcId is required" });
     }
 
-    const nutritionixUrl = "https://api.nutritionix.com/v2/natural/nutrients";
-
-    const response = await axios.post(
-      nutritionixUrl,
-      { query: `${quantity} ${food_name}` },
-      {
-        headers: {
-          "x-app-id": process.env.NUTRITIONIX_APP_ID || "1",
-          "x-app-key": process.env.NUTRITIONIX_API_KEY || "nix_application_id",
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const food = response.data.foods?.[0];
-
-    if (!food) {
-      return res.status(404).json({
-        message: "Food not found",
+    if (!process.env.USDA_API_KEY) {
+      return res.status(500).json({
+        message: "USDA API key not configured. Set USDA_API_KEY in your backend .env",
       });
     }
 
+    const response = await axios.get(`${USDA_FOOD}/${fdcId}?api_key=${process.env.USDA_API_KEY}`);
+    const food = response.data;
+
+    const nutrients = food.foodNutrients || [];
+
+    const calories = findNutrientValue(nutrients, ["energy", "calories"]) || 0;
+    const protein = findNutrientValue(nutrients, ["protein"]) || 0;
+    const carbs = findNutrientValue(nutrients, ["carbohydrate"]) || 0;
+    const fats = findNutrientValue(nutrients, ["fat", "total lipid"]) || 0;
+
+    const multiplier = Number(quantity) || 1;
+
     res.status(200).json({
-      name: food.food_name,
-      serving_qty: food.serving_qty,
-      serving_unit: food.serving_unit,
-      calories: Math.round(food.nf_calories),
-      protein: Math.round(food.nf_protein),
-      carbs: Math.round(food.nf_total_carbohydrate),
-      fats: Math.round(food.nf_total_fat),
-      fiber: Math.round(food.nf_dietary_fiber),
-      sugar: Math.round(food.nf_sugars),
-      potassium: Math.round(food.nf_potassium || 0),
-      sodium: Math.round(food.nf_sodium || 0),
+      name: food.description || food.foodName || "Unknown",
+      fdcId: food.fdcId,
+      calories: Math.round((calories || 0) * multiplier),
+      protein: Math.round((protein || 0) * multiplier),
+      carbs: Math.round((carbs || 0) * multiplier),
+      fats: Math.round((fats || 0) * multiplier),
     });
   } catch (error) {
-    console.error("Nutrition details error:", error.message);
-    res.status(500).json({
-      message: "Failed to fetch nutrition details",
-      error: error.message,
-    });
+    console.error("USDA details error:", error?.response?.data || error.message);
+    const status = error.response?.status || 500;
+    return res.status(status).json({ message: "Failed to fetch food details", error: error.message });
   }
 };
