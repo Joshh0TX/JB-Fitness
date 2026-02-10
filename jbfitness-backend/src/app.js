@@ -17,7 +17,9 @@ import nutritionRoutes from "./routes/nutrition.routes.js";
 // Import DB (just to confirm connection at startup)
 import db from "./config/db.js";
 
-dotenv.config(); // load .env variables
+// Load correct .env file based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
+dotenv.config({ path: envFile });
 
 const app = express();
 
