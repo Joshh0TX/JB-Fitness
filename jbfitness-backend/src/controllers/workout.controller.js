@@ -107,7 +107,8 @@ export const getWeeklyWorkoutSummary = async (req, res) => {
     const sql = `
       SELECT 
         DATE(created_at) AS day,
-        COUNT(*) AS totalWorkouts
+        COUNT(*) AS totalWorkouts,
+        SUM(calories_burned) AS totalCalories
       FROM workouts
       WHERE user_id = ?
         AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)

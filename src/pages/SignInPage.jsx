@@ -140,30 +140,7 @@ function SignInPage() {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="divider">
-            <span>Or continue with</span>
-          </div>
-
-          {/* Social Login */}
-          <div className="social-login">
-            <button 
-              className="social-btn google-btn"
-              onClick={() => handleSocialLogin('Google')}
-              type="button"
-            >
-              <span className="google-icon">G</span>
-              <span>Google</span>
-            </button>
-            <button 
-              className="social-btn facebook-btn"
-              onClick={() => handleSocialLogin('Facebook')}
-              type="button"
-            >
-              <span className="facebook-icon">f</span>
-              <span>Facebook</span>
-            </button>
-          </div>
+          {/* (social login removed) */}
 
           {/* Sign Up Link */}
           <p className="sign-up-link">
