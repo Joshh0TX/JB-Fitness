@@ -12,6 +12,7 @@ import metricsRoutes from "./routes/metrics.routes.js";
 import userRoutes from "./routes/userRoutes.js";
 import mealsRoutes from "./routes/meals.routes.js";
 import userProfileRoutes from "./routes/user.profile.routes.js";
+import nutritionRoutes from "./routes/nutrition.routes.js";
 
 // Import DB (just to confirm connection at startup)
 import db from "./config/db.js";
@@ -45,6 +46,7 @@ app.use("/api/metrics", metricsRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/meals", mealsRoutes);
 app.use("/api/users", userProfileRoutes);
+app.use("/api/nutrition", nutritionRoutes);
 
 /* Health check route */
 app.get("/", (req, res) => {

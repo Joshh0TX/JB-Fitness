@@ -445,6 +445,300 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
   </div>
 </div>
 
+{/* Weekly Macros Chart */}
+<div className="weekly-progress">
+  <h2 className="section-title">Weekly Macro Breakdown</h2>
+  <div className="graph-container">
+    <div className="graph">
+      <div className="graph-y-axis">
+        {[300, 250, 200, 150, 100, 50, 0].map((v) => (
+          <div key={v} className="y-tick">{v}g</div>
+        ))}
+      </div>
+      <div className="graph-content">
+        <svg
+          className="graph-svg"
+          viewBox="0 0 700 200"
+          preserveAspectRatio="none"
+        >
+          {/* Grid lines */}
+          {[0, 50, 100, 150, 200].map((y, i) => (
+            <line
+              key={i}
+              x1="0"
+              y1={y}
+              x2="700"
+              y2={y}
+              stroke="#0c0c0c33"
+              strokeWidth="1.5"
+            />
+          ))}
+
+          {/* Protein bars */}
+          {weeklySummary.map((d, i) => {
+            const maxMacro = Math.max(
+              ...weeklySummary.map(w => Math.max(w.totalProtein ?? 0, w.totalCarbs ?? 0, w.totalFats ?? 0))
+            );
+            const proteinHeight = ((d.totalProtein ?? 0) / (maxMacro || 1)) * 180;
+            const carbsHeight = ((d.totalCarbs ?? 0) / (maxMacro || 1)) * 180;
+            const fatsHeight = ((d.totalFats ?? 0) / (maxMacro || 1)) * 180;
+            
+            const barWidth = 12;
+            const dayWidth = 700 / 7;
+            const groupX = i * dayWidth + (dayWidth - 50) / 2;
+
+            return (
+              <g key={i}>
+                {/* Protein */}
+                <rect
+                  x={groupX}
+                  y={200 - proteinHeight}
+                  width={barWidth}
+                  height={proteinHeight}
+                  rx="3"
+                  fill="#4caf50"
+                />
+                {/* Carbs */}
+                <rect
+                  x={groupX + 15}
+                  y={200 - carbsHeight}
+                  width={barWidth}
+                  height={carbsHeight}
+                  rx="3"
+                  fill="#ffc107"
+                />
+                {/* Fats */}
+                <rect
+                  x={groupX + 30}
+                  y={200 - fatsHeight}
+                  width={barWidth}
+                  height={fatsHeight}
+                  rx="3"
+                  fill="#ff9800"
+                />
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* X-axis */}
+        <div className="graph-x-axis">
+          {weeklySummary.map((d, i) => (
+            <div key={i} className="x-tick">
+              {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Legend */}
+    <div className="chart-legend">
+      <div className="legend-item">
+        <div className="legend-color" style={{ backgroundColor: '#4caf50' }}></div>
+        <span>Protein</span>
+      </div>
+      <div className="legend-item">
+        <div className="legend-color" style={{ backgroundColor: '#ffc107' }}></div>
+        <span>Carbs</span>
+      </div>
+      <div className="legend-item">
+        <div className="legend-color" style={{ backgroundColor: '#ff9800' }}></div>
+        <span>Fats</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{/* Today's Macro Distribution */}
+<div className="macro-cards">
+  <h2 className="section-title">Today's Macro Distribution</h2>
+  <div className="macro-grid">
+    <div className="macro-card protein">
+      <div className="macro-circle">
+        <svg viewBox="0 0 100 100" className="macro-pie">
+          <circle cx="50" cy="50" r="45" fill="#f5f5f5" />
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="#4caf50"
+            strokeWidth="8"
+            strokeDasharray={`${(dailySummary.totalProtein / 200) * 282.7} 282.7`}
+            transform="rotate(-90 50 50)"
+          />
+        </svg>
+        <div className="macro-label">
+          <p className="macro-value">{dailySummary.totalProtein}</p>
+          <p className="macro-unit">g</p>
+        </div>
+      </div>
+      <h3>Protein</h3>
+      <p className="macro-goal">Goal: 200g</p>
+      <div className="macro-progress">
+        <div
+          className="macro-progress-bar"
+          style={{
+            width: `${Math.min((dailySummary.totalProtein / 200) * 100, 100)}%`,
+            backgroundColor: '#4caf50',
+          }}
+        ></div>
+      </div>
+    </div>
+
+    <div className="macro-card carbs">
+      <div className="macro-circle">
+        <svg viewBox="0 0 100 100" className="macro-pie">
+          <circle cx="50" cy="50" r="45" fill="#f5f5f5" />
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="#ffc107"
+            strokeWidth="8"
+            strokeDasharray={`${(dailySummary.totalCarbs / 300) * 282.7} 282.7`}
+            transform="rotate(-90 50 50)"
+          />
+        </svg>
+        <div className="macro-label">
+          <p className="macro-value">{dailySummary.totalCarbs}</p>
+          <p className="macro-unit">g</p>
+        </div>
+      </div>
+      <h3>Carbs</h3>
+      <p className="macro-goal">Goal: 300g</p>
+      <div className="macro-progress">
+        <div
+          className="macro-progress-bar"
+          style={{
+            width: `${Math.min((dailySummary.totalCarbs / 300) * 100, 100)}%`,
+            backgroundColor: '#ffc107',
+          }}
+        ></div>
+      </div>
+    </div>
+
+    <div className="macro-card fats">
+      <div className="macro-circle">
+        <svg viewBox="0 0 100 100" className="macro-pie">
+          <circle cx="50" cy="50" r="45" fill="#f5f5f5" />
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="#ff9800"
+            strokeWidth="8"
+            strokeDasharray={`${(dailySummary.totalFats / 100) * 282.7} 282.7`}
+            transform="rotate(-90 50 50)"
+          />
+        </svg>
+        <div className="macro-label">
+          <p className="macro-value">{dailySummary.totalFats}</p>
+          <p className="macro-unit">g</p>
+        </div>
+      </div>
+      <h3>Fats</h3>
+      <p className="macro-goal">Goal: 100g</p>
+      <div className="macro-progress">
+        <div
+          className="macro-progress-bar"
+          style={{
+            width: `${Math.min((dailySummary.totalFats / 100) * 100, 100)}%`,
+            backgroundColor: '#ff9800',
+          }}
+        ></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{/* Weekly Calories Trend */}
+<div className="weekly-progress">
+  <h2 className="section-title">Weekly Calories Trend</h2>
+  <div className="graph-container">
+    <div className="graph">
+      <div className="graph-y-axis">
+        {[3000, 2500, 2000, 1500, 1000, 500, 0].map((v) => (
+          <div key={v} className="y-tick">{v}</div>
+        ))}
+      </div>
+      <div className="graph-content">
+        <svg
+          className="graph-svg"
+          viewBox="0 0 700 200"
+          preserveAspectRatio="none"
+        >
+          {/* Grid lines */}
+          {[0, 50, 100, 150, 200].map((y, i) => (
+            <line
+              key={i}
+              x1="0"
+              y1={y}
+              x2="700"
+              y2={y}
+              stroke="#0c0c0c33"
+              strokeWidth="1.5"
+            />
+          ))}
+
+          {/* Line chart */}
+          {weeklySummary.length > 0 && (
+            <polyline
+              points={weeklySummary
+                .map((d, i) => {
+                  const maxCals = Math.max(
+                    ...weeklySummary.map(w => w.totalCalories ?? 0),
+                    2500
+                  );
+                  const x = (i / (weeklySummary.length - 1)) * 700;
+                  const y = 200 - ((d.totalCalories ?? 0) / maxCals) * 180;
+                  return `${x},${y}`;
+                })
+                .join(" ")}
+              stroke="#2e7d32"
+              strokeWidth="3"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )}
+
+          {/* Data points */}
+          {weeklySummary.map((d, i) => {
+            const maxCals = Math.max(
+              ...weeklySummary.map(w => w.totalCalories ?? 0),
+              2500
+            );
+            const x = (i / (weeklySummary.length - 1)) * 700;
+            const y = 200 - ((d.totalCalories ?? 0) / maxCals) * 180;
+            return (
+              <circle
+                key={i}
+                cx={x}
+                cy={y}
+                r="4"
+                fill="#2e7d32"
+              />
+            );
+          })}
+        </svg>
+
+        {/* X-axis */}
+        <div className="graph-x-axis">
+          {weeklySummary.map((d, i) => (
+            <div key={i} className="x-tick">
+              {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
         {/* Saved Workouts */}
