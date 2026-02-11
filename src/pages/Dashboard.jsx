@@ -11,7 +11,7 @@ function Dashboard() {
   // Existing summary data
   const [summaryData, setSummaryData] = useState({
     calories: { current: 0, goal: 2200, label: "Cal" },
-    workouts: { current: 0, goal: 5, label: "Workouts" },
+    workouts: { current: 0, goal: 7, label: "Workouts" },
     water: { current: 0, goal: 8, label: "Glasses" },
   });
 
@@ -100,7 +100,7 @@ function Dashboard() {
           },
           workouts: {
             current: dashData.workouts ?? 0,
-            goal: 5,
+            goal: 7,
             label: "Workouts",
           },
           water: {
@@ -445,111 +445,6 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
   </div>
 </div>
 
-{/* Weekly Macros Chart */}
-<div className="weekly-progress">
-  <h2 className="section-title">Weekly Macro Breakdown</h2>
-  <div className="graph-container">
-    <div className="graph">
-      <div className="graph-y-axis">
-        {[300, 250, 200, 150, 100, 50, 0].map((v) => (
-          <div key={v} className="y-tick">{v}g</div>
-        ))}
-      </div>
-      <div className="graph-content">
-        <svg
-          className="graph-svg"
-          viewBox="0 0 700 200"
-          preserveAspectRatio="none"
-        >
-          {/* Grid lines */}
-          {[0, 50, 100, 150, 200].map((y, i) => (
-            <line
-              key={i}
-              x1="0"
-              y1={y}
-              x2="700"
-              y2={y}
-              stroke="#0c0c0c33"
-              strokeWidth="1.5"
-            />
-          ))}
-
-          {/* Protein bars */}
-          {weeklySummary.map((d, i) => {
-            const maxMacro = Math.max(
-              ...weeklySummary.map(w => Math.max(w.totalProtein ?? 0, w.totalCarbs ?? 0, w.totalFats ?? 0))
-            );
-            const proteinHeight = ((d.totalProtein ?? 0) / (maxMacro || 1)) * 180;
-            const carbsHeight = ((d.totalCarbs ?? 0) / (maxMacro || 1)) * 180;
-            const fatsHeight = ((d.totalFats ?? 0) / (maxMacro || 1)) * 180;
-            
-            const barWidth = 12;
-            const dayWidth = 700 / 7;
-            const groupX = i * dayWidth + (dayWidth - 50) / 2;
-
-            return (
-              <g key={i}>
-                {/* Protein */}
-                <rect
-                  x={groupX}
-                  y={200 - proteinHeight}
-                  width={barWidth}
-                  height={proteinHeight}
-                  rx="3"
-                  fill="#4caf50"
-                />
-                {/* Carbs */}
-                <rect
-                  x={groupX + 15}
-                  y={200 - carbsHeight}
-                  width={barWidth}
-                  height={carbsHeight}
-                  rx="3"
-                  fill="#ffc107"
-                />
-                {/* Fats */}
-                <rect
-                  x={groupX + 30}
-                  y={200 - fatsHeight}
-                  width={barWidth}
-                  height={fatsHeight}
-                  rx="3"
-                  fill="#ff9800"
-                />
-              </g>
-            );
-          })}
-        </svg>
-
-        {/* X-axis */}
-        <div className="graph-x-axis">
-          {weeklySummary.map((d, i) => (
-            <div key={i} className="x-tick">
-              {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-
-    {/* Legend */}
-    <div className="chart-legend">
-      <div className="legend-item">
-        <div className="legend-color" style={{ backgroundColor: '#4caf50' }}></div>
-        <span>Protein</span>
-      </div>
-      <div className="legend-item">
-        <div className="legend-color" style={{ backgroundColor: '#ffc107' }}></div>
-        <span>Carbs</span>
-      </div>
-      <div className="legend-item">
-        <div className="legend-color" style={{ backgroundColor: '#ff9800' }}></div>
-        <span>Fats</span>
-      </div>
-    </div>
-  </div>
-</div>
-
 {/* Today's Macro Distribution */}
 <div className="macro-cards">
   <h2 className="section-title">Today's Macro Distribution</h2>
@@ -654,92 +549,6 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
     </div>
   </div>
 </div>
-
-{/* Weekly Calories Trend */}
-<div className="weekly-progress">
-  <h2 className="section-title">Weekly Calories Trend</h2>
-  <div className="graph-container">
-    <div className="graph">
-      <div className="graph-y-axis">
-        {[3000, 2500, 2000, 1500, 1000, 500, 0].map((v) => (
-          <div key={v} className="y-tick">{v}</div>
-        ))}
-      </div>
-      <div className="graph-content">
-        <svg
-          className="graph-svg"
-          viewBox="0 0 700 200"
-          preserveAspectRatio="none"
-        >
-          {/* Grid lines */}
-          {[0, 50, 100, 150, 200].map((y, i) => (
-            <line
-              key={i}
-              x1="0"
-              y1={y}
-              x2="700"
-              y2={y}
-              stroke="#0c0c0c33"
-              strokeWidth="1.5"
-            />
-          ))}
-
-          {/* Line chart */}
-          {weeklySummary.length > 0 && (
-            <polyline
-              points={weeklySummary
-                .map((d, i) => {
-                  const maxCals = Math.max(
-                    ...weeklySummary.map(w => w.totalCalories ?? 0),
-                    2500
-                  );
-                  const x = (i / (weeklySummary.length - 1)) * 700;
-                  const y = 200 - ((d.totalCalories ?? 0) / maxCals) * 180;
-                  return `${x},${y}`;
-                })
-                .join(" ")}
-              stroke="#2e7d32"
-              strokeWidth="3"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          )}
-
-          {/* Data points */}
-          {weeklySummary.map((d, i) => {
-            const maxCals = Math.max(
-              ...weeklySummary.map(w => w.totalCalories ?? 0),
-              2500
-            );
-            const x = (i / (weeklySummary.length - 1)) * 700;
-            const y = 200 - ((d.totalCalories ?? 0) / maxCals) * 180;
-            return (
-              <circle
-                key={i}
-                cx={x}
-                cy={y}
-                r="4"
-                fill="#2e7d32"
-              />
-            );
-          })}
-        </svg>
-
-        {/* X-axis */}
-        <div className="graph-x-axis">
-          {weeklySummary.map((d, i) => (
-            <div key={i} className="x-tick">
-              {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
 
         {/* Saved Workouts */}
         <div className="saved-section">
