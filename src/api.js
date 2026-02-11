@@ -149,6 +149,47 @@ const demoAdapter = async (config) => {
     return makeDemoResponse(config, computeWorkoutWeekly(workouts), 200);
   }
 
+  // Nutrition search (demo)
+  if (url === "/api/nutrition/search" && method === "post") {
+    const q = (body.query || "").toLowerCase();
+    const foods = [
+      { name: "Chicken Breast", serving_qty: 1, serving_unit: "piece", calories: 165, protein: 31, carbs: 0, fats: 3.6 },
+      { name: "Oatmeal", serving_qty: 1, serving_unit: "cup", calories: 158, protein: 6, carbs: 27, fats: 3.2 },
+      { name: "Apple", serving_qty: 1, serving_unit: "medium", calories: 95, protein: 0.5, carbs: 25, fats: 0.3 },
+      { name: "Banana", serving_qty: 1, serving_unit: "medium", calories: 105, protein: 1.3, carbs: 27, fats: 0.4 },
+    ];
+
+    const results = foods.filter(f => f.name.toLowerCase().includes(q) || q === "").slice(0, 10);
+    return makeDemoResponse(config, { message: "Found", results }, 200);
+  }
+
+  // Exercises search (demo)
+  if (url === "/api/exercises/search" && method === "post") {
+    const q = (body.query || "").toLowerCase();
+    const exercises = [
+      { name: "Push Ups", type: "Strength", muscle: "Chest", equipment: "Bodyweight", difficulty: "Beginner", instructions: "Perform push ups with good form." },
+      { name: "Sit Ups", type: "Strength", muscle: "Abdominals", equipment: "Bodyweight", difficulty: "Intermediate", instructions: "Lie on back and lift your torso." },
+      { name: "Running", type: "Cardio", muscle: "Full Body", equipment: "None", difficulty: "Intermediate", instructions: "Run at a steady pace." },
+      { name: "Squats", type: "Strength", muscle: "Quads", equipment: "Bodyweight", difficulty: "Beginner", instructions: "Lower hips and return to standing." },
+    ];
+
+    const results = exercises.filter(e => e.name.toLowerCase().includes(q) || q === "").slice(0, 10);
+    return makeDemoResponse(config, { message: "Found exercises", results }, 200);
+  }
+
+  // Exercises calorie calculation (demo)
+  if (url === "/api/exercises/calculate-calories" && method === "post") {
+    const exerciseName = body.exerciseName || "exercise";
+    const reps = Number(body.reps) || 0;
+    // simple heuristic: 0.2 cal per rep default
+    let factor = 0.2;
+    if (exerciseName.toLowerCase().includes("push")) factor = 0.4;
+    if (exerciseName.toLowerCase().includes("sit")) factor = 0.15;
+    if (exerciseName.toLowerCase().includes("run")) factor = 0.3;
+    const calories = Math.max(1, Math.round(factor * reps));
+    return makeDemoResponse(config, { calories }, 200);
+  }
+
   if (url === "/api/workouts" && method === "post") {
     const workouts = getStore("demo.workouts", []);
     const nextId = workouts.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1;
