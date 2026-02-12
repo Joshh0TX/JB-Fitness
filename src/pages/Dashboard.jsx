@@ -158,7 +158,18 @@ function Dashboard() {
 
     // Refresh when workouts or water change elsewhere in the app
     const onWorkout = () => fetchData();
-    const onWater = () => fetchData();
+    const onWater = (e) => {
+      // Optimistically update water count from the event detail immediately
+      const newWater = e?.detail?.water;
+      if (newWater != null) {
+        setSummaryData((prev) => ({
+          ...prev,
+          water: { ...prev.water, current: newWater },
+        }));
+      }
+      // Also re-fetch full dashboard data in background
+      fetchData();
+    };
     window.addEventListener('workoutAdded', onWorkout);
     window.addEventListener('waterUpdated', onWater);
 
@@ -235,7 +246,25 @@ function Dashboard() {
     ...weeklyData.map((d) => Math.max(d.burned || 0, d.consumed || 0)),
     1
   );
-  const maxWorkouts = Math.max(...weeklyWorkoutSummary.map((d) => d.totalWorkouts), 1);
+
+  // Dynamic max for workout calories chart
+  const maxWorkoutCalories = Math.max(
+    ...weeklyWorkoutSummary.map((d) => d.totalCalories ?? 0),
+    100 // minimum scale
+  );
+  // Round up to nearest nice number for y-axis
+  const niceMax = (() => {
+    if (maxWorkoutCalories <= 100) return 100;
+    if (maxWorkoutCalories <= 250) return 250;
+    if (maxWorkoutCalories <= 500) return 500;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(maxWorkoutCalories)));
+    return Math.ceil(maxWorkoutCalories / magnitude) * magnitude;
+  })();
+  const yTicks = [niceMax, Math.round(niceMax * 0.75), Math.round(niceMax * 0.5), Math.round(niceMax * 0.25), 0];
+
+  // Weekly workout totals
+  const weeklyTotalCalories = weeklyWorkoutSummary.reduce((s, d) => s + (d.totalCalories ?? 0), 0);
+  const weeklyTotalWorkouts = weeklyWorkoutSummary.reduce((s, d) => s + (d.totalWorkouts ?? 0), 0);
 
   const dailyMacroData = [
     { label: "Calories", value: dailySummary.totalCalories, max: 2500 },
@@ -380,84 +409,141 @@ function Dashboard() {
 
 
 
-        <div className="weekly-progress">
+        <div className="weekly-progress workout-chart-section">
   <div className="section-header">
     <h2 className="section-title">Calories Burned from Workouts</h2>
-    <div className="today-workout-summary">
+    <div className="workout-stats-badges">
       <span className="workout-cal-badge">
-        {(() => {
-          const today = new Date().toISOString().split("T")[0];
-          const todayData = weeklyWorkoutSummary.find(d => d.day === today);
-          return todayData?.totalCalories || 0;
-        })()} cal today
+        {weeklyTotalCalories.toLocaleString()} cal this week
+      </span>
+      <span className="workout-count-badge">
+        {weeklyTotalWorkouts} workout{weeklyTotalWorkouts !== 1 ? "s" : ""}
       </span>
     </div>
   </div>
+
   <div className="graph-container">
     <div className="graph">
       <div className="graph-y-axis">
-        {[3500, 3000, 2500, 2000, 1500, 1000, 500, 0].map((v) => (
-          <div key={v} className="y-tick">{v}</div>
+        {yTicks.map((v) => (
+          <div key={v} className="y-tick">{v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}</div>
         ))}
       </div>
       <div className="graph-content">
         <svg
           className="graph-svg"
-          viewBox="0 0 700 200"
+          viewBox="0 0 700 240"
           preserveAspectRatio="none"
         >
           {/* Horizontal grid lines */}
-          {[0, 50, 100, 150, 200].map((y, i) => (
+          {[0, 60, 120, 180, 240].map((y, i) => (
             <line
               key={i}
               x1="0"
               y1={y}
               x2="700"
               y2={y}
-              stroke="#0c0c0c33"
-              strokeWidth="1.5"
+              stroke="#e0e0e0"
+              strokeWidth="1"
+              strokeDasharray={i > 0 && i < 4 ? "6 4" : "none"}
             />
           ))}
 
           {/* Calories bars from workouts */}
           {weeklyWorkoutSummary.map((d, i) => {
-            const maxCalories = Math.max(
-              ...weeklyWorkoutSummary.map(w => w.totalCalories ?? 1)
-            );
-            const height = ((d.totalCalories ?? 0) / maxCalories) * 180;
-            const barWidth = 50;
+            const cal = d.totalCalories ?? 0;
+            const barHeight = niceMax > 0 ? (cal / niceMax) * 210 : 0;
+            const barWidth = 52;
             const dayWidth = 700 / 7;
             const x = i * dayWidth + (dayWidth - barWidth) / 2;
-            const y = 200 - height;
+            const y = 230 - barHeight;
             const today = new Date().toISOString().split("T")[0];
             const isToday = d.day === today;
+
             return (
+              <g key={i}>
+                {/* Bar with rounded top */}
+                <defs>
+                  <linearGradient id={`barGrad${i}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={isToday ? "#ff7043" : "#ff8a65"} />
+                    <stop offset="100%" stopColor={isToday ? "#e64a19" : "#ff5722"} />
+                  </linearGradient>
+                </defs>
+                {barHeight > 0 && (
               <rect
-                key={i}
                 x={x}
                 y={y}
                 width={barWidth}
-                height={height}
+                    height={barHeight}
                 rx="6"
-                fill={isToday ? "#ff7043" : "#ff5722"}
-                opacity={isToday ? 1 : 0.7}
-              />
+                    ry="6"
+                    fill={`url(#barGrad${i})`}
+                    opacity={isToday ? 1 : 0.75}
+                  />
+                )}
+                {/* Calorie label on top of bar */}
+                {cal > 0 && (
+                  <text
+                    x={x + barWidth / 2}
+                    y={y - 6}
+                    textAnchor="middle"
+                    fontSize="11"
+                    fontWeight="700"
+                    fill={isToday ? "#e64a19" : "#ff5722"}
+                  >
+                    {cal}
+                  </text>
+                )}
+                {/* Zero indicator for empty days */}
+                {cal === 0 && (
+                  <text
+                    x={x + barWidth / 2}
+                    y={225}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fontWeight="500"
+                    fill="#bbb"
+                  >
+                    —
+                  </text>
+                )}
+              </g>
             );
           })}
         </svg>
 
-        {/* X-axis */}
-        <div className="graph-x-axis">
+        {/* X-axis: day name + workout count */}
+        <div className="graph-x-axis workout-x-axis">
           {weeklyWorkoutSummary.map((d, i) => {
             const today = new Date().toISOString().split("T")[0];
             const isToday = d.day === today;
+            const count = d.totalWorkouts ?? 0;
             return (
-              <div key={i} className={`x-tick ${isToday ? 'x-tick-today' : ''}`}>
-                {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
+              <div key={i} className={`x-tick ${isToday ? "x-tick-today" : ""}`}>
+                <span className="x-day-label">
+                  {new Date(d.day + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" })}
+                </span>
+                {count > 0 && (
+                  <span className="x-workout-count">
+                    {count} {count === 1 ? "wkt" : "wkts"}
+                  </span>
+                )}
               </div>
             );
           })}
         </div>
+      </div>
+    </div>
+
+    {/* Chart legend */}
+    <div className="chart-legend">
+      <div className="legend-item">
+        <span className="legend-color" style={{ background: "linear-gradient(135deg, #ff7043, #e64a19)" }}></span>
+        Today
+      </div>
+      <div className="legend-item">
+        <span className="legend-color" style={{ background: "linear-gradient(135deg, #ff8a65, #ff5722)", opacity: 0.75 }}></span>
+        Other days
       </div>
     </div>
   </div>
