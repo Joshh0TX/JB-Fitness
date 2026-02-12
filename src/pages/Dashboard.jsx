@@ -393,7 +393,18 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
 
 
         <div className="weekly-progress">
-  <h2 className="section-title">Daily Progress</h2>
+  <div className="section-header">
+    <h2 className="section-title">Calories Burned from Workouts</h2>
+    <div className="today-workout-summary">
+      <span className="workout-cal-badge">
+        {(() => {
+          const today = new Date().toISOString().split("T")[0];
+          const todayData = weeklyWorkoutSummary.find(d => d.day === today);
+          return todayData?.totalCalories || 0;
+        })()} cal today
+      </span>
+    </div>
+  </div>
   <div className="graph-container">
     <div className="graph">
       <div className="graph-y-axis">
@@ -420,7 +431,7 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
             />
           ))}
 
-          {/* Calories bars */}
+          {/* Calories bars from workouts */}
           {weeklyWorkoutSummary.map((d, i) => {
             const maxCalories = Math.max(
               ...weeklyWorkoutSummary.map(w => w.totalCalories ?? 1)
@@ -430,6 +441,8 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
             const dayWidth = 700 / 7;
             const x = i * dayWidth + (dayWidth - barWidth) / 2;
             const y = 200 - height;
+            const today = new Date().toISOString().split("T")[0];
+            const isToday = d.day === today;
             return (
               <rect
                 key={i}
@@ -438,7 +451,8 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
                 width={barWidth}
                 height={height}
                 rx="6"
-                fill="#ff5722"
+                fill={isToday ? "#ff7043" : "#ff5722"}
+                opacity={isToday ? 1 : 0.7}
               />
             );
           })}
@@ -446,11 +460,15 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
 
         {/* X-axis */}
         <div className="graph-x-axis">
-          {weeklyWorkoutSummary.map((d, i) => (
-            <div key={i} className="x-tick">
-              {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
-            </div>
-          ))}
+          {weeklyWorkoutSummary.map((d, i) => {
+            const today = new Date().toISOString().split("T")[0];
+            const isToday = d.day === today;
+            return (
+              <div key={i} className={`x-tick ${isToday ? 'x-tick-today' : ''}`}>
+                {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

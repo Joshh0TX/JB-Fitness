@@ -220,8 +220,17 @@ const demoAdapter = async (config) => {
 
     const weeklyProgress = weekly.map((d) => d.totalCalories);
     const todayWorkouts = workoutWeekly.find((d) => d.day === todayISO())?.totalWorkouts || 0;
+    const demoWater = getStore("demo.water", 0);
 
-    return makeDemoResponse(config, { calories: daily.totalCalories, workouts: todayWorkouts, water: 3, weeklyProgress }, 200);
+    return makeDemoResponse(config, { calories: daily.totalCalories, workouts: todayWorkouts, water: demoWater, weeklyProgress }, 200);
+  }
+
+  // Water increment (demo)
+  if (url === "/api/metrics/water" && method === "post") {
+    const current = getStore("demo.water", 0);
+    const updated = Math.min(current + 1, 8);
+    setStore("demo.water", updated);
+    return makeDemoResponse(config, { water: updated }, 201);
   }
 
   // Default demo

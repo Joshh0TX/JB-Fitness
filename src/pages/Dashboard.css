@@ -734,3 +734,134 @@
   font-size: 0.85rem;
   cursor: pointer;
 }
+
+/* Hydration Alert Banner */
+.hydration-alert {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #4dd0e1 0%, #26c6da 100%);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(38, 198, 218, 0.3);
+  z-index: 1000;
+  animation: slideDown 0.4s ease-out;
+  max-width: 90%;
+  width: 500px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  color: #fff;
+}
+
+.alert-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.alert-text {
+  flex: 1;
+}
+
+.alert-text strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.alert-text p {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.95;
+}
+
+.alert-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.alert-btn.drank {
+  background: #fff;
+  color: #26c6da;
+  margin-right: 8px;
+}
+
+.alert-btn.drank:hover {
+  transform: scale(1.05);
+}
+
+.alert-btn.dismiss {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert-btn.dismiss:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Workout Calories Badge */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.today-workout-summary {
+  display: flex;
+  gap: 8px;
+}
+
+.workout-cal-badge {
+  background: linear-gradient(135deg, #ff7043 0%, #ff5722 100%);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+}
+
+.x-tick-today {
+  font-weight: 700;
+  color: #ff5722;
+  position: relative;
+}
+
+.x-tick-today::after {
+  content: '★';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #ff5722;
+}
+
