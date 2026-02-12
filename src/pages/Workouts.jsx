@@ -175,6 +175,12 @@ function Workouts({ setSummaryData }) {
         headers: { Authorization: `Bearer ${token}` }
       })
       setSavedWorkouts(workoutsRes.data ?? [])
+      // Notify other pages (dashboard) a workout was added
+      try {
+        window.dispatchEvent(new CustomEvent('workoutAdded', { detail: { exercise: selectedExercise.name, reps, calories: estimatedCalories } }));
+      } catch (e) {
+        // ignore
+      }
     } catch (error) {
       console.error('Failed to add workout:', error)
       setError(error.response?.data?.message || 'Failed to add workout')

@@ -165,7 +165,19 @@ setWeeklyWorkoutSummary(weeklyWorkoutData);
       }
     };
 
+    // Fetch initially
     fetchData();
+
+    // Refresh when workouts or water change elsewhere in the app
+    const onWorkout = () => fetchData();
+    const onWater = () => fetchData();
+    window.addEventListener('workoutAdded', onWorkout);
+    window.addEventListener('waterUpdated', onWater);
+
+    return () => {
+      window.removeEventListener('workoutAdded', onWorkout);
+      window.removeEventListener('waterUpdated', onWater);
+    };
   }, [navigate]);
 
   // 🔹 Delete meal
