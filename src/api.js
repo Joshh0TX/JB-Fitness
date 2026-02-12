@@ -72,11 +72,21 @@ function computeMealSummaries(meals) {
 
 function computeWorkoutWeekly(workouts) {
   const days = last7DaysISO();
-  const byDay = new Map(days.map((d) => [d, 0]));
+  const byDay = new Map(days.map((d) => [d, { totalWorkouts: 0, totalCalories: 0 }]));
   for (const w of workouts) {
-    if (byDay.has(w.day)) byDay.set(w.day, byDay.get(w.day) + 1);
+    const day = w.day || w.created_at?.slice(0, 10);
+    if (day && byDay.has(day)) {
+      const curr = byDay.get(day);
+      curr.totalWorkouts += 1;
+      curr.totalCalories += Number(w.calories_burned) || 0;
+      byDay.set(day, curr);
+    }
   }
-  return days.map((day) => ({ day, totalWorkouts: byDay.get(day) || 0 }));
+  return days.map((day) => ({
+    day,
+    totalWorkouts: byDay.get(day)?.totalWorkouts || 0,
+    totalCalories: byDay.get(day)?.totalCalories || 0,
+  }));
 }
 
 function makeDemoResponse(config, data, status = 200) {

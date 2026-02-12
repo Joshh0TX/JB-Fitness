@@ -102,7 +102,8 @@ export const getWeeklyWorkoutSummary = async (req, res) => {
     const sql = `
       SELECT 
         DATE(created_at) AS day,
-        COUNT(*) AS totalWorkouts
+        COUNT(*) AS totalWorkouts,
+        COALESCE(SUM(calories_burned), 0) AS totalCalories
       FROM workouts
       WHERE user_id = ?
         AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
@@ -111,8 +112,6 @@ export const getWeeklyWorkoutSummary = async (req, res) => {
     `;
 
     const [rows] = await db.execute(sql, [userId]);
-
-    res.status(200).json(rows);
   } catch (error) {
     console.error("Weekly workout summary error:", error);
     res.status(500).json({ message: "Failed to fetch workout summary" });

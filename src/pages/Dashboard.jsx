@@ -1,18 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api.js";
-import NotificationIcon from "../components/NotificationIcon";
 import Logo from "../components/Logo";
 import "./Dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
 
-  // Existing summary data
+  // Summary data (calories only)
   const [summaryData, setSummaryData] = useState({
     calories: { current: 0, goal: 2200, label: "Cal" },
-    workouts: { current: 1, goal: 5, label: "Workouts" },
-    water: { current: 3, goal: 8, label: "Glasses" },
   });
 
   // Daily summary
@@ -65,16 +62,6 @@ function Dashboard() {
             goal: 2200,
             label: "Cal",
           },
-          workouts: {
-            current: dashData.workouts ?? 0,
-            goal: 5,
-            label: "Workouts",
-          },
-          water: {
-            current: dashData.water ?? 0,
-            goal: 8,
-            label: "Glasses",
-          },
         });
 
         setDailySummary(dailyData);
@@ -99,25 +86,25 @@ function Dashboard() {
           }))
         );
 
-        // 5️⃣ Weekly workout summary
+        // 5️⃣ Weekly workout summary (calories burned per day)
         const workoutsWeeklyRes = await API.get("/workouts/weekly-summary", {
-  headers: { Authorization: `Bearer ${token}` },
-});
-const data = workoutsWeeklyRes.data ?? [];
-
-// Ensure every item has totalCalories and day
-const formattedData = data.map(d => ({
-  day: d.day || new Date().toISOString(), // fallback today
-  totalCalories: d.totalCalories ?? 0
-}));
-
-setWeeklyWorkoutSummary(formattedData);
-
-        // 🔹 FIX: convert missing totalWorkouts to 0 to avoid NaN
-        const safeWorkoutData = (workoutsWeeklyRes.data ?? []).map((d) => ({
-          day: d.day,
-          totalWorkouts: d.totalWorkouts ?? 0,
-        }));
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const rawData = workoutsWeeklyRes.data ?? [];
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          last7Days.push(d.toISOString().slice(0, 10));
+        }
+        const byDay = new Map(rawData.map((d) => [String(d.day).slice(0, 10), d]));
+        const safeWorkoutData = last7Days.map((day) => {
+          const row = byDay.get(day);
+          return {
+            day,
+            totalCalories: row?.totalCalories ?? 0,
+          };
+        });
         setWeeklyWorkoutSummary(safeWorkoutData);
 
         // 6️⃣ Saved workouts
@@ -147,10 +134,18 @@ setWeeklyWorkoutSummary(formattedData);
       const res = await API.get("/workouts/weekly-summary", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const safeData = (res.data ?? []).map((d) => ({
-        day: d.day,
-        totalWorkouts: d.totalWorkouts ?? 0,
-      }));
+      const rawData = res.data ?? [];
+      const last7Days = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        last7Days.push(d.toISOString().slice(0, 10));
+      }
+      const byDay = new Map(rawData.map((d) => [String(d.day).slice(0, 10), d]));
+      const safeData = last7Days.map((day) => {
+        const row = byDay.get(day);
+        return { day, totalCalories: row?.totalCalories ?? 0 };
+      });
       setWeeklyWorkoutSummary(safeData);
       console.log("Weekly workout summary:", safeData);
     } catch (err) {
@@ -225,7 +220,6 @@ setWeeklyWorkoutSummary(formattedData);
     ...weeklyData.map((d) => Math.max(d.burned || 0, d.consumed || 0)),
     1
   );
-  const maxWorkouts = Math.max(...weeklyWorkoutSummary.map((d) => d.totalWorkouts), 1);
 
   const dailyMacroData = [
     { label: "Calories", value: dailySummary.totalCalories, max: 2500 },
@@ -251,7 +245,6 @@ setWeeklyWorkoutSummary(formattedData);
           </button>
         </div>
         <div className="header-right">
-          <NotificationIcon />
           <div className="profile-icon" onClick={() => navigate("/settings")}>
             <span>JD</span>
           </div>
@@ -259,55 +252,34 @@ setWeeklyWorkoutSummary(formattedData);
       </header>
 
       <main className="dashboard-main">
-        {/* Existing Summary Cards */}
+        {/* Daily Calories Summary Card */}
         <div className="summary-cards">
-          {["calories", "workouts", "water"].map((key) => (
-            <div key={key} className="summary-card">
-              <div className="card-header">
-                <h3>
-                  {key === "calories"
-                    ? "Daily Calories"
-                    : key === "workouts"
-                    ? "Workouts This Week"
-                    : "Water Intake"}
-                </h3>
-                <span className="card-icon">{summaryData[key].label}</span>
+          <div className="summary-card">
+            <div className="card-header">
+              <h3>Daily Calories</h3>
+              <span className="card-icon">{summaryData.calories.label}</span>
+            </div>
+            <div className="card-content">
+              <div className="card-value">
+                <span className="current">{dailySummary.totalCalories}</span>
+                <span className="goal">of {summaryData.calories.goal} goal</span>
               </div>
-              <div className="card-content">
-                <div className="card-value">
-  <span className="current">
-    {key === "calories"
-      ? dailySummary.totalCalories
-      : summaryData[key].current}
-  </span>
-
-  <span className="goal">
-    of {summaryData[key].goal}{" "}
-    {key === "water"
-      ? "glasses"
-      : key === "calories"
-      ? "goal"
-      : "planned"}
-  </span>
-</div>
-
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{
-                      width: `${calculateProgress(
-                        summaryData[key].current,
-                        summaryData[key].goal
-                      )}%`,
-                    }}
-                  ></div>
-                </div>
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{
+                    width: `${calculateProgress(
+                      summaryData.calories.current,
+                      summaryData.calories.goal
+                    )}%`,
+                  }}
+                ></div>
               </div>
             </div>
-          ))}
+          </div>
         </div>
 
-        <div className="weekly-progress">
+        <div className="weekly-progress nutrition-breakdown">
   <h2 className="section-title">Today's Nutrition Breakdown</h2>
 
   <div className="graph-container">
@@ -332,34 +304,36 @@ setWeeklyWorkoutSummary(formattedData);
               y1={y}
               x2="700"
               y2={y}
-              stroke="#000000bb"
-              strokeWidth="1.5"
+              stroke="rgba(0,0,0,0.08)"
+              strokeWidth="1"
             />
           ))}
 
           {/* bars */}
           {dailyMacroData.map((item, i) => {
-            const height =
-              Math.min(item.value / item.max, 1) * 180;
+            const height = item.max > 0
+              ? Math.min(item.value / item.max, 1) * 180
+              : 0;
             return (
-              <rect
-                key={i}
-                x={i * 150 + 70}
-                y={200 - height}
-                width="70"
-                height={height}
-                rx="8"
-                fill={["#424242", "#616161", "#757575", "#9e9e9e"][i]}
-
-              />
+              <g key={i}>
+                <rect
+                  x={i * 150 + 70}
+                  y={200 - height}
+                  width="70"
+                  height={height}
+                  rx="8"
+                  fill={["#2e7d32", "#4caf50", "#66bb6a", "#81c784"][i]}
+                />
+              </g>
             );
           })}
         </svg>
 
-        <div className="graph-x-axis">
+        <div className="graph-x-axis nutrition-bars-labels">
           {dailyMacroData.map((item, i) => (
             <div key={i} className="x-tick">
-              {item.label}
+              <span className="bar-label">{item.label}</span>
+              <span className="bar-value">{item.value} / {item.max}</span>
             </div>
           ))}
         </div>
@@ -371,7 +345,7 @@ setWeeklyWorkoutSummary(formattedData);
 
 
         <div className="weekly-progress">
-  <h2 className="section-title">Weekly Progress</h2>
+  <h2 className="section-title">Calories Burned During Workouts</h2>
   <div className="graph-container">
     <div className="graph">
       <div className="graph-y-axis">
@@ -420,11 +394,15 @@ setWeeklyWorkoutSummary(formattedData);
 
         {/* X-axis */}
         <div className="graph-x-axis">
-          {weeklyWorkoutSummary.map((d, i) => (
-            <div key={i} className="x-tick">
-              {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
-            </div>
-          ))}
+          {weeklyWorkoutSummary.map((d, i) => {
+            const dObj = d.day ? new Date(d.day + "T12:00:00") : null;
+            const label = dObj && !isNaN(dObj.getTime())
+              ? dObj.toLocaleDateString("en-US", { weekday: "short" })
+              : "—";
+            return (
+              <div key={i} className="x-tick">{label}</div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -441,7 +419,7 @@ setWeeklyWorkoutSummary(formattedData);
               View all
             </a>
           </div>
-         <div className="workouts-grid">
+         <div className="workout-cards">
   {savedWorkouts.map((workout) => (
     <div key={workout.id} className="workout-card">
       <div className="workout-card-header">
@@ -470,7 +448,7 @@ setWeeklyWorkoutSummary(formattedData);
 
         <div className="info-item">
           <span className="info-label">Calories</span>
-          <span className="info-value">{workout.calories} cal</span>
+          <span className="info-value">{workout.calories_burned ?? workout.calories ?? 0} cal</span>
         </div>
       </div>
 
@@ -497,7 +475,7 @@ setWeeklyWorkoutSummary(formattedData);
             {savedMeals.map((m) => (
               <div key={m.id} className="meal-card">
                 <div className="meal-header">
-                  <h3>{m.title}</h3>
+                  <h3>{m.title ?? m.name ?? "Meal"}</h3>
                 <button
                   className="delete-meal-btn"
                   onClick={() => handleDeleteMeal(m.id)}
@@ -506,7 +484,7 @@ setWeeklyWorkoutSummary(formattedData);
                 </button>
                 </div>
                 
-                <p className="meal-description">{m.description}</p>
+                <p className="meal-description">{m.description ?? ""}</p>
                 <div className="meal-stats">
                   <span className="stat">
                     <span className="stat-label">Calories:</span> {m.calories} cal
