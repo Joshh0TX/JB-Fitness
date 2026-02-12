@@ -210,6 +210,24 @@ const demoAdapter = async (config) => {
     return makeDemoResponse(config, workouts, 200);
   }
 
+  // Workout weekly summary (demo)
+  if (url === "/api/workouts/weekly-summary" && method === "get") {
+    const workouts = getStore("demo.workouts", []);
+    const workoutWeekly = computeWorkoutWeekly(workouts);
+    
+    // Map to include totalCalories for each day
+    const result = last7DaysISO().map(day => {
+      const dayWorkouts = workouts.filter(w => w.day === day);
+      return {
+        day,
+        totalWorkouts: dayWorkouts.length,
+        totalCalories: dayWorkouts.reduce((sum, w) => sum + (w.calories_burned || 0), 0)
+      };
+    });
+    
+    return makeDemoResponse(config, result, 200);
+  }
+
   // Dashboard
   if (url === "/api/dashboard" && method === "get") {
     const meals = getStore("demo.meals", []);

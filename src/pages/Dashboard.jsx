@@ -63,23 +63,20 @@ function Dashboard() {
 
     const fetchData = async () => {
       try {
-        // 1️⃣ Fetch dashboard summary
+        // 1️⃣ Fetch dashboard summary (today's metrics, workouts count, water count)
         const dashRes = await API.get("/api/dashboard", {
           headers: { Authorization: `Bearer ${token}` },
         });
-      
 
         // 2️⃣ Fetch daily nutrition summary
         const dailyRes = await API.get("/api/meals/daily-summary", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-
-        // 3️⃣ Weekly workouts summary
-        const weeklyRes = await API.get("/api/workouts/weekly-summary", {
+        // 3️⃣ Fetch weekly workout breakdown (calories per day)
+        const weeklyWorkoutRes = await API.get("/api/workouts/weekly-summary", {
           headers: { Authorization: `Bearer ${token}` },
         });
-      
 
         const dailyData = dailyRes.data ?? {
           totalCalories: 0,
@@ -88,10 +85,14 @@ function Dashboard() {
           totalFats: 0,
         };
 
-        const dashData = weeklyRes.data ?? {
-          totalCalories: 0
-        }
+        const dashData = dashRes.data ?? {
+          calories: 0,
+          workouts: 0,
+          water: 0,
+          weeklyProgress: []
+        };
 
+        // Set summary cards from dashboard data
         setSummaryData({
           calories: {
             current: dailyData.totalCalories,
@@ -111,11 +112,8 @@ function Dashboard() {
         });
 
         setDailySummary(dailyData);
-        setWeeklyWorkoutSummary(dashData);
-        
-        
 
-        // 4️⃣ Weekly chart data (burned vs consumed)
+        // 4️⃣ Weekly chart data (nutrition calories)
         const weeklyProgress = Array.isArray(dashData.weeklyProgress)
           ? dashData.weeklyProgress
           : [];
@@ -129,24 +127,14 @@ function Dashboard() {
           }))
         );
 
-        // 5️⃣ Weekly workout summary
-        const workoutsWeeklyRes = await API.get("/api/workouts/weekly-summary", {
-        headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = workoutsWeeklyRes.data ?? [{
-        day: "",
-        burned: 0,
-        consumed: 1000
+        // 5️⃣ Weekly workout summary (calories burned from workouts per day)
+        const weeklyWorkoutData = (weeklyWorkoutRes.data ?? []).map(d => ({
+          day: d.day || new Date().toISOString(),
+          totalCalories: d.totalCalories ?? 0,
+          totalWorkouts: d.totalWorkouts ?? 0
+        }));
 
-      }];
-
-const weeklyWorkoutData = (workoutsWeeklyRes.data ?? []).map(d => ({
-  day: d.day || new Date().toISOString(),   // fallback day
-  totalCalories: d.totalCalories ?? 0,      // used by calorie line
-  totalWorkouts: d.totalWorkouts ?? 0       // used by workout stats
-}));
-
-setWeeklyWorkoutSummary(weeklyWorkoutData);
+        setWeeklyWorkoutSummary(weeklyWorkoutData);
 
 
         // 6️⃣ Saved workouts
