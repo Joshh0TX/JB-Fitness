@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import NotificationIcon from '../components/NotificationIcon'
 import API from '../api'
 import './Workouts.css'
 
@@ -217,7 +216,6 @@ function Workouts({ setSummaryData }) {
         </button>
         <h1 className="workouts-title">Workouts</h1>
         <div className="header-right">
-          <NotificationIcon />
           <div className="profile-icon" onClick={() => navigate('/settings')}>
             JD
           </div>

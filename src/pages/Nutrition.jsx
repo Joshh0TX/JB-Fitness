@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import NotificationIcon from "../components/NotificationIcon";
 import API from "../api.js";
 import "./Nutrition.css";
 
@@ -152,7 +151,6 @@ function Nutrition() {
           ←
         </button>
         <h1>Nutrition</h1>
-        <NotificationIcon />
       </header>
 
       <main className="nutrition-main">

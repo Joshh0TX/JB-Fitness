@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import NotificationIcon from '../components/NotificationIcon'
 import SettingsIcon from '../components/SettingsIcon'
 import Logo from '../components/Logo'
 import './Settings.css'
@@ -59,7 +58,6 @@ function Settings() {
           <span className="back-arrow">←</span>
         </button>
         <h1 className="settings-title">Settings</h1>
-        <NotificationIcon />
       </header>
 
       {/* Main Content */}
