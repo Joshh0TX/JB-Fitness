@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api.js";
-import NotificationIcon from "../components/NotificationIcon";
 import Logo from "../components/Logo";
 import "./Dashboard.css";
 
@@ -12,7 +11,6 @@ function Dashboard() {
   const [summaryData, setSummaryData] = useState({
     calories: { current: 0, goal: 2200, label: "Cal" },
     workouts: { current: 0, goal: 7, label: "Workouts" },
-    water: { current: 0, goal: 8, label: "Glasses" },
   });
 
   // User initials
@@ -31,8 +29,6 @@ function Dashboard() {
 
   // Weekly data for bar charts (SVG)
   const [weeklyData, setWeeklyData] = useState([]);
-  const [savedWorkouts, setSavedWorkouts] = useState([]);
-  const [savedMeals, setSavedMeals] = useState([]);
   const [weeklyWorkoutSummary, setWeeklyWorkoutSummary] = useState([]);
 
   // 🔹 Fetch everything on page load
@@ -104,11 +100,6 @@ function Dashboard() {
             goal: 7,
             label: "Workouts",
           },
-          water: {
-            current: dashData.water ?? 0,
-            goal: 8,
-            label: "Glasses",
-          },
         });
 
         setDailySummary(dailyData);
@@ -128,11 +119,22 @@ function Dashboard() {
         );
 
         // 5️⃣ Weekly workout summary (calories burned from workouts per day)
-        const weeklyWorkoutData = (weeklyWorkoutRes.data ?? []).map(d => ({
-          day: d.day || new Date().toISOString(),
-          totalCalories: d.totalCalories ?? 0,
-          totalWorkouts: d.totalWorkouts ?? 0
-        }));
+        const weeklyWorkoutData = (weeklyWorkoutRes.data ?? []).map(d => {
+          let dayStr = d.day;
+          // If day is a full ISO string, extract just the date part
+          if (dayStr && dayStr.includes('T')) {
+            dayStr = dayStr.split('T')[0];
+          }
+          // If no day provided, use today's date
+          if (!dayStr) {
+            dayStr = new Date().toISOString().split('T')[0];
+          }
+          return {
+            day: dayStr,
+            totalCalories: d.totalCalories ?? 0,
+            totalWorkouts: d.totalWorkouts ?? 0
+          };
+        });
 
         setWeeklyWorkoutSummary(weeklyWorkoutData);
 
@@ -158,87 +160,12 @@ function Dashboard() {
 
     // Refresh when workouts or water change elsewhere in the app
     const onWorkout = () => fetchData();
-    const onWater = (e) => {
-      // Optimistically update water count from the event detail immediately
-      const newWater = e?.detail?.water;
-      if (newWater != null) {
-        setSummaryData((prev) => ({
-          ...prev,
-          water: { ...prev.water, current: newWater },
-        }));
-      }
-      // Also re-fetch full dashboard data in background
-      fetchData();
-    };
     window.addEventListener('workoutAdded', onWorkout);
-    window.addEventListener('waterUpdated', onWater);
 
     return () => {
       window.removeEventListener('workoutAdded', onWorkout);
-      window.removeEventListener('waterUpdated', onWater);
     };
   }, [navigate]);
-
-  // 🔹 Delete meal
-  const handleDeleteMeal = async (mealId) => {
-    const token = localStorage.getItem("token");
-    if (!token) return navigate("/api/login");
-    try {
-      await API.delete(`/api/meals/${mealId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const mealsRes = await API.get("/api/meals", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSavedMeals(mealsRes.data ?? []);
-      const dailyRes = await API.get("/api/meals/daily-summary", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setDailySummary(
-        dailyRes.data ?? { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFats: 0 }
-      );
-      const weeklyRes = await API.get("/api/meals/weekly-summary", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWeeklySummary(weeklyRes.data ?? []);
-    } catch (error) {
-      console.error("Delete meal failed", error);
-      alert("Failed to delete meal");
-    }
-  };
-
-  // 🔹 Delete workout
-  const handleDeleteWorkout = async (workoutId) => {
-    try {
-      await API.delete(`/api/workouts/${workoutId}`);
-      setSavedWorkouts((prev) =>
-        prev.filter((workout) => workout.id !== workoutId)
-      );
-    } catch (error) {
-      console.error("Failed to delete workout", error);
-    }
-  };
-
-  // 🔹 Start workout
-  const handleStartWorkout = async (workoutId) => {
-    try {
-      const workout = savedWorkouts.find((w) => w.id === workoutId);
-      if (!workout) throw new Error("Workout not found");
-
-      const response = await API.post(
-        "/api/workouts/start",
-        { workoutId },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
-
-      if (!response.data) throw new Error("No response");
-
-      navigate("/active-workout", { state: { workout } });
-    } catch (error) {
-      console.error("Start workout error:", error);
-      alert("Failed to start workout");
-    }
-  };
 
   // 🔹 Utility
   const calculateProgress = (current, goal) => Math.min((current / goal) * 100, 100);
@@ -290,7 +217,6 @@ function Dashboard() {
           </button>
         </div>
         <div className="header-right">
-          <NotificationIcon />
           <div className="profile-icon" onClick={() => navigate("/settings")}>
             <span>{userInitials}</span>
           </div>
@@ -300,14 +226,14 @@ function Dashboard() {
       <main className="dashboard-main">
         {/* Existing Summary Cards */}
         <div className="summary-cards">
-          {["calories", "workouts", "water"].map((key) => (
+          {["calories", "workouts"].map((key) => (
             <div key={key} className="summary-card">
               <div className="card-header">
                 <h3>
                   {key === "calories"
                     ? "Daily Calories"
                     : key === "workouts"
-                    ? "Workouts This Week"
+                    ? "Workouts"
                     : "Water Intake"}
                 </h3>
                 <span className="card-icon">{summaryData[key].label}</span>
@@ -521,7 +447,7 @@ function Dashboard() {
             return (
               <div key={i} className={`x-tick ${isToday ? "x-tick-today" : ""}`}>
                 <span className="x-day-label">
-                  {new Date(d.day + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" })}
+                  {new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })}
                 </span>
                 {count > 0 && (
                   <span className="x-workout-count">
@@ -654,99 +580,7 @@ function Dashboard() {
   </div>
 </div>
 
-        {/* Saved Workouts */}
-        <div className="saved-section">
-          <div className="section-header">
-            <h2 className="section-title">Saved Workouts</h2>
-            <a href="#view-all" className="view-all-link">
-              View all
-            </a>
-          </div>
-         <div className="workouts-grid">
-  {savedWorkouts.map((workout) => (
-    <div key={workout.id} className="workout-card">
-      <div className="workout-card-header">
-        <div>
-          <h3 className="workout-title">{workout.title}</h3>
-        </div>
 
-        {/* Delete button – dashboard only */}
-        <button
-          className="delete-workout-btn"
-          onClick={() => handleDeleteWorkout(workout.id)}
-        >
-          Delete
-        </button>
-      </div>
-
-      <p className="workout-description">
-        {workout.description}
-      </p>
-
-      <div className="workout-info">
-        <div className="info-item">
-          <span className="info-label">Duration</span>
-          <span className="info-value">{workout.duration} min</span>
-        </div>
-
-        <div className="info-item">
-          <span className="info-label">Calories</span>
-          <span className="info-value">{workout.calories} cal</span>
-        </div>
-      </div>
-
-      <button
-        className="start-workout-btn"
-        onClick={() => handleStartWorkout(workout.id)}
-      >
-        Start Workout
-      </button>
-    </div>
-  ))}
-</div>
-</div>
-
-        {/* Saved Meals */}
-        <div className="saved-section">
-          <div className="section-header">
-            <h2 className="section-title">Saved Meals</h2>
-            <a href="#view-all" className="view-all-link">
-              View all
-            </a>
-          </div>
-          <div className="meal-cards">
-            {savedMeals.map((m) => (
-              <div key={m.id} className="meal-card">
-                <div className="meal-header">
-                  <h3>{m.title}</h3>
-                <button
-                  className="delete-meal-btn"
-                  onClick={() => handleDeleteMeal(m.id)}
-                >
-                  🗑
-                </button>
-                </div>
-                
-                <p className="meal-description">{m.description}</p>
-                <div className="meal-stats">
-                  <span className="stat">
-                    <span className="stat-label">Calories:</span> {m.calories} cal
-                  </span>
-                  <span className="stat">
-                    <span className="stat-label">Protein:</span> {m.protein}g
-                  </span>
-                  <span className="stat">
-                    <span className="stat-label">Carbs:</span> {m.carbs}g
-                  </span>
-                  <span className="stat">
-                    <span className="stat-label">Fats:</span> {m.fats}g
-                  </span>
-                </div>
-                <button className="meal-btn">Completed</button>
-              </div>
-            ))}
-          </div>
-        </div>
       </main>
     </div>
   );
