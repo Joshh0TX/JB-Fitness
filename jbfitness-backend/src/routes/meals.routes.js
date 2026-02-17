@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  searchFoods,
   getMeals,
   createMeal,
   updateMeal,
@@ -11,6 +12,7 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+router.get("/search", authMiddleware, searchFoods);
 router.get("/", authMiddleware, getMeals);
 router.post("/", authMiddleware, createMeal);
 router.put("/:id", authMiddleware, updateMeal);

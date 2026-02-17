@@ -1,4 +1,105 @@
 import db from "../config/db.js";
+import axios from "axios";
+
+/**
+ * SEARCH foods from USDA with fallback to Nigerian foods database
+ */
+export const searchFoods = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query || query.trim().length === 0) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    // Step 1: Try USDA API first
+    let foods = [];
+    try {
+      const usda_api_key = process.env.USDA_API_KEY || "";
+      
+      if (usda_api_key) {
+        const usda_response = await axios.get(
+          `https://api.nal.usda.gov/fdc/v1/foods/search`,
+          {
+            params: {
+              query: query.trim(),
+              pageSize: 10,
+              api_key: usda_api_key,
+            },
+            timeout: 5000,
+          }
+        );
+
+        if (usda_response.data && usda_response.data.foods && usda_response.data.foods.length > 0) {
+          foods = usda_response.data.foods.map((food) => ({
+            id: food.fdcId,
+            food_name: food.description,
+            serving_size: "100g",
+            calories: food.foodNutrients?.find((n) => n.nutrientName === "Energy")?.value || 0,
+            protein: food.foodNutrients?.find((n) => n.nutrientName === "Protein")?.value || 0,
+            carbs: food.foodNutrients?.find((n) => n.nutrientName === "Carbohydrate, by difference")?.value || 0,
+            fat: food.foodNutrients?.find((n) => n.nutrientName === "Total lipid (fat)")?.value || 0,
+            source: "USDA",
+          }));
+
+          return res.status(200).json({
+            foods,
+            source: "USDA",
+            message: `Found ${foods.length} foods from USDA`,
+          });
+        }
+      }
+    } catch (usda_error) {
+      console.warn("USDA API error or no results:", usda_error.message);
+    }
+
+    // Step 2: Fallback to Nigerian foods database if USDA returns no results
+    const nigerian_sql = `
+      SELECT 
+        id,
+        food_name,
+        serving_size,
+        calories,
+        protein,
+        carbs,
+        fat
+      FROM nigerian_foods
+      WHERE food_name LIKE ?
+      LIMIT 20
+    `;
+
+    const [nigerian_foods] = await db.execute(nigerian_sql, [`%${query.trim()}%`]);
+
+    if (nigerian_foods && nigerian_foods.length > 0) {
+      const mapped_foods = nigerian_foods.map((food) => ({
+        id: food.id,
+        food_name: food.food_name,
+        serving_size: food.serving_size,
+        calories: food.calories,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        source: "Nigerian Foods Database",
+      }));
+
+      return res.status(200).json({
+        foods: mapped_foods,
+        source: "Nigerian Foods Database",
+        message: `Found ${mapped_foods.length} Nigerian foods`,
+      });
+    }
+
+    // Step 3: Return empty if nothing found
+    return res.status(200).json({
+      foods: [],
+      source: "No foods found",
+      message: "No foods found in USDA or Nigerian database",
+    });
+  } catch (error) {
+    console.error("Search foods error:", error);
+    res.status(500).json({ message: "Failed to search foods", error: error.message });
+  }
+};
 
 /**
  * GET all meals for the logged-in user

@@ -219,4 +219,20 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// 🔍 Export helper function for food search
+export const searchFoodsAPI = async (query, token) => {
+  try {
+    const response = await API.get("/meals/search", {
+      params: { query },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Food search error:", error);
+    throw error;
+  }
+};
+
 export default API;
