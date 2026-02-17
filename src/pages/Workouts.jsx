@@ -324,9 +324,9 @@ function Workouts({ setSummaryData }) {
   return (
     <div className="workouts-page">
       <header className="workouts-header">
-        <div className="header-left">
-          <Logo />
-        </div>
+        <button className="back-button" onClick={() => navigate("/dashboard")}>
+          ←
+        </button>
         <h1 className="workouts-title">Workouts</h1>
         <div className="header-right">
           <div className="profile-icon" onClick={() => navigate('/settings')}>
@@ -507,7 +507,7 @@ function Workouts({ setSummaryData }) {
               <button
                 className="add-workout-btn"
                 onClick={handleAddWorkout}
-                disabled={reps === 0}
+                disabled={isCardioDistance ? distance === 0 : reps === 0}
               >
                 Log Workout
               </button>

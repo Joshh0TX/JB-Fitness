@@ -206,9 +206,9 @@ function Nutrition() {
   return (
     <div className="nutrition-page">
       <header className="nutrition-header">
-        <div className="header-left">
-          <Logo />
-        </div>
+        <button className="back-button" onClick={() => navigate("/dashboard")}>
+          ←
+        </button>
         <h1>Nutrition</h1>
         <div className="header-right">
           <div className="profile-icon" onClick={() => navigate("/settings")}>

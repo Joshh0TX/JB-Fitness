@@ -338,10 +338,16 @@
   text-align: center;
 }
 
+.nutrition-bars-labels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .nutrition-bars-labels .x-tick {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding: 0 20px;
 }
 
 .nutrition-bars-labels .bar-label {
