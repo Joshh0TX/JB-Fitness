@@ -41,6 +41,29 @@ export const createWorkout = async (req, res) => {
       [userId, title, duration, calories_burned]
     );
 
+    // After creating a workout, increment today's workouts_completed metric (upsert)
+    try {
+      const [rows] = await db.query(
+        "SELECT id, workouts_completed FROM metrics WHERE user_id = ? AND date = CURDATE()",
+        [userId]
+      );
+
+      if (rows && rows.length > 0) {
+        const metricId = rows[0].id;
+        await db.query(
+          "UPDATE metrics SET workouts_completed = workouts_completed + 1 WHERE id = ? AND user_id = ?",
+          [metricId, userId]
+        );
+      } else {
+        await db.query(
+          "INSERT INTO metrics (user_id, date, calories, water_intake, workouts_completed) VALUES (?, CURDATE(), 0, 0, 1)",
+          [userId]
+        );
+      }
+    } catch (metricErr) {
+      console.error("Failed to update metrics after workout creation:", metricErr);
+    }
+
     res.status(201).json({
       id: result.insertId,
       user_id: userId,
@@ -107,7 +130,8 @@ export const getWeeklyWorkoutSummary = async (req, res) => {
     const sql = `
       SELECT 
         DATE(created_at) AS day,
-        COUNT(*) AS totalWorkouts
+        COUNT(*) AS totalWorkouts,
+        COALESCE(SUM(calories_burned), 0) AS totalCalories
       FROM workouts
       WHERE user_id = ?
         AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)

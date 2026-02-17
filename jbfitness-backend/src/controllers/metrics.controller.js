@@ -93,3 +93,32 @@ export const deleteMetric = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// POST /api/metrics/water - increment today's water intake by 1 (upsert)
+export const incrementWater = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Check if a metrics row exists for today
+    const [rows] = await db.query("SELECT id, water_intake FROM metrics WHERE user_id = ? AND date = CURDATE()", [userId]);
+
+    if (rows && rows.length > 0) {
+      const metricId = rows[0].id;
+      await db.query("UPDATE metrics SET water_intake = water_intake + 1 WHERE id = ? AND user_id = ?", [metricId, userId]);
+
+      const [updated] = await db.query("SELECT water_intake FROM metrics WHERE id = ?", [metricId]);
+      return res.status(200).json({ water: updated[0].water_intake });
+    }
+
+    // Insert a new metric row for today with water_intake = 1
+    const [result] = await db.query(
+      "INSERT INTO metrics (user_id, date, calories, water_intake, workouts_completed) VALUES (?, CURDATE(), 0, 1, 0)",
+      [userId]
+    );
+
+    return res.status(201).json({ water: 1, id: result.insertId });
+  } catch (error) {
+    console.error("Increment water error:", error);
+    res.status(500).json({ message: "Failed to increment water" });
+  }
+};

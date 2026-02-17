@@ -338,6 +338,24 @@
   text-align: center;
 }
 
+.nutrition-bars-labels .x-tick {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nutrition-bars-labels .bar-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.nutrition-bars-labels .bar-value {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
 /* Saved Sections */
 .saved-section {
   margin-bottom: 40px;
@@ -361,6 +379,47 @@
 .view-all-link:hover {
   color: #4caf50;
   text-decoration: underline;
+}
+
+.view-past-btn {
+  background: rgba(46, 125, 50, 0.1);
+  color: #2e7d32;
+  border: 1px solid rgba(46, 125, 50, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-past-btn:hover {
+  background: rgba(46, 125, 50, 0.2);
+  border-color: #2e7d32;
+  color: #1b5e20;
+}
+
+.empty-today {
+  grid-column: 1 / -1;
+  color: #757575;
+  font-size: 15px;
+  padding: 24px;
+  text-align: center;
+}
+
+.inline-link {
+  background: none;
+  border: none;
+  color: #2e7d32;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: inherit;
+}
+
+.inline-link:hover {
+  color: #1b5e20;
 }
 
 /* Workout Cards */
@@ -424,6 +483,37 @@
   line-height: 1.6;
 }
 
+.workout-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(102, 187, 106, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 187, 106, 0.15);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
 .workout-stats {
   display: flex;
   gap: 20px;
@@ -447,7 +537,8 @@
   color: #666;
 }
 
-.workout-btn {
+.workout-btn,
+.start-workout-btn {
   width: 100%;
   padding: 14px;
   background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
@@ -462,7 +553,8 @@
   letter-spacing: 0.3px;
 }
 
-.workout-btn:hover {
+.workout-btn:hover,
+.start-workout-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
   background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
@@ -497,11 +589,12 @@
 }
 
 .meal-card h3 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #1a1a1a;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   letter-spacing: -0.3px;
+  flex: 1;
 }
 
 .meal-description {
@@ -512,10 +605,33 @@
 }
 
 .meal-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
   margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(102, 187, 106, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 187, 106, 0.15);
+}
+
+.meal-stats .stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meal-stats .stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+}
+
+.meal-stats .stat {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 .meal-btn {
@@ -557,6 +673,134 @@
   transform: scale(1.1);
 }
 
+/* Macro Cards Section */
+.macro-cards {
+  margin-bottom: 40px;
+}
+
+.macro-cards h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  letter-spacing: -0.3px;
+}
+
+.macro-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.macro-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.macro-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.macro-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 16px 0 8px 0;
+}
+
+.macro-goal {
+  font-size: 13px;
+  color: #999;
+  margin: 0 0 16px 0;
+}
+
+.macro-circle {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.macro-pie {
+  width: 100%;
+  height: 100%;
+}
+
+.macro-label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.macro-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1;
+}
+
+.macro-unit {
+  font-size: 12px;
+  color: #999;
+  margin: 4px 0 0 0;
+  font-weight: 600;
+}
+
+.macro-progress {
+  width: 100%;
+  height: 6px;
+  background-color: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.macro-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* Chart Legend */
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
 
 @media (max-width: 768px) {
   .dashboard-header {
@@ -583,18 +827,200 @@
   .meal-cards {
     grid-template-columns: 1fr;
   }
+
+  .macro-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-legend {
+    gap: 16px;
+  }
 }
 
 .workout-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.workout-card-header .workout-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .delete-workout-btn {
-  background: transparent;
-  color: #e53935;
-  border: none;
-  font-size: 0.85rem;
+  background: rgba(229, 57, 53, 0.08);
+  color: #c62828;
+  border: 1px solid rgba(229, 57, 53, 0.2);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
+
+.delete-workout-btn:hover {
+  background: rgba(229, 57, 53, 0.15);
+  border-color: rgba(229, 57, 53, 0.4);
+}
+
+/* Hydration Alert Banner */
+.hydration-alert {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #4dd0e1 0%, #26c6da 100%);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(38, 198, 218, 0.3);
+  z-index: 1000;
+  animation: slideDown 0.4s ease-out;
+  max-width: 90%;
+  width: 500px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  color: #fff;
+}
+
+.alert-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.alert-text {
+  flex: 1;
+}
+
+.alert-text strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.alert-text p {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.95;
+}
+
+.alert-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.alert-btn.drank {
+  background: #fff;
+  color: #26c6da;
+  margin-right: 8px;
+}
+
+.alert-btn.drank:hover {
+  transform: scale(1.05);
+}
+
+.alert-btn.dismiss {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert-btn.dismiss:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Workout Calories Chart Section */
+.workout-chart-section .graph-content {
+  height: 320px;
+  padding: 28px 0 8px;
+}
+
+.workout-stats-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.workout-cal-badge {
+  background: linear-gradient(135deg, #ff7043 0%, #ff5722 100%);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+}
+
+.workout-count-badge {
+  background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+}
+
+/* Workout X-axis with workout count */
+.workout-x-axis .x-tick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.x-day-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.x-workout-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: #ff5722;
+  background: rgba(255, 87, 34, 0.1);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.x-tick-today .x-day-label {
+  font-weight: 800;
+  color: #e64a19;
+}
+
+.x-tick-today .x-workout-count {
+  background: rgba(255, 87, 34, 0.2);
+  color: #e64a19;
+}
+
