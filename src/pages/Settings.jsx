@@ -1,11 +1,28 @@
 import { useNavigate } from 'react-router-dom'
-import NotificationIcon from '../components/NotificationIcon'
+import { useEffect, useState } from 'react'
 import SettingsIcon from '../components/SettingsIcon'
 import Logo from '../components/Logo'
 import './Settings.css'
 
 function Settings() {
   const navigate = useNavigate()
+  const [user, setUser] = useState({ username: 'User', email: 'user@example.com' })
+
+  // 🔹 Fetch user data from localStorage on component load
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        const userData = JSON.parse(userStr)
+        setUser({
+          username: userData.username || userData.name || 'User',
+          email: userData.email || 'user@example.com'
+        })
+      }
+    } catch (error) {
+      console.error('Failed to parse user from localStorage:', error)
+    }
+  }, [])
 
   const accountItems = [
     { iconType: 'person', label: 'Personal Information' },
@@ -41,7 +58,6 @@ function Settings() {
           <span className="back-arrow">←</span>
         </button>
         <h1 className="settings-title">Settings</h1>
-        <NotificationIcon />
       </header>
 
       {/* Main Content */}
@@ -52,8 +68,8 @@ function Settings() {
           <div className="profile-section">
             <div className="profile-avatar"></div>
             <div className="profile-info">
-              <h3 className="profile-name">John Doe</h3>
-              <p className="profile-email">john.doe@example.com</p>
+              <h3 className="profile-name">{user.username}</h3>
+              <p className="profile-email">{user.email}</p>
               <a href="#edit" className="edit-profile-link">Edit Profile</a>
             </div>
           </div>

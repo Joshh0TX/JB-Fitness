@@ -101,39 +101,37 @@ function makeDemoResponse(config, data, status = 200) {
 }
 
 const demoAdapter = async (config) => {
-  // Normalize url (axios passes `/path` typically)
-  const url = (config.url || "").replace(/^\//, "");
+  const url = (config.url || "").replace(/^\/+/, "");
   const method = (config.method || "get").toLowerCase();
   const body = safeJsonParse(config.data, {});
 
   // Auth
-  if (url === "auth/register" && method === "post") {
-    // Minimal demo user creation; stores token just like real flow.
+  if (url === "/api/auth/register" && method === "post") {
     const demoUser = { id: 1, name: body.name || "Demo User", email: body.email || "demo@jbfitness.com" };
     setStore("demo.user", demoUser);
     return makeDemoResponse(config, { token: "demo-token", user: demoUser }, 201);
   }
 
-  if (url === "auth/login" && method === "post") {
+  if (url === "/api/auth/login" && method === "post") {
     const demoUser = getStore("demo.user", { id: 1, name: "Demo User", email: body.email || "demo@jbfitness.com" });
     setStore("demo.user", demoUser);
     return makeDemoResponse(config, { token: "demo-token", user: demoUser }, 200);
   }
 
   // Meals
-  if (url === "meals/daily-summary" && method === "get") {
+  if (url === "/api/meals/daily-summary" && method === "get") {
     const meals = getStore("demo.meals", []);
     const { daily } = computeMealSummaries(meals);
     return makeDemoResponse(config, daily, 200);
   }
 
-  if (url === "meals/weekly-summary" && method === "get") {
+  if (url === "/api/meals/weekly-summary" && method === "get") {
     const meals = getStore("demo.meals", []);
     const { weekly } = computeMealSummaries(meals);
     return makeDemoResponse(config, weekly, 200);
   }
 
-  if (url === "meals" && method === "post") {
+  if (url === "/api/meals" && method === "post") {
     const meals = getStore("demo.meals", []);
     const nextId = meals.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1;
     meals.unshift({
@@ -150,18 +148,59 @@ const demoAdapter = async (config) => {
     return makeDemoResponse(config, { message: "Meal added successfully", mealId: nextId }, 201);
   }
 
-  if (url === "meals" && method === "get") {
+  if (url === "/api/meals" && method === "get") {
     const meals = getStore("demo.meals", []);
     return makeDemoResponse(config, meals, 200);
   }
 
   // Workouts
-  if (url === "workouts/weekly-summary" && method === "get") {
+  if (url === "/api/workouts/weekly-summary" && method === "get") {
     const workouts = getStore("demo.workouts", []);
     return makeDemoResponse(config, computeWorkoutWeekly(workouts), 200);
   }
 
-  if (url === "workouts" && method === "post") {
+  // Nutrition search (demo)
+  if (url === "/api/nutrition/search" && method === "post") {
+    const q = (body.query || "").toLowerCase();
+    const foods = [
+      { name: "Chicken Breast", serving_qty: 1, serving_unit: "piece", calories: 165, protein: 31, carbs: 0, fats: 3.6 },
+      { name: "Oatmeal", serving_qty: 1, serving_unit: "cup", calories: 158, protein: 6, carbs: 27, fats: 3.2 },
+      { name: "Apple", serving_qty: 1, serving_unit: "medium", calories: 95, protein: 0.5, carbs: 25, fats: 0.3 },
+      { name: "Banana", serving_qty: 1, serving_unit: "medium", calories: 105, protein: 1.3, carbs: 27, fats: 0.4 },
+    ];
+
+    const results = foods.filter(f => f.name.toLowerCase().includes(q) || q === "").slice(0, 10);
+    return makeDemoResponse(config, { message: "Found", results }, 200);
+  }
+
+  // Exercises search (demo)
+  if (url === "/api/exercises/search" && method === "post") {
+    const q = (body.query || "").toLowerCase();
+    const exercises = [
+      { name: "Push Ups", type: "Strength", muscle: "Chest", equipment: "Bodyweight", difficulty: "Beginner", instructions: "Perform push ups with good form." },
+      { name: "Sit Ups", type: "Strength", muscle: "Abdominals", equipment: "Bodyweight", difficulty: "Intermediate", instructions: "Lie on back and lift your torso." },
+      { name: "Running", type: "Cardio", muscle: "Full Body", equipment: "None", difficulty: "Intermediate", instructions: "Run at a steady pace." },
+      { name: "Squats", type: "Strength", muscle: "Quads", equipment: "Bodyweight", difficulty: "Beginner", instructions: "Lower hips and return to standing." },
+    ];
+
+    const results = exercises.filter(e => e.name.toLowerCase().includes(q) || q === "").slice(0, 10);
+    return makeDemoResponse(config, { message: "Found exercises", results }, 200);
+  }
+
+  // Exercises calorie calculation (demo)
+  if (url === "/api/exercises/calculate-calories" && method === "post") {
+    const exerciseName = body.exerciseName || "exercise";
+    const reps = Number(body.reps) || 0;
+    // simple heuristic: 0.2 cal per rep default
+    let factor = 0.2;
+    if (exerciseName.toLowerCase().includes("push")) factor = 0.4;
+    if (exerciseName.toLowerCase().includes("sit")) factor = 0.15;
+    if (exerciseName.toLowerCase().includes("run")) factor = 0.3;
+    const calories = Math.max(1, Math.round(factor * reps));
+    return makeDemoResponse(config, { calories }, 200);
+  }
+
+  if (url === "/api/workouts" && method === "post") {
     const workouts = getStore("demo.workouts", []);
     const nextId = workouts.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1;
     workouts.unshift({
@@ -176,53 +215,71 @@ const demoAdapter = async (config) => {
     return makeDemoResponse(config, { id: nextId }, 201);
   }
 
-  if (url === "workouts" && method === "get") {
+  if (url === "/api/workouts" && method === "get") {
     const workouts = getStore("demo.workouts", []);
     return makeDemoResponse(config, workouts, 200);
   }
 
+  // Workout weekly summary (demo)
+  if (url === "/api/workouts/weekly-summary" && method === "get") {
+    const workouts = getStore("demo.workouts", []);
+    const workoutWeekly = computeWorkoutWeekly(workouts);
+    
+    // Map to include totalCalories for each day
+    const result = last7DaysISO().map(day => {
+      const dayWorkouts = workouts.filter(w => w.day === day);
+      return {
+        day,
+        totalWorkouts: dayWorkouts.length,
+        totalCalories: dayWorkouts.reduce((sum, w) => sum + (w.calories_burned || 0), 0)
+      };
+    });
+    
+    return makeDemoResponse(config, result, 200);
+  }
+
   // Dashboard
-  if (url === "dashboard" && method === "get") {
+  if (url === "/api/dashboard" && method === "get") {
     const meals = getStore("demo.meals", []);
     const workouts = getStore("demo.workouts", []);
 
     const { daily, weekly } = computeMealSummaries(meals);
     const workoutWeekly = computeWorkoutWeekly(workouts);
 
-    // mimic backend response shape
     const weeklyProgress = weekly.map((d) => d.totalCalories);
     const todayWorkouts = workoutWeekly.find((d) => d.day === todayISO())?.totalWorkouts || 0;
+    const demoWater = getStore("demo.water", 0);
 
-    return makeDemoResponse(
-      config,
-      {
-        calories: daily.totalCalories,
-        workouts: todayWorkouts,
-        water: 3,
-        weeklyProgress,
-      },
-      200
-    );
+    return makeDemoResponse(config, { calories: daily.totalCalories, workouts: todayWorkouts, water: demoWater, weeklyProgress }, 200);
   }
 
-  // Default: return empty success for unknown endpoint so UI remains demo-friendly
+  // Water increment (demo)
+  if (url === "/api/metrics/water" && method === "post") {
+    const current = getStore("demo.water", 0);
+    const updated = Math.min(current + 1, 8);
+    setStore("demo.water", updated);
+    return makeDemoResponse(config, { water: updated }, 201);
+  }
+
+  // Default demo
   return makeDemoResponse(config, {}, 200);
 };
 
+// ----------------------------
+// Axios instance
+// ----------------------------
 const API = axios.create({
-  // Prefer env for prod (Vercel), fallback for local dev.
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   adapter: DEMO_MODE ? demoAdapter : undefined,
 });
 
-// 🔐 Attach token automatically to every request
+// Automatically attach token + normalize URL
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+      config.headers.Authorization = `Bearer ${token}`
+    };
 
     return config;
   },

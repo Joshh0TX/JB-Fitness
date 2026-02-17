@@ -33,9 +33,36 @@ export const createWorkout = async (req, res) => {
     const { title, duration, calories_burned } = req.body;
 
     const [result] = await db.query(
-      "INSERT INTO workouts (user_id, title, duration, calories_burned) VALUES (?, ?, ?, ?)",
+      `
+      INSERT INTO workouts 
+      (user_id, title, duration, calories_burned, created_at)
+      VALUES (?, ?, ?, ?, NOW())
+      `,
       [userId, title, duration, calories_burned]
     );
+
+    // After creating a workout, increment today's workouts_completed metric (upsert)
+    try {
+      const [rows] = await db.query(
+        "SELECT id, workouts_completed FROM metrics WHERE user_id = ? AND date = CURDATE()",
+        [userId]
+      );
+
+      if (rows && rows.length > 0) {
+        const metricId = rows[0].id;
+        await db.query(
+          "UPDATE metrics SET workouts_completed = workouts_completed + 1 WHERE id = ? AND user_id = ?",
+          [metricId, userId]
+        );
+      } else {
+        await db.query(
+          "INSERT INTO metrics (user_id, date, calories, water_intake, workouts_completed) VALUES (?, CURDATE(), 0, 0, 1)",
+          [userId]
+        );
+      }
+    } catch (metricErr) {
+      console.error("Failed to update metrics after workout creation:", metricErr);
+    }
 
     res.status(201).json({
       id: result.insertId,
@@ -49,6 +76,7 @@ export const createWorkout = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // PUT update a workout by ID
 export const updateWorkout = async (req, res) => {
@@ -112,6 +140,8 @@ export const getWeeklyWorkoutSummary = async (req, res) => {
     `;
 
     const [rows] = await db.execute(sql, [userId]);
+
+    res.status(200).json(rows);
   } catch (error) {
     console.error("Weekly workout summary error:", error);
     res.status(500).json({ message: "Failed to fetch workout summary" });
