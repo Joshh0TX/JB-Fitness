@@ -1,11 +1,16 @@
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import API from '../api'
+import Logo from '../components/Logo'
+import HistoryCalendarModal from '../components/HistoryCalendarModal'
 import './Workouts.css'
 
 function Workouts({ setSummaryData }) {
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
+
+  // User initials for avatar
+  const [userInitials, setUserInitials] = useState('JD')
 
   const [savedWorkouts, setSavedWorkouts] = useState([])
   const [weeklySummary, setWeeklySummary] = useState([])
@@ -15,10 +20,24 @@ function Workouts({ setSummaryData }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
+  // Calendar history states
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [historyDate, setHistoryDate] = useState(new Date().toISOString().split('T')[0])
+  const [allWorkouts, setAllWorkouts] = useState([]) // All workouts for history
+  const [historyWorkouts, setHistoryWorkouts] = useState([]) // Workouts for selected date
+  
   // Selected exercise states
   const [selectedExercise, setSelectedExercise] = useState(null)
   const [reps, setReps] = useState(0)
+  const [distance, setDistance] = useState(0) // For running/swimming (km or miles)
+  const [distanceUnit, setDistanceUnit] = useState('km') // km or miles
   const [estimatedCalories, setEstimatedCalories] = useState(0)
+
+  // Check if selected exercise is running or swimming
+  const isCardioDistance = selectedExercise && (
+    selectedExercise.name.toLowerCase().includes('running') ||
+    selectedExercise.name.toLowerCase().includes('swimming')
+  )
 
   // 🔹 Fetch saved workouts + weekly summary
   useEffect(() => {
@@ -27,12 +46,32 @@ function Workouts({ setSummaryData }) {
       return
     }
 
+    // 🔹 Get user initials from localStorage
+    try {
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        const username = user.username || user.name || 'User'
+        const initials = username
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2)
+        setUserInitials(initials || 'JD')
+      }
+    } catch (error) {
+      console.error('Failed to parse user from localStorage:', error)
+    }
+
     const fetchData = async () => {
       try {
         const workoutsRes = await API.get('/api/workouts', {
           headers: { Authorization: `Bearer ${token}` }
         })
-        setSavedWorkouts(workoutsRes.data ?? [])
+        const workoutsData = workoutsRes.data ?? []
+        setSavedWorkouts(workoutsData)
+        setAllWorkouts(workoutsData) // Store all workouts for history
 
         const weeklyRes = await API.get('/api/workouts/weekly-summary', {
           headers: { Authorization: `Bearer ${token}` }
@@ -84,36 +123,75 @@ function Workouts({ setSummaryData }) {
   const handleSelectExercise = (exercise) => {
     setSelectedExercise(exercise)
     setReps(0)
+    setDistance(0)
+    setDistanceUnit('km')
     setEstimatedCalories(0)
   }
 
-  // 🔹 Update reps and calculate calories
+  // 🔹 Update reps/distance and calculate calories
   const handleRepsChange = async (newReps) => {
     setReps(newReps)
+    calculateCalories(newReps, 0) // distance = 0 for reps-based exercises
+  }
 
-    if (newReps > 0 && selectedExercise) {
-      try {
-        const response = await API.post('/api/exercises/calculate-calories', {
-          exerciseName: selectedExercise.name,
-          reps: newReps
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+  const handleDistanceChange = async (newDistance) => {
+    setDistance(newDistance)
+    calculateCalories(0, newDistance) // reps = 0 for distance-based exercises
+  }
 
-        setEstimatedCalories(response.data.calories || 0)
-      } catch (error) {
-        console.error('Calorie calculation error:', error)
+  // Calculate calories based on exercise type
+  const calculateCalories = async (repValue, distanceValue) => {
+    if (!selectedExercise) {
+      setEstimatedCalories(0)
+      return
+    }
+
+    try {
+      const bodyData = {
+        exerciseName: selectedExercise.name
       }
-    } else {
+
+      if (isCardioDistance && distanceValue > 0) {
+        // For running/swimming: use distance
+        bodyData.distance = distanceValue
+        bodyData.distanceUnit = distanceUnit
+      } else if (!isCardioDistance && repValue > 0) {
+        // For reps-based exercises
+        bodyData.reps = repValue
+      } else {
+        setEstimatedCalories(0)
+        return
+      }
+
+      const response = await API.post('/api/exercises/calculate-calories', bodyData, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      setEstimatedCalories(response.data.calories || 0)
+    } catch (error) {
+      console.error('Calorie calculation error:', error)
       setEstimatedCalories(0)
     }
   }
 
-  // 🔹 Add workout with selected exercise and reps
+  // 🔹 Add workout with selected exercise and reps/distance
   const handleAddWorkout = async () => {
-    if (!selectedExercise || reps <= 0) {
-      setError('Please select an exercise and enter reps')
+    if (!selectedExercise) {
+      setError('Please select an exercise')
       return
+    }
+
+    // Validate based on exercise type
+    if (isCardioDistance) {
+      if (distance <= 0) {
+        setError('Please enter a valid distance')
+        return
+      }
+    } else {
+      if (reps <= 0) {
+        setError('Please select an exercise and enter reps')
+        return
+      }
     }
 
     if (!token) {
@@ -123,23 +201,39 @@ function Workouts({ setSummaryData }) {
     }
 
     try {
+      // Build title based on exercise type
+      let title
+      if (isCardioDistance) {
+        title = `${selectedExercise.name} (${distance} ${distanceUnit})`
+      } else {
+        title = `${selectedExercise.name} (${reps} reps)`
+      }
+
+      const estimatedDuration = isCardioDistance ? Math.ceil(distance * 10) : Math.ceil(reps / 10)
+
       await API.post(
         '/api/workouts/start',
         {
-          title: `${selectedExercise.name} (${reps} reps)`,
-          duration: Math.ceil(reps / 10), // estimate duration: 1 min per 10 reps
+          title: title,
+          duration: estimatedDuration,
           calories_burned: estimatedCalories,
         },
         { headers: { Authorization: `Bearer ${token}` } },
       )
 
-      alert(`✅ ${selectedExercise.name} with ${reps} reps added! (${estimatedCalories} cal burned)`)
+      const exerciseDesc = isCardioDistance
+        ? `${selectedExercise.name} - ${distance} ${distanceUnit}`
+        : `${selectedExercise.name} - ${reps} reps`
+
+      alert(`✅ ${exerciseDesc} added! (${estimatedCalories} cal burned)`)
 
       // Reset form
       setSearchQuery('')
       setSearchResults([])
       setSelectedExercise(null)
       setReps(0)
+      setDistance(0)
+      setDistanceUnit('km')
       setEstimatedCalories(0)
       setError('')
 
@@ -195,6 +289,7 @@ function Workouts({ setSummaryData }) {
       })
 
       setSavedWorkouts(prev => prev.filter(w => w.id !== workoutId))
+      setAllWorkouts(prev => prev.filter(w => w.id !== workoutId))
 
       // Refresh weekly summary
       const weeklyRes = await API.get('/api/workouts/weekly-summary', {
@@ -207,16 +302,35 @@ function Workouts({ setSummaryData }) {
     }
   }
 
+  // 🔹 Handle history date selection from calendar
+  const handleHistoryDateSelect = (dateStr) => {
+    setHistoryDate(dateStr)
+    const workoutsThatDay = allWorkouts.filter(w => {
+      const workoutDate = w.created_at ? w.created_at.split('T')[0] : null
+      return workoutDate === dateStr
+    })
+    setHistoryWorkouts(workoutsThatDay)
+  }
+
+  // Build object showing which dates have workout data
+  const workoutsByDate = {}
+  allWorkouts.forEach(w => {
+    const workoutDate = w.created_at ? w.created_at.split('T')[0] : null
+    if (workoutDate) {
+      workoutsByDate[workoutDate] = true
+    }
+  })
+
   return (
     <div className="workouts-page">
       <header className="workouts-header">
-        <button className="back-button" onClick={() => navigate('/dashboard')}>
-          ←
-        </button>
+        <div className="header-left">
+          <Logo />
+        </div>
         <h1 className="workouts-title">Workouts</h1>
         <div className="header-right">
           <div className="profile-icon" onClick={() => navigate('/settings')}>
-            JD
+            {userInitials}
           </div>
         </div>
       </header>
@@ -318,32 +432,66 @@ function Workouts({ setSummaryData }) {
                 </div>
               )}
 
-              {/* Reps Counter */}
-              <div className="reps-section">
-                <h3>Set Your Reps</h3>
-                <div className="rep-counter">
-                  <button
-                    className="counter-btn"
-                    onClick={() => handleRepsChange(Math.max(0, reps - 1))}
-                  >
-                    −
-                  </button>
-                  <span className="rep-value">{reps}</span>
-                  <button
-                    className="counter-btn"
-                    onClick={() => handleRepsChange(reps + 1)}
-                  >
-                    +
-                  </button>
+              {/* Input Section: Reps or Distance based on exercise type */}
+              {!isCardioDistance ? (
+                /* Reps Counter for strength exercises */
+                <div className="reps-section">
+                  <h3>Set Your Reps</h3>
+                  <div className="rep-counter">
+                    <button
+                      className="counter-btn"
+                      onClick={() => handleRepsChange(Math.max(0, reps - 1))}
+                    >
+                      −
+                    </button>
+                    <span className="rep-value">{reps}</span>
+                    <button
+                      className="counter-btn"
+                      onClick={() => handleRepsChange(reps + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    value={reps}
+                    onChange={(e) => handleRepsChange(parseInt(e.target.value) || 0)}
+                    className="rep-input"
+                    placeholder="Enter reps"
+                  />
                 </div>
-                <input
-                  type="number"
-                  min="0"
-                  value={reps}
-                  onChange={(e) => handleRepsChange(parseInt(e.target.value) || 0)}
-                  className="rep-input"
-                  placeholder="Enter reps"
-                />
+              ) : (
+                /* Distance Input for running/swimming */
+                <div className="distance-section">
+                  <h3>Set Your Distance</h3>
+                  <div className="distance-input-group">
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={distance}
+                      onChange={(e) => handleDistanceChange(parseFloat(e.target.value) || 0)}
+                      className="distance-input"
+                      placeholder="Enter distance"
+                    />
+                    <select 
+                      value={distanceUnit} 
+                      onChange={(e) => {
+                        setDistanceUnit(e.target.value)
+                        if (distance > 0) {
+                          handleDistanceChange(distance)
+                        }
+                      }}
+                      className="distance-unit"
+                    >
+                      <option value="km">km</option>
+                      <option value="miles">miles</option>
+                      <option value="laps">laps</option>
+                    </select>
+                  </div>
+                </div>
+              )
               </div>
 
               {/* Calorie Display */}
@@ -368,14 +516,35 @@ function Workouts({ setSummaryData }) {
           </section>
         )}
 
-        {/* Today's Workouts */}
+        {/* Today's Workouts / History */}
         <section className="todays-workouts-section">
-          <h2>Today's Workouts ({savedWorkouts.length})</h2>
-          {savedWorkouts.length === 0 ? (
+          <div className="workouts-section-header">
+            <h2>{historyDate === new Date().toISOString().split('T')[0] ? "Today's Workouts" : "Workouts on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyWorkouts.length : savedWorkouts.length})</h2>
+            <button 
+              className="history-btn" 
+              onClick={() => setShowCalendar(!showCalendar)}
+              title="View workout history"
+            >
+              📅 History
+            </button>
+          </div>
+
+          {showCalendar && (
+            <HistoryCalendarModal 
+              isOpen={showCalendar}
+              onClose={() => setShowCalendar(false)}
+              selectedDate={historyDate}
+              onDateSelect={handleHistoryDateSelect}
+              hasDataByDate={workoutsByDate}
+            />
+          )}
+
+          {/* Display either today's workouts or history workouts */}
+          {(showCalendar ? historyWorkouts.length === 0 : savedWorkouts.length === 0) ? (
             <p className="no-workouts">No workouts logged yet. Search above to add!</p>
           ) : (
             <div className="workouts-list">
-              {savedWorkouts.map((workout) => (
+              {(showCalendar ? historyWorkouts : savedWorkouts).map((workout) => (
                 <div key={workout.id} className="workout-item">
                   <div className="workout-info">
                     <h4>{workout.title}</h4>

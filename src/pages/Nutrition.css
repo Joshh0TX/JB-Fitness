@@ -13,27 +13,18 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
-.back-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-arrow {
+.nutrition-header h1 {
   font-size: 24px;
-  color: #424242;
-}
-
-.nutrition-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #424242;
+  font-weight: 700;
+  color: #1a1a1a;
   flex: 1;
   text-align: center;
+  margin: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
 }
 
 .header-right {
@@ -42,11 +33,25 @@
   gap: 20px;
 }
 
-.notification-icon {
-  width: 20px;
-  height: 20px;
-  color: #424242;
+.profile-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  font-weight: 700;
+  color: white;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 187, 106, 0.2);
+}
+
+.profile-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(102, 187, 106, 0.3);
 }
 
 .notification-icon:hover {
@@ -406,6 +411,41 @@
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.meals-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.meals-section-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #424242;
+  flex: 1;
+}
+
+.history-btn {
+  background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+  border: none;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(78, 175, 80, 0.2);
+  white-space: nowrap;
+}
+
+.history-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(78, 175, 80, 0.3);
 }
 
 .no-meals {

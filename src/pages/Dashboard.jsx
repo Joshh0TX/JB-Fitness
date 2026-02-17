@@ -127,8 +127,8 @@ function Dashboard() {
           if (!dayStr) dayStr = new Date().toISOString().split('T')[0];
           return {
             day: dayStr,
-            totalCalories: d.totalCalories ?? 0,
-            totalWorkouts: d.totalWorkouts ?? 0
+            totalCalories: Number(d.totalCalories ?? 0), // Ensure it's a number, not string
+            totalWorkouts: Number(d.totalWorkouts ?? 0)
           };
         });
         setWeeklyWorkoutSummary(weeklyWorkoutData);
@@ -168,8 +168,19 @@ function Dashboard() {
     1
   );
 
+  // Ensure we have 7 days of data for the chart (fill missing days with 0)
+  const dayOfWeek = new Date().getDay(); // 0=Sun, 1=Mon, etc.
+  const sevenDaysData = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dayStr = d.toISOString().split('T')[0];
+    const existingData = weeklyWorkoutSummary.find(w => w.day === dayStr);
+    sevenDaysData.push(existingData || { day: dayStr, totalCalories: 0, totalWorkouts: 0 });
+  }
+
   const maxWorkoutCalories = Math.max(
-    ...weeklyWorkoutSummary.map((d) => d.totalCalories ?? 0),
+    ...sevenDaysData.map((d) => d.totalCalories ?? 0),
     100
   );
   const niceMax = (() => {
@@ -181,8 +192,8 @@ function Dashboard() {
   })();
   const yTicks = [niceMax, Math.round(niceMax * 0.75), Math.round(niceMax * 0.5), Math.round(niceMax * 0.25), 0];
 
-  const weeklyTotalCalories = weeklyWorkoutSummary.reduce((s, d) => s + (d.totalCalories ?? 0), 0);
-  const weeklyTotalWorkouts = weeklyWorkoutSummary.reduce((s, d) => s + (d.totalWorkouts ?? 0), 0);
+  const weeklyTotalCalories = sevenDaysData.reduce((s, d) => s + (d.totalCalories ?? 0), 0);
+  const weeklyTotalWorkouts = sevenDaysData.reduce((s, d) => s + (d.totalWorkouts ?? 0), 0);
 
   const dailyMacroData = [
     { label: "Calories", value: dailySummary.totalCalories, max: 2500 },
@@ -359,7 +370,7 @@ function Dashboard() {
           ))}
 
           {/* Calories bars from workouts */}
-          {weeklyWorkoutSummary.map((d, i) => {
+          {sevenDaysData.map((d, i) => {
             const cal = d.totalCalories ?? 0;
             const barHeight = niceMax > 0 ? (cal / niceMax) * 210 : 0;
             const barWidth = 52;
@@ -423,7 +434,7 @@ function Dashboard() {
 
         {/* X-axis: day name + workout count */}
         <div className="graph-x-axis workout-x-axis">
-          {weeklyWorkoutSummary.map((d, i) => {
+          {sevenDaysData.map((d, i) => {
             const today = new Date().toISOString().split("T")[0];
             const isToday = d.day === today;
             const count = d.totalWorkouts ?? 0;

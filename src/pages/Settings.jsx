@@ -7,6 +7,7 @@ import './Settings.css'
 function Settings() {
   const navigate = useNavigate()
   const [user, setUser] = useState({ username: 'User', email: 'user@example.com' })
+  const [userInitials, setUserInitials] = useState('JD')
 
   // 🔹 Fetch user data from localStorage on component load
   useEffect(() => {
@@ -14,10 +15,20 @@ function Settings() {
       const userStr = localStorage.getItem('user')
       if (userStr) {
         const userData = JSON.parse(userStr)
+        const username = userData.username || userData.name || 'User'
         setUser({
-          username: userData.username || userData.name || 'User',
+          username: username,
           email: userData.email || 'user@example.com'
         })
+        
+        // Calculate initials from username
+        const initials = username
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2)
+        setUserInitials(initials || 'JD')
       }
     } catch (error) {
       console.error('Failed to parse user from localStorage:', error)
@@ -66,7 +77,9 @@ function Settings() {
         <div className="settings-card">
           <h2 className="card-title">Account</h2>
           <div className="profile-section">
-            <div className="profile-avatar"></div>
+            <div className="profile-avatar">
+              <span className="avatar-initials">{userInitials}</span>
+            </div>
             <div className="profile-info">
               <h3 className="profile-name">{user.username}</h3>
               <p className="profile-email">{user.email}</p>

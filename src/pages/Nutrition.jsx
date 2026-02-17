@@ -1,11 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import API from "../api.js";
+import Logo from "../components/Logo";
+import HistoryCalendarModal from "../components/HistoryCalendarModal";
 import "./Nutrition.css";
 
 function Nutrition() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
+  // User initials for avatar
+  const [userInitials, setUserInitials] = useState("JD");
 
   // ✅ States
   const [dailySummary, setDailySummary] = useState({
@@ -21,6 +26,32 @@ function Nutrition() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userMeals, setUserMeals] = useState([]);
+  
+  // Calendar history states
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [historyDate, setHistoryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [allMeals, setAllMeals] = useState([]); // All meals for history
+  const [historyMeals, setHistoryMeals] = useState([]); // Meals for selected date
+
+  // ✅ Get user initials on mount
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        const username = user.username || user.name || "User"
+        const initials = username
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2)
+        setUserInitials(initials || "JD")
+      }
+    } catch (error) {
+      console.error("Failed to parse user from localStorage:", error)
+    }
+  }, [])
 
   // ✅ Fetch initial daily & weekly summaries & user meals
   const fetchSummaries = async () => {
@@ -39,9 +70,18 @@ function Nutrition() {
         }),
       ]);
 
+      const mealsData = mealsRes.data || [];
       setDailySummary(dailyRes.data);
       setWeeklySummary(weeklyRes.data);
-      setUserMeals(mealsRes.data || []);
+      setAllMeals(mealsData); // Store all meals for history
+      
+      // Filter meals for today
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayMeals = mealsData.filter(m => {
+        const mealDate = m.created_at ? m.created_at.split('T')[0] : todayStr;
+        return mealDate === todayStr;
+      });
+      setUserMeals(todayMeals);
     } catch (error) {
       console.error("Summary fetch error:", error);
       setError("Failed to load nutrition data");
@@ -144,13 +184,37 @@ function Nutrition() {
     }
   };
 
+  // ✅ Handle history date selection from calendar
+  const handleHistoryDateSelect = (dateStr) => {
+    setHistoryDate(dateStr);
+    const mealsThatDay = allMeals.filter(m => {
+      const mealDate = m.created_at ? m.created_at.split('T')[0] : null;
+      return mealDate === dateStr;
+    });
+    setHistoryMeals(mealsThatDay);
+  };
+
+  // Build object showing which dates have meal data
+  const mealsByDate = {};
+  allMeals.forEach(m => {
+    const mealDate = m.created_at ? m.created_at.split('T')[0] : null;
+    if (mealDate) {
+      mealsByDate[mealDate] = true;
+    }
+  });
+
   return (
     <div className="nutrition-page">
       <header className="nutrition-header">
-        <button className="back-button" onClick={() => navigate("/dashboard")}>
-          ←
-        </button>
+        <div className="header-left">
+          <Logo />
+        </div>
         <h1>Nutrition</h1>
+        <div className="header-right">
+          <div className="profile-icon" onClick={() => navigate("/settings")}>
+            <span>{userInitials}</span>
+          </div>
+        </div>
       </header>
 
       <main className="nutrition-main">
@@ -235,14 +299,35 @@ function Nutrition() {
           )}
         </section>
 
-        {/* Today's Meals */}
+        {/* Today's Meals / History */}
         <section className="todays-meals-section">
-          <h2>Today's Meals ({userMeals.length})</h2>
-          {userMeals.length === 0 ? (
+          <div className="meals-section-header">
+            <h2>{historyDate === new Date().toISOString().split('T')[0] ? "Today's Meals" : "Meals on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyMeals.length : userMeals.length})</h2>
+            <button 
+              className="history-btn" 
+              onClick={() => setShowCalendar(!showCalendar)}
+              title="View meal history"
+            >
+              📅 History
+            </button>
+          </div>
+
+          {showCalendar && (
+            <HistoryCalendarModal 
+              isOpen={showCalendar}
+              onClose={() => setShowCalendar(false)}
+              selectedDate={historyDate}
+              onDateSelect={handleHistoryDateSelect}
+              hasDataByDate={mealsByDate}
+            />
+          )}
+
+          {/* Display either today's meals or history meals */}
+          {(showCalendar ? historyMeals.length === 0 : userMeals.length === 0) ? (
             <p className="no-meals">No meals added yet. Search above to add!</p>
           ) : (
             <div className="meals-list">
-              {userMeals.map((meal) => (
+              {(showCalendar ? historyMeals : userMeals).map((meal) => (
                 <div key={meal.id} className="meal-item">
                   <div className="meal-info">
                     <h4>{meal.name}</h4>

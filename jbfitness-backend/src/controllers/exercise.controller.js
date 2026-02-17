@@ -166,19 +166,80 @@ export const searchExercises = async (req, res) => {
 
 export const calculateWorkoutCalories = async (req, res) => {
   try {
-    const { exerciseName, reps, userWeight = 70 } = req.body;
+    const { exerciseName, reps = 0, distance = 0, distanceUnit = 'km', userWeight = 70 } = req.body;
 
     if (!exerciseName) {
       return res.status(400).json({ message: "Exercise name is required" });
     }
 
-    const calories = calculateCaloriesBurned(exerciseName, reps, userWeight);
+    let calories = 0;
+    const lowerName = exerciseName.toLowerCase();
+
+    // Check if it's a running or swimming exercise (distance-based)
+    const isCardio = lowerName.includes('running') || lowerName.includes('swimming');
+
+    if (isCardio && distance > 0) {
+      // For running/swimming: approximately 80 calories per km for average person (70kg)
+      // For swimming: approximately 100 calories per km
+      const caloriePerKm = lowerName.includes('swimming') ? 100 : 80;
+      
+      // Convert miles/laps to km if needed
+      let distanceInKm = distance;
+      if (distanceUnit === 'miles') {
+        distanceInKm = distance * 1.60934; // 1 mile = 1.60934 km
+      } else if (distanceUnit === 'laps') {
+        // Assuming 1 lap in a pool = 0.05 km (50 meters standard pool)
+        distanceInKm = distance * 0.05;
+      }
+
+      // Calculate based on distance and weight
+      calories = Math.round(caloriePerKm * distanceInKm * (userWeight / 70));
+    } else if (reps > 0) {
+      // Original reps-based calculation
+      const exerciseBurnFactors = {
+        "running": 0.3,
+        "jumping": 0.25,
+        "burpee": 0.5,
+        "jump rope": 0.2,
+        "sprinting": 0.35,
+        "push-up": 0.4,
+        "pull-up": 0.45,
+        "dip": 0.5,
+        "bench press": 0.35,
+        "shoulder press": 0.35,
+        "curl": 0.15,
+        "tricep": 0.15,
+        "squat": 0.5,
+        "deadlift": 0.6,
+        "lunge": 0.3,
+        "leg press": 0.45,
+        "calf raise": 0.1,
+        "crunch": 0.1,
+        "sit-up": 0.15,
+        "plank": 0.08,
+        "leg raise": 0.2,
+        "kettlebell": 0.4,
+        "medicine ball": 0.35,
+        "cable": 0.2,
+      };
+
+      let factor = 0.2; // default factor
+      for (const [keyword, value] of Object.entries(exerciseBurnFactors)) {
+        if (lowerName.includes(keyword)) {
+          factor = value;
+          break;
+        }
+      }
+
+      calories = Math.round(factor * reps * (userWeight / 70));
+    }
 
     res.status(200).json({
       exerciseName,
-      reps,
-      calories,
-      message: `Estimated ${calories} calories burned`,
+      reps: reps || undefined,
+      distance: distance || undefined,
+      calories: Math.max(calories, 1), // minimum 1 calorie
+      message: `Estimated ${Math.max(calories, 1)} calories burned`,
     });
   } catch (error) {
     console.error("Calorie calculation error:", error);
