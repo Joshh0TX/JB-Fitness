@@ -491,8 +491,7 @@ function Workouts({ setSummaryData }) {
                     </select>
                   </div>
                 </div>
-              )
-              </div>
+              )}
 
               {/* Calorie Display */}
               {reps > 0 && (
