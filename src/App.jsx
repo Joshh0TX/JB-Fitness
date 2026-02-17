@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Nutrition from './pages/Nutrition'
 import Workouts from './pages/Workouts'
 import Settings from './pages/Settings'
+import History from './pages/History'
 import './App.css'
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
       <Route path="/nutrition" element={<Nutrition />} />
       <Route path="/workouts" element={<Workouts />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/history" element={<History />} />
     </Routes>
   )
 }

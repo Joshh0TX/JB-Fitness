@@ -228,6 +228,15 @@ function Dashboard() {
     { label: "Fats", value: dailySummary.totalFats, max: 100 },
   ];
 
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const getDay = (item) => {
+    if (item.created_at) return String(item.created_at).slice(0, 10);
+    if (item.day) return String(item.day).slice(0, 10);
+    return null;
+  };
+  const todaysMeals = savedMeals.filter((m) => getDay(m) === todayISO());
+  const todaysWorkouts = savedWorkouts.filter((w) => getDay(w) === todayISO());
+
 
 
   return (
@@ -411,16 +420,21 @@ function Dashboard() {
 
 
 
-        {/* Saved Workouts */}
+        {/* Today's Workouts */}
         <div className="saved-section">
           <div className="section-header">
-            <h2 className="section-title">Saved Workouts</h2>
-            <a href="#view-all" className="view-all-link">
-              View all
-            </a>
+            <h2 className="section-title">Today's Workouts</h2>
+            <button
+              className="view-past-btn"
+              onClick={() => navigate("/history")}
+            >
+              View past workouts
+            </button>
           </div>
          <div className="workout-cards">
-  {savedWorkouts.map((workout) => (
+  {todaysWorkouts.length === 0 ? (
+    <p className="empty-today">No workouts today. <button className="inline-link" onClick={() => navigate("/workouts")}>Add one</button></p>
+  ) : todaysWorkouts.map((workout) => (
     <div key={workout.id} className="workout-card">
       <div className="workout-card-header">
         <div>
@@ -463,16 +477,21 @@ function Dashboard() {
 </div>
 </div>
 
-        {/* Saved Meals */}
+        {/* Today's Meals */}
         <div className="saved-section">
           <div className="section-header">
-            <h2 className="section-title">Saved Meals</h2>
-            <a href="#view-all" className="view-all-link">
-              View all
-            </a>
+            <h2 className="section-title">Today's Meals</h2>
+            <button
+              className="view-past-btn"
+              onClick={() => navigate("/history")}
+            >
+              View past meals
+            </button>
           </div>
           <div className="meal-cards">
-            {savedMeals.map((m) => (
+            {todaysMeals.length === 0 ? (
+              <p className="empty-today">No meals today. <button className="inline-link" onClick={() => navigate("/nutrition")}>Add one</button></p>
+            ) : todaysMeals.map((m) => (
               <div key={m.id} className="meal-card">
                 <div className="meal-header">
                   <h3>{m.title ?? m.name ?? "Meal"}</h3>

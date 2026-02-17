@@ -381,6 +381,47 @@
   text-decoration: underline;
 }
 
+.view-past-btn {
+  background: rgba(46, 125, 50, 0.1);
+  color: #2e7d32;
+  border: 1px solid rgba(46, 125, 50, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-past-btn:hover {
+  background: rgba(46, 125, 50, 0.2);
+  border-color: #2e7d32;
+  color: #1b5e20;
+}
+
+.empty-today {
+  grid-column: 1 / -1;
+  color: #757575;
+  font-size: 15px;
+  padding: 24px;
+  text-align: center;
+}
+
+.inline-link {
+  background: none;
+  border: none;
+  color: #2e7d32;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: inherit;
+}
+
+.inline-link:hover {
+  color: #1b5e20;
+}
+
 /* Workout Cards */
 .workout-cards {
   display: grid;

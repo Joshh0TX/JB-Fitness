@@ -19,6 +19,7 @@ function Workouts({ setSummaryData }) {
       calories: 320,
       difficulty: 'Intermediate',
       exercises: 10,
+      sets: 4,
       type: 'Strength',
       equipment: 'Dumbbells, Bench'
     },
@@ -29,6 +30,7 @@ function Workouts({ setSummaryData }) {
       calories: 400,
       difficulty: 'Advanced',
       exercises: 8,
+      sets: 5,
       type: 'Cardio',
       equipment: 'None'
     },
@@ -39,10 +41,42 @@ function Workouts({ setSummaryData }) {
       calories: 150,
       difficulty: 'Beginner',
       exercises: 12,
+      sets: 1,
       type: 'Flexibility',
       equipment: 'Yoga Mat'
+    },
+    {
+      title: 'Swimming Laps',
+      description: 'Pool swimming workout for cardio and full-body conditioning',
+      duration: 30,
+      calories: 350,
+      difficulty: 'Intermediate',
+      exercises: 1,
+      laps: 20,
+      type: 'Swimming',
+      equipment: 'Pool'
+    },
+    {
+      title: 'Running Intervals',
+      description: 'Track or treadmill running with interval training',
+      duration: 25,
+      calories: 380,
+      difficulty: 'Intermediate',
+      exercises: 1,
+      laps: 12,
+      type: 'Running',
+      equipment: 'Treadmill or Track'
     }
   ]
+
+  const isLapsWorkout = (workout) =>
+    workout.type === 'Swimming' || workout.type === 'Running'
+
+  const getQuantityLabel = (workout) =>
+    isLapsWorkout(workout) ? 'Laps' : 'Sets'
+
+  const getQuantityValue = (workout) =>
+    isLapsWorkout(workout) ? (workout.laps ?? workout.exercises ?? 0) : (workout.sets ?? workout.exercises ?? 0)
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
@@ -187,8 +221,8 @@ function Workouts({ setSummaryData }) {
                   <span>{workout.calories} cal</span>
                 </div>
                 <div className="info-item">
-                  <span>Exercises</span>
-                  <span>{workout.exercises}</span>
+                  <span>{getQuantityLabel(workout)}</span>
+                  <span>{getQuantityValue(workout)}</span>
                 </div>
                 <div className="info-item">
                   <span>Equipment</span>

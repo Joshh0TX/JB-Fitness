@@ -1,0 +1,187 @@
+.history-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #90EE90 0%, #7dd87d 50%, #6bc26b 100%);
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 40px;
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.history-header .back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 20px;
+  color: #424242;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.history-header .back-button:hover {
+  background: rgba(102, 187, 106, 0.15);
+  color: #2e7d32;
+}
+
+.history-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.history-main {
+  padding: 32px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.date-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.date-picker label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #424242;
+}
+
+.date-select {
+  padding: 10px 16px;
+  font-size: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  background: white;
+  color: #1a1a1a;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.date-select:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+}
+
+.history-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.history-section h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 20px 0;
+}
+
+.empty-state {
+  color: #757575;
+  font-size: 15px;
+  margin: 0;
+}
+
+.history-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.history-cards .meal-card,
+.history-cards .workout-card {
+  padding: 20px;
+  background: rgba(102, 187, 106, 0.08);
+  border: 1px solid rgba(102, 187, 106, 0.2);
+  border-radius: 12px;
+}
+
+.history-cards .meal-card h3,
+.history-cards .workout-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+}
+
+.history-cards .meal-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.history-cards .stat {
+  font-size: 13px;
+  color: #424242;
+}
+
+.history-cards .stat-label {
+  color: #757575;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.history-cards .workout-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.history-cards .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-cards .info-label {
+  font-size: 11px;
+  color: #757575;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.history-cards .info-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.history-loading {
+  padding: 48px;
+  text-align: center;
+  color: #757575;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .history-header {
+    padding: 16px 24px;
+  }
+
+  .history-main {
+    padding: 24px;
+  }
+
+  .date-picker {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-select {
+    min-width: auto;
+  }
+}
