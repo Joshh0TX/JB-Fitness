@@ -10,7 +10,6 @@ function History() {
   const [workouts, setWorkouts] = useState([]);
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
-    d.setDate(d.getDate() - 1);
     return d.toISOString().slice(0, 10);
   });
   const [loading, setLoading] = useState(true);
@@ -19,7 +18,11 @@ function History() {
   for (let i = 0; i < 14; i++) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    last14Days.push(d.toISOString().slice(0, 10));
+    // Format as YYYY-MM-DD without timezone conversion
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    last14Days.push(`${year}-${month}-${day}`);
   }
 
   useEffect(() => {

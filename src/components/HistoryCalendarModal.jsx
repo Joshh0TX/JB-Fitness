@@ -56,7 +56,11 @@ function HistoryCalendarModal({ isOpen, onClose, selectedDate, onDateSelect, has
 
   const handleDateClick = (dateObj) => {
     if (!dateObj.isCurrentMonth) return;
-    const dateStr = dateObj.date.toISOString().split('T')[0];
+    // Format as YYYY-MM-DD without timezone conversion
+    const year = dateObj.date.getFullYear();
+    const month = String(dateObj.date.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     onDateSelect(dateStr);
   };
 
@@ -92,10 +96,19 @@ function HistoryCalendarModal({ isOpen, onClose, selectedDate, onDateSelect, has
 
             {/* Calendar days */}
             {calendarDays.map((dayObj, idx) => {
-              const dateStr = dayObj.date.toISOString().split('T')[0];
+              // Format as YYYY-MM-DD without timezone conversion
+              const year = dayObj.date.getFullYear();
+              const month = String(dayObj.date.getMonth() + 1).padStart(2, '0');
+              const day = String(dayObj.date.getDate()).padStart(2, '0');
+              const dateStr = `${year}-${month}-${day}`;
+              
+              const todayYear = new Date().getFullYear();
+              const todayMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+              const todayDay = String(new Date().getDate()).padStart(2, '0');
+              const isToday = dateStr === `${todayYear}-${todayMonth}-${todayDay}`;
+              
               const isSelected = selectedDate === dateStr;
               const hasData = hasDataByDate[dateStr];
-              const isToday = dateStr === new Date().toISOString().split('T')[0];
 
               return (
                 <div
