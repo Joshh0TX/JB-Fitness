@@ -46,21 +46,26 @@ export const searchNutrition = async (req, res) => {
     // Step 2: If USDA didn't return results, try Nigerian foods database
     if (foods.length === 0) {
       try {
-        const [nigerianFoods] = await db.query(
-          "SELECT id, food_name, serving_size, calories, protein, carbs, fat FROM nigerian_foods WHERE LOWER(food_name) LIKE ?",
-          [`%${searchQuery}%`]
-        );
+        const connection = await db.getConnection();
+        try {
+          const [nigerianFoods] = await connection.query(
+            "SELECT id, food_name, serving_size, calories, protein, carbs, fat FROM nigerian_foods WHERE LOWER(food_name) LIKE ?",
+            [`%${searchQuery}%`]
+          );
 
-        if (nigerianFoods && nigerianFoods.length > 0) {
-          foods = nigerianFoods.map((f) => ({
-            name: f.food_name,
-            source: "Nigerian Foods Database",
-            serving_size: f.serving_size,
-            calories: Math.round(f.calories || 0),
-            protein: Math.round(f.protein || 0),
-            carbs: Math.round(f.carbs || 0),
-            fats: Math.round(f.fat || 0),
-          }));
+          if (nigerianFoods && nigerianFoods.length > 0) {
+            foods = nigerianFoods.map((f) => ({
+              name: f.food_name,
+              source: "Nigerian Foods Database",
+              serving_size: f.serving_size,
+              calories: Math.round(f.calories || 0),
+              protein: Math.round(f.protein || 0),
+              carbs: Math.round(f.carbs || 0),
+              fats: Math.round(f.fat || 0),
+            }));
+          }
+        } finally {
+          connection.release();
         }
       } catch (dbError) {
         console.warn("Nigerian foods database query failed:", dbError.message);

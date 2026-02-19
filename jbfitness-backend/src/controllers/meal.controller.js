@@ -68,7 +68,13 @@ export const searchFoods = async (req, res) => {
       LIMIT 20
     `;
 
-    const [nigerian_foods] = await db.execute(nigerian_sql, [`%${query.trim()}%`]);
+    const connection = await db.getConnection();
+    let nigerian_foods;
+    try {
+      [nigerian_foods] = await connection.execute(nigerian_sql, [`%${query.trim()}%`]);
+    } finally {
+      connection.release();
+    }
 
     if (nigerian_foods && nigerian_foods.length > 0) {
       const mapped_foods = nigerian_foods.map((food) => ({
