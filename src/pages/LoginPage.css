@@ -36,7 +36,7 @@
   align-items: center;
   padding: 24px 48px;
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(6px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   position: relative;
   z-index: 10;
@@ -94,8 +94,8 @@
 }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(6px);
   border-radius: 24px;
   padding: 48px;
   width: 100%;
@@ -429,7 +429,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   padding: 24px 48px;
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(6px);
   position: relative;
   z-index: 10;
 }
