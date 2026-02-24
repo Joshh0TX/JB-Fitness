@@ -5,6 +5,11 @@
   animation: gradient-pan 14s var(--ease-inout) infinite;
   position: relative;
   overflow-x: hidden;
+  transition: background 0.3s ease;
+}
+
+[data-theme='dark'] .dashboard {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1f1f1f 100%);
 }
 
 .dashboard::before {
@@ -17,6 +22,11 @@
   background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
               radial-gradient(circle at 80% 80%, rgba(102, 187, 106, 0.1) 0%, transparent 50%);
   pointer-events: none;
+}
+
+[data-theme='dark'] .dashboard::before {
+  background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
 }
 
 /* Header */
@@ -32,6 +42,13 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: all 0.3s ease;
+}
+
+[data-theme='dark'] .dashboard-header {
+  background: rgba(45, 45, 45, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .header-left {
@@ -1030,3 +1047,94 @@
   color: #e64a19;
 }
 
+/* ===== DARK MODE STYLES ===== */
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Text colors in dark mode */
+[data-theme='dark'] .header-title,
+[data-theme='dark'] h1,
+[data-theme='dark'] h2,
+[data-theme='dark'] h3,
+[data-theme='dark'] p,
+[data-theme='dark'] span,
+[data-theme='dark'] .summary-label,
+[data-theme='dark'] .card-title {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .summary-value,
+[data-theme='dark'] .metric-value {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .progress-info,
+[data-theme='dark'] .metric-label {
+  color: #aaaaaa;
+}
+
+/* Cards and containers */
+[data-theme='dark'] .dashboard-card,
+[data-theme='dark'] .nutrition-card,
+[data-theme='dark'] .workout-card {
+  background: rgba(45, 45, 45, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .dashboard-card:hover,
+[data-theme='dark'] .nutrition-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Buttons */
+[data-theme='dark'] button,
+[data-theme='dark'] .btn {
+  transition: all 0.3s ease;
+}
+
+[data-theme='dark'] .tab {
+  color: #aaaaaa;
+}
+
+[data-theme='dark'] .tab.active {
+  color: #66bb6a;
+}
+
+/* Tab styling */
+[data-theme='dark'] .header-tabs {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .tab {
+  background: transparent;
+}
+
+[data-theme='dark'] .tab.active {
+  background: rgba(102, 187, 106, 0.1);
+}
+
+/* Input elements */
+[data-theme='dark'] input[type='text'],
+[data-theme='dark'] input[type='number'],
+[data-theme='dark'] textarea,
+[data-theme='dark'] select {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+[data-theme='dark'] input::placeholder {
+  color: #777;
+}
+
+/* Links */
+[data-theme='dark'] a {
+  color: #66bb6a;
+}
+
+[data-theme='dark'] a:hover {
+  color: #4caf50;
+}

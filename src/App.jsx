@@ -20,12 +20,15 @@ function App() {
       if (prefsStr) {
         const prefs = JSON.parse(prefsStr)
         document.documentElement.setAttribute('data-theme', prefs.theme)
+        document.body.setAttribute('data-theme', prefs.theme)
       } else {
         document.documentElement.setAttribute('data-theme', 'light')
+        document.body.setAttribute('data-theme', 'light')
       }
     } catch (error) {
       console.error('Failed to load theme preference:', error)
       document.documentElement.setAttribute('data-theme', 'light')
+      document.body.setAttribute('data-theme', 'light')
     }
   }, [])
 

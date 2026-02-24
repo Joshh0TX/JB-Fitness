@@ -1,6 +1,11 @@
 .history-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #90EE90 0%, #7dd87d 50%, #6bc26b 100%);
+  transition: background 0.3s ease;
+}
+
+[data-theme='dark'] .history-page {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1f1f1f 100%);
 }
 
 .history-header {
@@ -10,6 +15,12 @@
   padding: 20px 40px;
   background: rgba(255, 255, 255, 0.95);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+[data-theme='dark'] .history-header {
+  background: rgba(45, 45, 45, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 .history-header .back-button {
@@ -23,9 +34,18 @@
   transition: background 0.2s;
 }
 
+[data-theme='dark'] .history-header .back-button {
+  color: #999;
+}
+
 .history-header .back-button:hover {
   background: rgba(102, 187, 106, 0.15);
   color: #2e7d32;
+}
+
+[data-theme='dark'] .history-header .back-button:hover {
+  background: rgba(102, 187, 106, 0.1);
+  color: #66bb6a;
 }
 
 .history-header h1 {
@@ -33,6 +53,11 @@
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+[data-theme='dark'] .history-header h1 {
+  color: #ffffff;
 }
 
 .history-main {
@@ -48,6 +73,12 @@
   margin-bottom: 32px;
   padding: 16px 20px;
   background: rgba(255, 255, 255, 0.95);
+  transition: all 0.3s ease;
+}
+
+[data-theme='dark'] .date-picker {
+  background: rgba(45, 45, 45, 0.95);
+}
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
