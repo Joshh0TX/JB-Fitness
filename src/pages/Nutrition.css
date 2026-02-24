@@ -572,6 +572,14 @@
   .result-card .nutrition-info {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .todays-meals-section {
+    padding: 16px;
+  }
+
+  .meals-section-header h2 {
+    font-size: 18px;
+  }
 }
 
 /* ===== DARK MODE STYLES ===== */
@@ -616,6 +624,17 @@
 }
 
 [data-theme='dark'] .meal-macros span {
+  color: #ffffff;
+}
+
+/* Dark mode background overrides for sections */
+[data-theme='dark'] .todays-meals-section,
+[data-theme='dark'] .nutrition-container {
+  background: rgba(25, 25, 25, 0.99);
+}
+
+[data-theme='dark'] .todays-meals-section h2,
+[data-theme='dark'] .meals-section-header h2 {
   color: #ffffff;
 }
 

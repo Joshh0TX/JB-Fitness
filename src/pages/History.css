@@ -215,6 +215,14 @@
   .date-select {
     min-width: auto;
   }
+
+  .history-section {
+    padding: 16px;
+  }
+
+  .history-section h2 {
+    font-size: 18px;
+  }
 }
 /* ===== DARK MODE STYLES ===== */
 
@@ -246,4 +254,23 @@
 [data-theme='dark'] .legend-item {
   fill: #1a1a1a;
   color: #1a1a1a;
+}
+
+/* Dark mode background overrides for sections */
+[data-theme='dark'] .history-section {
+  background: rgba(25, 25, 25, 0.99);
+}
+
+[data-theme='dark'] .history-section h2 {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .history-cards .meal-card,
+[data-theme='dark'] .history-cards .workout-card {
+  background: rgba(45, 45, 45, 0.95);
+}
+
+[data-theme='dark'] .history-cards .meal-card h3,
+[data-theme='dark'] .history-cards .workout-card h3 {
+  color: #ffffff;
 }

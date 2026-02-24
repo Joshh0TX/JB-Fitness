@@ -665,6 +665,16 @@ section {
   .weekly-grid {
     grid-template-columns: repeat(4, 1fr);
   }
+
+  .todays-workouts-section,
+  .weekly-summary-section {
+    padding: 16px;
+  }
+
+  .todays-workouts-section h2,
+  .weekly-summary-section h2 {
+    font-size: 18px;
+  }
 }
 
 /* ===== DARK MODE STYLES ===== */
@@ -706,4 +716,22 @@ section {
 [data-theme='dark'] .legend-item {
   fill: #1a1a1a;
   color: #1a1a1a;
+}
+
+/* Dark mode background overrides for sections */
+[data-theme='dark'] .todays-workouts-section,
+[data-theme='dark'] .weekly-summary-section {
+  background: rgba(25, 25, 25, 0.99);
+}
+
+[data-theme='dark'] .todays-workouts-section h2,
+[data-theme='dark'] .weekly-summary-section h2,
+[data-theme='dark'] .workouts-section-header h2 {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .day-value,
+[data-theme='dark'] .duration-info,
+[data-theme='dark'] .exercise-name {
+  color: #ffffff;
 }
