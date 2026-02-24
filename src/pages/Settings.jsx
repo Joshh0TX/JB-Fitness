@@ -36,10 +36,10 @@ function Settings() {
   }, [])
 
   const accountItems = [
-    { iconType: 'person', label: 'Personal Information' },
-    { iconType: 'lock', label: 'Privacy & Security' },
-    { iconType: 'shield', label: 'Two-Factor Authentication', status: 'Enabled' },
-    { iconType: 'settings', label: 'App Preferences' }
+    { iconType: 'person', label: 'Personal Information', path: '/personal-info' },
+    { iconType: 'lock', label: 'Privacy & Security', path: '/privacy' },
+    { iconType: 'shield', label: 'Two-Factor Authentication', status: 'Enabled', path: '/two-factor-auth' },
+    { iconType: 'settings', label: 'App Preferences', path: '/app-preferences' }
   ]
 
   const paymentItems = [
@@ -54,6 +54,12 @@ function Settings() {
     { iconType: 'forum', label: 'Community Forum' },
     { iconType: 'info', label: 'About JBFitness' }
   ]
+
+  const handleItemClick = (path) => {
+    if (path) {
+      navigate(path)
+    }
+  }
 
   const handleSignOut = () => {
     if (window.confirm('Are you sure you want to sign out?')) {
@@ -88,7 +94,11 @@ function Settings() {
           </div>
           <div className="settings-list">
             {accountItems.map((item, index) => (
-              <div key={index} className="settings-item">
+              <div
+                key={index}
+                className="settings-item"
+                onClick={() => handleItemClick(item.path)}
+              >
                 <div className="item-left">
                   <SettingsIcon type={item.iconType} />
                   <span className="item-label">{item.label}</span>
