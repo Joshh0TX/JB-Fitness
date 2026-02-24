@@ -696,3 +696,14 @@ section {
 [data-theme='dark'] .day-stat {
   color: #ffb74d;
 }
+
+/* Chart and text elements - dark text for white chart backgrounds */
+[data-theme='dark'] svg text,
+[data-theme='dark'] .chart-label,
+[data-theme='dark'] .bar-label,
+[data-theme='dark'] .x-tick,
+[data-theme='dark'] .graph-x-axis,
+[data-theme='dark'] .legend-item {
+  fill: #1a1a1a;
+  color: #1a1a1a;
+}

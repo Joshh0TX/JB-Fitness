@@ -1075,6 +1075,58 @@
   color: #aaaaaa;
 }
 
+/* Macro Cards - Dark mode text should be dark for white chart backgrounds */
+[data-theme='dark'] .macro-cards h2 {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .macro-card h3 {
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .macro-value {
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .macro-goal,
+[data-theme='dark'] .macro-unit {
+  color: #666;
+}
+
+[data-theme='dark'] .macro-progress {
+  background-color: #ddd;
+}
+
+/* Chart and Graph text - dark text for white chart backgrounds */
+[data-theme='dark'] .graph-x-axis {
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .x-tick {
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .nutrition-bars-labels .bar-label {
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .nutrition-bars-labels .bar-value {
+  color: #666;
+}
+
+[data-theme='dark'] .chart-legend {
+  border-top-color: #ddd;
+}
+
+[data-theme='dark'] .legend-item {
+  color: #1a1a1a;
+}
+
+/* SVG text elements in charts */
+[data-theme='dark'] svg text {
+  fill: #1a1a1a;
+}
+
 /* Cards and containers */
 [data-theme='dark'] .dashboard-card,
 [data-theme='dark'] .nutrition-card,

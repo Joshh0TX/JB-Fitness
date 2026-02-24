@@ -216,3 +216,34 @@
     min-width: auto;
   }
 }
+/* ===== DARK MODE STYLES ===== */
+
+[data-theme='dark'] .date-picker {
+  background: rgba(45, 45, 45, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] h2,
+[data-theme='dark'] h3,
+[data-theme='dark'] p {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .info-label {
+  color: #999;
+}
+
+[data-theme='dark'] .info-value {
+  color: #ffffff;
+}
+
+/* Chart and text elements - dark text for white chart backgrounds */
+[data-theme='dark'] svg text,
+[data-theme='dark'] .chart-label,
+[data-theme='dark'] .bar-label,
+[data-theme='dark'] .x-tick,
+[data-theme='dark'] .graph-x-axis,
+[data-theme='dark'] .legend-item {
+  fill: #1a1a1a;
+  color: #1a1a1a;
+}

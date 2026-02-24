@@ -600,6 +600,25 @@
   color: #aaaaaa;
 }
 
+/* Chart and text elements - dark text for white chart backgrounds */
+[data-theme='dark'] svg text,
+[data-theme='dark'] .chart-label,
+[data-theme='dark'] .bar-label,
+[data-theme='dark'] .nutrition-bars-labels span {
+  fill: #1a1a1a;
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .legend-item,
+[data-theme='dark'] .x-tick,
+[data-theme='dark'] .graph-x-axis {
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .meal-macros span {
+  color: #ffffff;
+}
+
 [data-theme='dark'] button {
   transition: all 0.3s ease;
 }
