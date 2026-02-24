@@ -34,8 +34,8 @@
   align-items: center;
   gap: 20px;
   padding: 24px 48px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(6px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   position: sticky;
@@ -45,7 +45,7 @@
 }
 
 [data-theme='dark'] .personal-info-header {
-  background: rgba(45, 45, 45, 0.95);
+  background: rgba(20, 20, 20, 0.99);
   border-bottom-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
@@ -92,8 +92,8 @@
 }
 
 .info-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 40px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
@@ -315,7 +315,7 @@
 }
 
 [data-theme='dark'] .info-card {
-  background: rgba(45, 45, 45, 0.95);
+  background: rgba(20, 20, 20, 0.99);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }

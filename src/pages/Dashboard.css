@@ -35,8 +35,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px 48px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   position: sticky;
@@ -46,7 +46,7 @@
 }
 
 [data-theme='dark'] .dashboard-header {
-  background: rgba(45, 45, 45, 0.95);
+  background: rgba(20, 20, 20, 0.98);
   border-bottom-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
@@ -158,8 +158,8 @@
 }
 
 .summary-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 32px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
@@ -256,8 +256,8 @@
 
 /* Weekly Progress */
 .weekly-progress {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 32px;
   margin-bottom: 40px;
@@ -453,8 +453,8 @@
 }
 
 .workout-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 28px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
@@ -591,8 +591,8 @@
 }
 
 .meal-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 28px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
@@ -716,8 +716,8 @@
 }
 
 .macro-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(6px);
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -1131,7 +1131,7 @@
 [data-theme='dark'] .dashboard-card,
 [data-theme='dark'] .nutrition-card,
 [data-theme='dark'] .workout-card {
-  background: rgba(45, 45, 45, 0.95);
+  background: rgba(25, 25, 25, 0.99);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
