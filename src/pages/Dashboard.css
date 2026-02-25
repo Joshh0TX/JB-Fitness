@@ -158,12 +158,12 @@
 }
 
 .summary-card {
-  background: rgba(255, 255, 255, 0.99);
+  background: rgba(18, 18, 18, 0.99);
   backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -199,15 +199,15 @@
 .card-header h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
   letter-spacing: 0.3px;
 }
 
 .card-icon {
   font-size: 14px;
   font-weight: 600;
-  color: #666;
-  background: rgba(102, 187, 106, 0.1);
+  color: #e0e0e0;
+  background: rgba(102, 187, 106, 0.2);
   padding: 6px 12px;
   border-radius: 8px;
 }
@@ -227,20 +227,20 @@
 .card-value .current {
   font-size: 36px;
   font-weight: 800;
-  color: #1a1a1a;
+  color: #ffffff;
   letter-spacing: -1px;
 }
 
 .card-value .goal {
   font-size: 14px;
-  color: #666;
+  color: #cfcfcf;
   font-weight: 500;
 }
 
 .progress-bar {
   width: 100%;
   height: 10px;
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -256,13 +256,13 @@
 
 /* Weekly Progress */
 .weekly-progress {
-  background: rgba(255, 255, 255, 0.99);
+  background: rgba(18, 18, 18, 0.99);
   backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 32px;
   margin-bottom: 40px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   animation: fade-up 720ms var(--ease-out) both;
   animation-delay: 220ms;
 }
@@ -270,7 +270,7 @@
 .section-title {
   font-size: 24px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
   margin-bottom: 24px;
   letter-spacing: -0.5px;
 }
@@ -346,7 +346,7 @@
   display: flex;
   justify-content: space-around;
   font-size: 13px;
-  color: #666;
+  color: #cfcfcf;
   font-weight: 500;
   flex-wrap: wrap;
 }
@@ -372,12 +372,12 @@
 .nutrition-bars-labels .bar-label {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 .nutrition-bars-labels .bar-value {
   font-size: 12px;
-  color: #666;
+  color: #cfcfcf;
   font-weight: 500;
 }
 
@@ -455,12 +455,12 @@
 }
 
 .workout-card {
-  background: rgba(255, 255, 255, 0.99);
+  background: rgba(18, 18, 18, 0.99);
   backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 28px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   animation: fade-up 720ms var(--ease-out) both;
 }
@@ -485,7 +485,7 @@
 .workout-header h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
   letter-spacing: -0.3px;
 }
 
@@ -503,7 +503,7 @@
 
 .workout-description {
   font-size: 14px;
-  color: #666;
+  color: #d0d0d0;
   margin-bottom: 20px;
   line-height: 1.6;
 }
@@ -527,7 +527,7 @@
 
 .info-label {
   font-size: 11px;
-  color: #666;
+  color: #cfcfcf;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -536,7 +536,7 @@
 .info-value {
   font-size: 16px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 .workout-stats {
@@ -551,7 +551,7 @@
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  color: #1a1a1a;
+  color: #ffffff;
   font-weight: 500;
 }
 
@@ -559,7 +559,7 @@
   font-size: 13px;
   font-weight: 600;
   margin-right: 4px;
-  color: #666;
+  color: #cfcfcf;
 }
 
 .workout-btn,
@@ -593,12 +593,12 @@
 }
 
 .meal-card {
-  background: rgba(255, 255, 255, 0.99);
+  background: rgba(18, 18, 18, 0.99);
   backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 28px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   animation: fade-up 720ms var(--ease-out) both;
 }
@@ -616,7 +616,7 @@
 .meal-card h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
   margin-bottom: 0;
   letter-spacing: -0.3px;
   flex: 1;
@@ -624,7 +624,7 @@
 
 .meal-description {
   font-size: 14px;
-  color: #666;
+  color: #d0d0d0;
   margin-bottom: 20px;
   line-height: 1.6;
 }
@@ -650,13 +650,13 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #666;
+  color: #cfcfcf;
 }
 
 .meal-stats .stat {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 .meal-btn {
@@ -718,12 +718,12 @@
 }
 
 .macro-card {
-  background: rgba(255, 255, 255, 0.99);
+  background: rgba(18, 18, 18, 0.99);
   backdrop-filter: blur(6px);
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -739,13 +739,13 @@
 .macro-card h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
   margin: 16px 0 8px 0;
 }
 
 .macro-goal {
   font-size: 13px;
-  color: #999;
+  color: #cfcfcf;
   margin: 0 0 16px 0;
 }
 
@@ -774,14 +774,14 @@
 .macro-value {
   font-size: 24px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
   margin: 0;
   line-height: 1;
 }
 
 .macro-unit {
   font-size: 12px;
-  color: #999;
+  color: #cfcfcf;
   margin: 4px 0 0 0;
   font-weight: 600;
 }
@@ -808,7 +808,7 @@
   gap: 32px;
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   flex-wrap: wrap;
 }
 
@@ -818,7 +818,7 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #666;
+  color: #d0d0d0;
 }
 
 .legend-color {
@@ -909,7 +909,7 @@
 .workout-card-header .workout-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
   margin: 0;
   letter-spacing: -0.3px;
 }
@@ -1024,13 +1024,13 @@
 
 /* Workout Calories Chart Section */
 .workout-chart-section {
-  background: rgba(255, 255, 255, 0.99);
+  background: rgba(18, 18, 18, 0.99);
   backdrop-filter: blur(6px);
   border-radius: 20px;
   padding: 32px;
   margin-bottom: 40px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .workout-chart-section .graph-content {
@@ -1103,12 +1103,12 @@
 }
 
 /* Text colors in dark mode */
-[data-theme='dark'] .header-title,
-[data-theme='dark'] h1,
-[data-theme='dark'] h2,
-[data-theme='dark'] h3,
-[data-theme='dark'] p,
-[data-theme='dark'] span,
+[data-theme='dark'] .dashboard .header-title,
+[data-theme='dark'] .dashboard h1,
+[data-theme='dark'] .dashboard h2,
+[data-theme='dark'] .dashboard h3,
+[data-theme='dark'] .dashboard p,
+[data-theme='dark'] .dashboard span,
 [data-theme='dark'] .summary-label,
 [data-theme='dark'] .card-title {
   color: #ffffff;
@@ -1191,7 +1191,7 @@
 }
 
 /* Buttons */
-[data-theme='dark'] button,
+[data-theme='dark'] .dashboard button,
 [data-theme='dark'] .btn {
   transition: all 0.3s ease;
 }
@@ -1218,25 +1218,25 @@
 }
 
 /* Input elements */
-[data-theme='dark'] input[type='text'],
-[data-theme='dark'] input[type='number'],
-[data-theme='dark'] textarea,
-[data-theme='dark'] select {
+[data-theme='dark'] .dashboard input[type='text'],
+[data-theme='dark'] .dashboard input[type='number'],
+[data-theme='dark'] .dashboard textarea,
+[data-theme='dark'] .dashboard select {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
   color: #ffffff;
 }
 
-[data-theme='dark'] input::placeholder {
+[data-theme='dark'] .dashboard input::placeholder {
   color: #777;
 }
 
 /* Links */
-[data-theme='dark'] a {
+[data-theme='dark'] .dashboard a {
   color: #66bb6a;
 }
 
-[data-theme='dark'] a:hover {
+[data-theme='dark'] .dashboard a:hover {
   color: #4caf50;
 }
 

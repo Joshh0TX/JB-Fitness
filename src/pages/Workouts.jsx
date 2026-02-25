@@ -520,7 +520,7 @@ function Workouts({ setSummaryData }) {
           <div className="workouts-section-header">
             <h2>{historyDate === new Date().toISOString().split('T')[0] ? "Today's Workouts" : "Workouts on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyWorkouts.length : savedWorkouts.length})</h2>
             <button 
-              className="history-btn" 
+              className={`history-btn ${showCalendar ? 'active' : ''}`}
               onClick={() => setShowCalendar(!showCalendar)}
               title="View workout history"
             >

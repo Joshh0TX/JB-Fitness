@@ -304,7 +304,7 @@ function Nutrition() {
           <div className="meals-section-header">
             <h2>{historyDate === new Date().toISOString().split('T')[0] ? "Today's Meals" : "Meals on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyMeals.length : userMeals.length})</h2>
             <button 
-              className="history-btn" 
+              className={`history-btn ${showCalendar ? 'active' : ''}`} 
               onClick={() => setShowCalendar(!showCalendar)}
               title="View meal history"
             >

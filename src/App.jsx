@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import LoginPage from './pages/LoginPage'
 import SignInPage from './pages/SignInPage'
@@ -13,14 +13,26 @@ import AppPreferences from './pages/AppPreferences'
 import './App.css'
 
 function App() {
+  const location = useLocation()
+
   // Load saved theme preference on app startup
   useEffect(() => {
     try {
+      const token = localStorage.getItem('token')
+      const isAuthPage = location.pathname === '/login' || location.pathname === '/signin'
+
+      if (!token || isAuthPage) {
+        document.documentElement.setAttribute('data-theme', 'light')
+        document.body.setAttribute('data-theme', 'light')
+        return
+      }
+
       const prefsStr = localStorage.getItem('appPreferences')
       if (prefsStr) {
         const prefs = JSON.parse(prefsStr)
-        document.documentElement.setAttribute('data-theme', prefs.theme)
-        document.body.setAttribute('data-theme', prefs.theme)
+        const theme = prefs.theme === 'dark' ? 'dark' : 'light'
+        document.documentElement.setAttribute('data-theme', theme)
+        document.body.setAttribute('data-theme', theme)
       } else {
         document.documentElement.setAttribute('data-theme', 'light')
         document.body.setAttribute('data-theme', 'light')
@@ -30,7 +42,7 @@ function App() {
       document.documentElement.setAttribute('data-theme', 'light')
       document.body.setAttribute('data-theme', 'light')
     }
-  }, [])
+  }, [location.pathname])
 
   return (
     <Routes>

@@ -37,7 +37,6 @@ function Settings() {
 
   const accountItems = [
     { iconType: 'person', label: 'Personal Information', path: '/personal-info' },
-    { iconType: 'lock', label: 'Privacy & Security', path: '/privacy' },
     { iconType: 'shield', label: 'Two-Factor Authentication', status: 'Enabled', path: '/two-factor-auth' },
     { iconType: 'settings', label: 'App Preferences', path: '/app-preferences' }
   ]

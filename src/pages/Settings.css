@@ -474,9 +474,9 @@
 }
 
 [data-theme='dark'] .card-title,
-[data-theme='dark'] h2,
-[data-theme='dark'] h3,
-[data-theme='dark'] p,
+[data-theme='dark'] .settings-page h2,
+[data-theme='dark'] .settings-page h3,
+[data-theme='dark'] .settings-page p,
 [data-theme='dark'] .profile-name,
 [data-theme='dark'] .profile-email,
 [data-theme='dark'] .item-label,
