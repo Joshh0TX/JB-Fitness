@@ -22,6 +22,8 @@ const mailTransporter = nodemailer.createTransport({
       : undefined,
 });
 
+    const isEmailServiceConfigured = () => Boolean(process.env.SMTP_HOST && process.env.SMTP_FROM);
+
 const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
@@ -66,7 +68,7 @@ const doesEmailDomainExist = async (email) => {
 };
 
 const sendOtpEmail = async ({ email, otp, username }) => {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_FROM) {
+  if (!isEmailServiceConfigured()) {
     throw new Error("Email service is not configured");
   }
 
@@ -170,6 +172,21 @@ export const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ msg: "Invalid credentials" });
+    }
+
+    if (!isEmailServiceConfigured()) {
+      const token = jwt.sign(
+        { id: user.id, username: user.username, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      return res.json({
+        msg: "Login successful",
+        token,
+        user: { id: user.id, username: user.username, email: user.email },
+        twoFactorBypassed: true,
+      });
     }
 
     const otp = generateOtp();
