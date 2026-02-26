@@ -3,13 +3,11 @@
 import db from "../config/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
 import dns from "dns/promises";
 import nodemailer from "nodemailer";
 
 const LOGIN_OTP_TTL_MS = 10 * 60 * 1000;
-const MAX_OTP_ATTEMPTS = 5;
-const loginOtpChallenges = new Map();
+const LOGIN_OTP_TTL_SECONDS = Math.floor(LOGIN_OTP_TTL_MS / 1000);
 
 const mailTransporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -29,6 +27,29 @@ const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 
 const isValidEmailSyntax = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const createLoginChallengeToken = ({ userId, username, email, otp }) => {
+  return jwt.sign(
+    {
+      type: "login-otp",
+      userId,
+      username,
+      email,
+      otp,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: LOGIN_OTP_TTL_SECONDS }
+  );
+};
+
+const decodeLoginChallengeToken = (challengeId) => {
+  const payload = jwt.verify(challengeId, process.env.JWT_SECRET);
+  if (!payload || payload.type !== "login-otp") {
+    throw new Error("Invalid login challenge");
+  }
+
+  return payload;
+};
 
 const doesEmailDomainExist = async (email) => {
   if (!isValidEmailSyntax(email)) return false;
@@ -151,17 +172,12 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ msg: "Invalid credentials" });
     }
 
-    const challengeId = crypto.randomUUID();
     const otp = generateOtp();
-    const expiresAt = Date.now() + LOGIN_OTP_TTL_MS;
-
-    loginOtpChallenges.set(challengeId, {
+    const challengeId = createLoginChallengeToken({
       userId: user.id,
       username: user.username,
       email: user.email,
       otp,
-      expiresAt,
-      attempts: 0,
     });
 
     await sendOtpEmail({ email: user.email, otp, username: user.username });
@@ -186,29 +202,19 @@ export const verifyLoginOtp = async (req, res) => {
     return res.status(400).json({ msg: "Challenge ID and OTP are required" });
   }
 
-  const challenge = loginOtpChallenges.get(challengeId);
-
-  if (!challenge) {
+  let challenge;
+  try {
+    challenge = decodeLoginChallengeToken(challengeId);
+  } catch (err) {
+    if (err?.name === "TokenExpiredError") {
+      return res.status(400).json({ msg: "OTP expired. Please sign in again." });
+    }
     return res.status(400).json({ msg: "Verification session expired. Please sign in again." });
   }
 
-  if (Date.now() > challenge.expiresAt) {
-    loginOtpChallenges.delete(challengeId);
-    return res.status(400).json({ msg: "OTP expired. Please sign in again." });
-  }
-
   if (String(otp).trim() !== String(challenge.otp)) {
-    challenge.attempts += 1;
-    if (challenge.attempts >= MAX_OTP_ATTEMPTS) {
-      loginOtpChallenges.delete(challengeId);
-      return res.status(429).json({ msg: "Too many invalid attempts. Please sign in again." });
-    }
-
-    loginOtpChallenges.set(challengeId, challenge);
     return res.status(401).json({ msg: "Invalid OTP" });
   }
-
-  loginOtpChallenges.delete(challengeId);
 
   const token = jwt.sign(
     { id: challenge.userId, username: challenge.username, email: challenge.email },
@@ -230,21 +236,28 @@ export const resendLoginOtp = async (req, res) => {
     return res.status(400).json({ msg: "Challenge ID is required" });
   }
 
-  const challenge = loginOtpChallenges.get(challengeId);
-  if (!challenge) {
+  let challenge;
+  try {
+    challenge = decodeLoginChallengeToken(challengeId);
+  } catch {
     return res.status(400).json({ msg: "Verification session expired. Please sign in again." });
   }
 
   const otp = generateOtp();
-  challenge.otp = otp;
-  challenge.expiresAt = Date.now() + LOGIN_OTP_TTL_MS;
-  challenge.attempts = 0;
-
-  loginOtpChallenges.set(challengeId, challenge);
+  const refreshedChallengeId = createLoginChallengeToken({
+    userId: challenge.userId,
+    username: challenge.username,
+    email: challenge.email,
+    otp,
+  });
 
   try {
     await sendOtpEmail({ email: challenge.email, otp, username: challenge.username });
-    return res.json({ msg: "A new OTP has been sent", expiresInMs: LOGIN_OTP_TTL_MS });
+    return res.json({
+      msg: "A new OTP has been sent",
+      challengeId: refreshedChallengeId,
+      expiresInMs: LOGIN_OTP_TTL_MS,
+    });
   } catch (err) {
     console.error("Resend OTP ERROR:", err);
     return res.status(500).json({ msg: err.message || "Failed to resend OTP" });

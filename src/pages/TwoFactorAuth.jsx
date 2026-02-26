@@ -92,9 +92,20 @@ function TwoFactorAuth() {
 
     try {
       setIsResendingOtp(true)
-      await API.post('/api/auth/resend-login-otp', {
+      const response = await API.post('/api/auth/resend-login-otp', {
         challengeId: loginChallenge.challengeId
       })
+
+      const refreshedChallengeId = response.data?.challengeId
+      if (refreshedChallengeId) {
+        const updatedChallenge = {
+          ...loginChallenge,
+          challengeId: refreshedChallengeId
+        }
+        setLoginChallenge(updatedChallenge)
+        localStorage.setItem('pending2FA', JSON.stringify(updatedChallenge))
+      }
+
       setMessage('A new OTP has been sent to your email')
       setMessageType('success')
     } catch (error) {
