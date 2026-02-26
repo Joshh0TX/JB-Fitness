@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import API from '../api.js'
 import './TwoFactorAuth.css'
 
 function TwoFactorAuth() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [is2FAEnabled, setIs2FAEnabled] = useState(false)
   const [qrCode, setQrCode] = useState(null)
   const [secret, setSecret] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
+  const [loginOtpCode, setLoginOtpCode] = useState('')
+  const [loginChallenge, setLoginChallenge] = useState(null)
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
+  const [isResendingOtp, setIsResendingOtp] = useState(false)
   const [backupCodes, setBackupCodes] = useState([])
   const [showBackupCodes, setShowBackupCodes] = useState(false)
   const [step, setStep] = useState('initial') // initial, setup, verify, success
@@ -20,7 +26,85 @@ function TwoFactorAuth() {
       const userData = JSON.parse(userStr)
       setIs2FAEnabled(userData.twoFactorEnabled || false)
     }
-  }, [])
+
+    const challengeFromRoute =
+      location.state?.mode === 'login' && location.state?.challengeId
+        ? {
+            challengeId: location.state.challengeId,
+            email: location.state.email || ''
+          }
+        : null
+
+    if (challengeFromRoute) {
+      localStorage.setItem('pending2FA', JSON.stringify(challengeFromRoute))
+      setLoginChallenge(challengeFromRoute)
+      return
+    }
+
+    const pending2FA = localStorage.getItem('pending2FA')
+    if (pending2FA) {
+      try {
+        setLoginChallenge(JSON.parse(pending2FA))
+      } catch {
+        localStorage.removeItem('pending2FA')
+      }
+    }
+  }, [location.state])
+
+  const isLoginOtpFlow = Boolean(loginChallenge?.challengeId)
+
+  const handleVerifyLoginOtp = async () => {
+    if (loginOtpCode.length !== 6 || isNaN(loginOtpCode)) {
+      setMessage('Please enter a valid 6-digit OTP')
+      setMessageType('error')
+      return
+    }
+
+    try {
+      setIsVerifyingOtp(true)
+      const response = await API.post('/api/auth/verify-login-otp', {
+        challengeId: loginChallenge.challengeId,
+        otp: loginOtpCode
+      })
+
+      const { token, user } = response.data
+
+      localStorage.setItem('token', token)
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user))
+      }
+      localStorage.removeItem('pending2FA')
+
+      setMessage('Verification successful!')
+      setMessageType('success')
+      navigate('/dashboard')
+    } catch (error) {
+      const msg = error.response?.data?.msg || error.response?.data?.message || 'OTP verification failed'
+      setMessage(msg)
+      setMessageType('error')
+    } finally {
+      setIsVerifyingOtp(false)
+    }
+  }
+
+  const handleResendLoginOtp = async () => {
+    if (!loginChallenge?.challengeId) return
+
+    try {
+      setIsResendingOtp(true)
+      await API.post('/api/auth/resend-login-otp', {
+        challengeId: loginChallenge.challengeId
+      })
+      setMessage('A new OTP has been sent to your email')
+      setMessageType('success')
+    } catch (error) {
+      const msg = error.response?.data?.msg || error.response?.data?.message || 'Failed to resend OTP'
+      setMessage(msg)
+      setMessageType('error')
+    } finally {
+      setIsResendingOtp(false)
+    }
+  }
 
   const generateSecret = () => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
@@ -120,6 +204,70 @@ function TwoFactorAuth() {
     document.body.appendChild(element)
     element.click()
     document.body.removeChild(element)
+  }
+
+  if (isLoginOtpFlow) {
+    return (
+      <div className="two-factor-page page-animate">
+        <header className="twofa-header">
+          <button
+            className="back-button"
+            onClick={() => {
+              localStorage.removeItem('pending2FA')
+              navigate('/signin')
+            }}
+          >
+            <span className="back-arrow">←</span>
+          </button>
+          <h1 className="page-title">Email Verification</h1>
+        </header>
+
+        <main className="twofa-main">
+          <div className="twofa-card">
+            {message && (
+              <div className={`message-alert ${messageType}`}>
+                {message}
+              </div>
+            )}
+
+            <div className="setup-section">
+              <h2 className="setup-title">Enter OTP</h2>
+              <p className="setup-description">
+                We sent a 6-digit verification code to <strong>{loginChallenge.email}</strong>. Enter it to complete sign in.
+              </p>
+
+              <div className="code-input-group">
+                <input
+                  type="text"
+                  maxLength="6"
+                  placeholder="000000"
+                  value={loginOtpCode}
+                  onChange={(e) => setLoginOtpCode(e.target.value.replace(/\D/g, ''))}
+                  className="code-input"
+                />
+              </div>
+
+              <div className="button-group login-otp-actions">
+                <button
+                  className="verify-button"
+                  onClick={handleVerifyLoginOtp}
+                  disabled={isVerifyingOtp}
+                >
+                  {isVerifyingOtp ? 'Verifying...' : 'Verify OTP'}
+                </button>
+                <button
+                  className="resend-button"
+                  onClick={handleResendLoginOtp}
+                  disabled={isResendingOtp}
+                >
+                  {isResendingOtp ? 'Sending...' : 'Resend OTP'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
