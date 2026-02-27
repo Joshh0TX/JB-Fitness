@@ -9,20 +9,43 @@ import nodemailer from "nodemailer";
 const LOGIN_OTP_TTL_MS = 10 * 60 * 1000;
 const LOGIN_OTP_TTL_SECONDS = Math.floor(LOGIN_OTP_TTL_MS / 1000);
 
-const mailTransporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
-  auth:
-    process.env.SMTP_USER && process.env.SMTP_PASS
-      ? {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        }
-      : undefined,
-});
+const smtpService = String(process.env.SMTP_SERVICE || "").trim().toLowerCase();
+const smtpHost = String(process.env.SMTP_HOST || "").trim();
+const smtpPort = Number(process.env.SMTP_PORT || 587);
+const smtpSecure = String(process.env.SMTP_SECURE).toLowerCase() === "true";
+const smtpUser = String(process.env.SMTP_USER || "").trim();
+const smtpPass = String(process.env.SMTP_PASS || "").trim();
+const smtpFrom = String(process.env.SMTP_FROM || smtpUser).trim();
+const smtpAuthConfigured = Boolean(smtpUser && smtpPass);
 
-    const isEmailServiceConfigured = () => Boolean(process.env.SMTP_HOST && process.env.SMTP_FROM);
+const mailTransporter = nodemailer.createTransport(
+  smtpService === "gmail"
+    ? {
+        service: "gmail",
+        auth: smtpAuthConfigured
+          ? {
+              user: smtpUser,
+              pass: smtpPass,
+            }
+          : undefined,
+      }
+    : {
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpSecure,
+        auth: smtpAuthConfigured
+          ? {
+              user: smtpUser,
+              pass: smtpPass,
+            }
+          : undefined,
+      }
+);
+
+const isEmailServiceConfigured = () => {
+  const hasProvider = smtpService === "gmail" || Boolean(smtpHost);
+  return Boolean(hasProvider && smtpAuthConfigured && smtpFrom);
+};
 
 const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
@@ -73,7 +96,7 @@ const sendOtpEmail = async ({ email, otp, username }) => {
   }
 
   await mailTransporter.sendMail({
-    from: process.env.SMTP_FROM,
+    from: smtpFrom,
     to: email,
     subject: "JBFitness Sign-in Verification Code",
     text: `Hi ${username || "there"}, your JBFitness verification code is ${otp}. It expires in 10 minutes.`,
