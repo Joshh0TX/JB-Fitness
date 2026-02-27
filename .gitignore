@@ -12,10 +12,16 @@ node_modules/
 
 # Misc
 .DS_Store
+.env
 .env.local
+.env.development
+.env.production
 .env.development.local
 .env.test.local
 .env.production.local
+jbfitness-backend/.env
+jbfitness-backend/.env.development
+jbfitness-backend/.env.production
 
 # Logs
 npm-debug.log*
