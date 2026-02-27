@@ -120,22 +120,22 @@ section {
 .page-header h2 {
   font-size: 28px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin-bottom: 8px;
 }
 
 .page-subtitle {
   font-size: 16px;
-  color: #cfcfcf;
+  color: #757575;
 }
 
 /* Search Section */
 .search-section {
-  background: #121212;
+  background: #ffffff;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
   margin-bottom: 30px;
 }
 
@@ -148,13 +148,13 @@ section {
 .search-input {
   flex: 1;
   padding: 12px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
   transition: border-color 0.2s;
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
+  background: #ffffff;
+  color: #424242;
 }
 
 .search-input:focus {
@@ -199,7 +199,7 @@ section {
 .weekly-summary-section h2 {
   font-size: 22px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin-bottom: 20px;
 }
 
@@ -211,11 +211,11 @@ section {
 }
 
 .result-card {
-  background: #121212;
+  background: #ffffff;
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.2s;
 }
 
@@ -227,13 +227,13 @@ section {
 .result-card h4 {
   font-size: 18px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin: 0 0 8px 0;
 }
 
 .exercise-type {
   font-size: 14px;
-  color: #d0d0d0;
+  color: #757575;
   margin-bottom: 12px;
 }
 
@@ -247,8 +247,8 @@ section {
 .info-badge {
   display: inline-block;
   padding: 4px 10px;
-  background-color: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background-color: #f5f5f5;
+  color: #424242;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
@@ -261,7 +261,7 @@ section {
 
 .instructions {
   font-size: 13px;
-  color: #d0d0d0;
+  color: #757575;
   line-height: 1.4;
   margin-bottom: 12px;
   max-height: 60px;
@@ -295,11 +295,11 @@ section {
 
 /* Exercise Detail Section */
 .exercise-detail-section {
-  background: #121212;
+  background: #ffffff;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
 }
 
 .exercise-card {
@@ -325,7 +325,7 @@ section {
 .exercise-card h2 {
   font-size: 28px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin: 0 0 20px 0;
 }
 
@@ -335,7 +335,7 @@ section {
   gap: 16px;
   margin-bottom: 30px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: #f5f5f5;
   border-radius: 8px;
 }
 
@@ -347,7 +347,7 @@ section {
 
 .exercise-info-grid .label {
   font-size: 12px;
-  color: #cfcfcf;
+  color: #757575;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -355,25 +355,25 @@ section {
 .exercise-info-grid .value {
   font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
 }
 
 .instructions-section {
   margin-bottom: 30px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: #f5f5f5;
   border-radius: 8px;
 }
 
 .instructions-section h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin-bottom: 8px;
 }
 
 .instructions-section p {
-  color: #d0d0d0;
+  color: #757575;
   line-height: 1.6;
   margin: 0;
 }
@@ -386,7 +386,7 @@ section {
 .reps-section h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin-bottom: 16px;
 }
 
@@ -417,7 +417,7 @@ section {
 .rep-value {
   font-size: 36px;
   font-weight: 700;
-  color: #ffffff;
+  color: #424242;
   min-width: 80px;
   text-align: center;
 }
@@ -448,7 +448,7 @@ section {
 .distance-section h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin-bottom: 16px;
 }
 
@@ -519,11 +519,11 @@ section {
 /* Workouts List */
 .todays-workouts-section,
 .weekly-summary-section {
-  background: #121212;
+  background: #ffffff;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
 }
 
 .workouts-section-header {
@@ -538,7 +538,7 @@ section {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   flex: 1;
 }
 
@@ -562,13 +562,14 @@ section {
 }
 
 .history-btn.active {
-  background: #121212;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  color: #2e7d32;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
 
 .no-workouts {
-  color: #d0d0d0;
+  color: #757575;
   text-align: center;
   padding: 20px;
   font-size: 14px;
@@ -579,20 +580,20 @@ section {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #e0e0e0;
+  background: #f9f9f9;
   border-radius: 8px;
   transition: all 0.2s;
 }
 
 .workout-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #f5f5f5;
 }
 
 .workout-info h4 {
   font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin: 0 0 8px 0;
 }
 
@@ -600,7 +601,7 @@ section {
   display: flex;
   gap: 16px;
   font-size: 14px;
-  color: #d0d0d0;
+  color: #757575;
 }
 
 .delete-btn {
@@ -625,16 +626,16 @@ section {
 }
 
 .day-card {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: #ffffff;
   padding: 16px;
   border-radius: 8px;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid #e0e0e0;
 }
 
 .day-label {
   font-size: 12px;
-  color: #cfcfcf;
+  color: #757575;
   text-transform: uppercase;
   margin-bottom: 4px;
 }
@@ -642,7 +643,7 @@ section {
 .day-value {
   font-size: 24px;
   font-weight: 700;
-  color: #ffffff;
+  color: #424242;
   margin: 0;
 }
 
@@ -733,6 +734,59 @@ section {
 [data-theme='dark'] .todays-workouts-section,
 [data-theme='dark'] .weekly-summary-section {
   background: rgba(25, 25, 25, 0.99);
+}
+
+[data-theme='dark'] .search-section,
+[data-theme='dark'] .result-card,
+[data-theme='dark'] .exercise-detail-section,
+[data-theme='dark'] .todays-workouts-section,
+[data-theme='dark'] .weekly-summary-section {
+  background: #121212;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='dark'] .search-input {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .result-card h4,
+[data-theme='dark'] .exercise-card h2,
+[data-theme='dark'] .exercise-info-grid .value,
+[data-theme='dark'] .instructions-section h3,
+[data-theme='dark'] .reps-section h3,
+[data-theme='dark'] .distance-section h3,
+[data-theme='dark'] .rep-value,
+[data-theme='dark'] .workouts-section-header h2,
+[data-theme='dark'] .workout-info h4 {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .exercise-type,
+[data-theme='dark'] .instructions,
+[data-theme='dark'] .instructions-section p,
+[data-theme='dark'] .workout-stats,
+[data-theme='dark'] .no-workouts,
+[data-theme='dark'] .day-label {
+  color: #d0d0d0;
+}
+
+[data-theme='dark'] .info-badge,
+[data-theme='dark'] .exercise-info-grid,
+[data-theme='dark'] .instructions-section,
+[data-theme='dark'] .workout-item,
+[data-theme='dark'] .day-card {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme='dark'] .history-btn.active {
+  background: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
 [data-theme='dark'] .todays-workouts-section h2,

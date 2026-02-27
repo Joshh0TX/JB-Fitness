@@ -158,12 +158,12 @@
 }
 
 .summary-card {
-  background: rgba(18, 18, 18, 0.99);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -199,15 +199,15 @@
 .card-header h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #ffffff;
+  color: #1a1a1a;
   letter-spacing: 0.3px;
 }
 
 .card-icon {
   font-size: 14px;
   font-weight: 600;
-  color: #e0e0e0;
-  background: rgba(102, 187, 106, 0.2);
+  color: #666;
+  background: rgba(102, 187, 106, 0.1);
   padding: 6px 12px;
   border-radius: 8px;
 }
@@ -227,20 +227,20 @@
 .card-value .current {
   font-size: 36px;
   font-weight: 800;
-  color: #ffffff;
+  color: #1a1a1a;
   letter-spacing: -1px;
 }
 
 .card-value .goal {
   font-size: 14px;
-  color: #cfcfcf;
+  color: #666;
   font-weight: 500;
 }
 
 .progress-bar {
   width: 100%;
   height: 10px;
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(0, 0, 0, 0.05);
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -256,13 +256,13 @@
 
 /* Weekly Progress */
 .weekly-progress {
-  background: rgba(18, 18, 18, 0.99);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 32px;
   margin-bottom: 40px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   animation: fade-up 720ms var(--ease-out) both;
   animation-delay: 220ms;
 }
@@ -270,7 +270,7 @@
 .section-title {
   font-size: 24px;
   font-weight: 700;
-  color: #ffffff;
+  color: #1a1a1a;
   margin-bottom: 24px;
   letter-spacing: -0.5px;
 }
@@ -346,7 +346,7 @@
   display: flex;
   justify-content: space-around;
   font-size: 13px;
-  color: #cfcfcf;
+  color: #666;
   font-weight: 500;
   flex-wrap: wrap;
 }
@@ -372,12 +372,12 @@
 .nutrition-bars-labels .bar-label {
   font-size: 13px;
   font-weight: 600;
-  color: #ffffff;
+  color: #1a1a1a;
 }
 
 .nutrition-bars-labels .bar-value {
   font-size: 12px;
-  color: #cfcfcf;
+  color: #666;
   font-weight: 500;
 }
 
@@ -455,12 +455,12 @@
 }
 
 .workout-card {
-  background: rgba(18, 18, 18, 0.99);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 28px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   animation: fade-up 720ms var(--ease-out) both;
 }
@@ -485,7 +485,7 @@
 .workout-header h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #ffffff;
+  color: #1a1a1a;
   letter-spacing: -0.3px;
 }
 
@@ -503,7 +503,7 @@
 
 .workout-description {
   font-size: 14px;
-  color: #d0d0d0;
+  color: #666;
   margin-bottom: 20px;
   line-height: 1.6;
 }
@@ -527,7 +527,7 @@
 
 .info-label {
   font-size: 11px;
-  color: #cfcfcf;
+  color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -536,7 +536,7 @@
 .info-value {
   font-size: 16px;
   font-weight: 700;
-  color: #ffffff;
+  color: #1a1a1a;
 }
 
 .workout-stats {
@@ -551,7 +551,7 @@
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  color: #ffffff;
+  color: #1a1a1a;
   font-weight: 500;
 }
 
@@ -559,7 +559,7 @@
   font-size: 13px;
   font-weight: 600;
   margin-right: 4px;
-  color: #cfcfcf;
+  color: #666;
 }
 
 .workout-btn,
@@ -593,12 +593,12 @@
 }
 
 .meal-card {
-  background: rgba(18, 18, 18, 0.99);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 28px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   animation: fade-up 720ms var(--ease-out) both;
 }
@@ -616,7 +616,7 @@
 .meal-card h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff;
+  color: #1a1a1a;
   margin-bottom: 0;
   letter-spacing: -0.3px;
   flex: 1;
@@ -624,7 +624,7 @@
 
 .meal-description {
   font-size: 14px;
-  color: #d0d0d0;
+  color: #666;
   margin-bottom: 20px;
   line-height: 1.6;
 }
@@ -650,13 +650,13 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #cfcfcf;
+  color: #666;
 }
 
 .meal-stats .stat {
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: #1a1a1a;
 }
 
 .meal-btn {
@@ -718,12 +718,12 @@
 }
 
 .macro-card {
-  background: rgba(18, 18, 18, 0.99);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -739,13 +739,13 @@
 .macro-card h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff;
+  color: #1a1a1a;
   margin: 16px 0 8px 0;
 }
 
 .macro-goal {
   font-size: 13px;
-  color: #cfcfcf;
+  color: #999;
   margin: 0 0 16px 0;
 }
 
@@ -774,14 +774,14 @@
 .macro-value {
   font-size: 24px;
   font-weight: 700;
-  color: #ffffff;
+  color: #1a1a1a;
   margin: 0;
   line-height: 1;
 }
 
 .macro-unit {
   font-size: 12px;
-  color: #cfcfcf;
+  color: #999;
   margin: 4px 0 0 0;
   font-weight: 600;
 }
@@ -808,7 +808,7 @@
   gap: 32px;
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid #f0f0f0;
   flex-wrap: wrap;
 }
 
@@ -818,7 +818,7 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #d0d0d0;
+  color: #666;
 }
 
 .legend-color {
@@ -909,7 +909,7 @@
 .workout-card-header .workout-title {
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff;
+  color: #1a1a1a;
   margin: 0;
   letter-spacing: -0.3px;
 }
@@ -1024,13 +1024,13 @@
 
 /* Workout Calories Chart Section */
 .workout-chart-section {
-  background: rgba(18, 18, 18, 0.99);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 32px;
   margin-bottom: 40px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .workout-chart-section .graph-content {
@@ -1102,11 +1102,89 @@
   color-scheme: dark;
 }
 
-/* Text colors in dark mode */
+/* Cards and containers */
+[data-theme='dark'] .summary-card,
+[data-theme='dark'] .workout-card,
+[data-theme='dark'] .meal-card,
+[data-theme='dark'] .macro-card,
+[data-theme='dark'] .weekly-progress,
+[data-theme='dark'] .workout-chart-section {
+  background: rgba(25, 25, 25, 0.99);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .summary-card:hover,
+[data-theme='dark'] .workout-card:hover,
+[data-theme='dark'] .meal-card:hover,
+[data-theme='dark'] .macro-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Primary text (headings, values) */
+[data-theme='dark'] .card-header h3,
+[data-theme='dark'] .card-value .current,
+[data-theme='dark'] .section-title,
+[data-theme='dark'] .workout-header h3,
+[data-theme='dark'] .meal-card h3,
+[data-theme='dark'] .workout-card-header .workout-title,
+[data-theme='dark'] .stat,
+[data-theme='dark'] .info-value,
+[data-theme='dark'] .nutrition-bars-labels .bar-label {
+  color: #ffffff;
+}
+
+/* Secondary / muted text */
+[data-theme='dark'] .card-value .goal,
+[data-theme='dark'] .workout-description,
+[data-theme='dark'] .meal-description,
+[data-theme='dark'] .info-label,
+[data-theme='dark'] .stat-label,
+[data-theme='dark'] .meal-stats .stat-label,
+[data-theme='dark'] .graph-x-axis,
+[data-theme='dark'] .nutrition-bars-labels .bar-value {
+  color: #cfcfcf;
+}
+
+/* meal-stats .stat font color */
+[data-theme='dark'] .meal-stats .stat {
+  color: #ffffff;
+}
+
+/* card-icon */
+[data-theme='dark'] .card-icon {
+  color: #e0e0e0;
+  background: rgba(102, 187, 106, 0.2);
+}
+
+/* Progress bar track */
+[data-theme='dark'] .progress-bar {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Tab bar */
+[data-theme='dark'] .header-tabs {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .tab {
+  color: #aaaaaa;
+  background: transparent;
+}
+
+[data-theme='dark'] .tab:hover {
+  color: #66bb6a;
+}
+
+[data-theme='dark'] .tab.active {
+  color: #ffffff;
+  background: rgba(102, 187, 106, 0.1);
+}
+
+/* General dark text overrides for dashboard elements */
 [data-theme='dark'] .dashboard .header-title,
 [data-theme='dark'] .dashboard h1,
 [data-theme='dark'] .dashboard h2,
-[data-theme='dark'] .dashboard h3,
 [data-theme='dark'] .dashboard p,
 [data-theme='dark'] .dashboard span,
 [data-theme='dark'] .summary-label,
@@ -1124,11 +1202,13 @@
   color: #aaaaaa;
 }
 
-/* Macro Cards - Dark mode text should be dark for white chart backgrounds */
+/* Macro Cards */
 [data-theme='dark'] .macro-cards h2 {
   color: #ffffff;
 }
 
+/* macro-card h3, macro-value and macro-unit live inside/near the pie chart
+   which renders on a white SVG background, so keep them dark */
 [data-theme='dark'] .macro-card h3 {
   color: #1a1a1a;
 }
@@ -1146,29 +1226,19 @@
   background-color: #ddd;
 }
 
-/* Chart and Graph text - dark text for white chart backgrounds */
-[data-theme='dark'] .graph-x-axis {
-  color: #1a1a1a;
-}
-
-[data-theme='dark'] .x-tick {
-  color: #1a1a1a;
-}
-
-[data-theme='dark'] .nutrition-bars-labels .bar-label {
-  color: #1a1a1a;
-}
-
-[data-theme='dark'] .nutrition-bars-labels .bar-value {
-  color: #666;
-}
-
+/* Chart legend */
 [data-theme='dark'] .chart-legend {
-  border-top-color: #ddd;
+  border-top-color: rgba(255, 255, 255, 0.12);
 }
 
 [data-theme='dark'] .legend-item {
-  color: #1a1a1a;
+  color: #d0d0d0;
+}
+
+/* Graph axes */
+[data-theme='dark'] .graph-y-axis,
+[data-theme='dark'] .y-tick {
+  color: #aaaaaa;
 }
 
 /* SVG text elements in charts */
@@ -1176,45 +1246,10 @@
   fill: #1a1a1a;
 }
 
-/* Cards and containers */
-[data-theme='dark'] .dashboard-card,
-[data-theme='dark'] .nutrition-card,
-[data-theme='dark'] .workout-card {
-  background: rgba(25, 25, 25, 0.99);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-[data-theme='dark'] .dashboard-card:hover,
-[data-theme='dark'] .nutrition-card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-}
-
 /* Buttons */
 [data-theme='dark'] .dashboard button,
 [data-theme='dark'] .btn {
   transition: all 0.3s ease;
-}
-
-[data-theme='dark'] .tab {
-  color: #aaaaaa;
-}
-
-[data-theme='dark'] .tab.active {
-  color: #66bb6a;
-}
-
-/* Tab styling */
-[data-theme='dark'] .header-tabs {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme='dark'] .tab {
-  background: transparent;
-}
-
-[data-theme='dark'] .tab.active {
-  background: rgba(102, 187, 106, 0.1);
 }
 
 /* Input elements */
@@ -1238,50 +1273,4 @@
 
 [data-theme='dark'] .dashboard a:hover {
   color: #4caf50;
-}
-
-/* Dark mode background overrides for cards */
-[data-theme='dark'] .weekly-progress,
-[data-theme='dark'] .workout-chart-section {
-  background: rgba(25, 25, 25, 0.99);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Dark mode text colors for headings */
-[data-theme='dark'] .section-title {
-  color: #ffffff;
-}
-
-/* Ensure y-axis labels are visible in dark mode */
-[data-theme='dark'] .graph-y-axis {
-  color: #aaaaaa;
-}
-
-[data-theme='dark'] .y-tick {
-  color: #aaaaaa;
-}
-
-/* Dark mode background overrides for cards */
-[data-theme='dark'] .weekly-progress,
-[data-theme='dark'] .nutrition-breakdown,
-[data-theme='dark'] .workout-chart-section,
-[data-theme='dark'] .section-header {
-  background: rgba(25, 25, 25, 0.99);
-}
-
-/* Dark mode text color for section titles inside cards */
-[data-theme='dark'] .weekly-progress .section-title,
-[data-theme='dark'] .nutrition-breakdown .section-title,
-[data-theme='dark'] .workout-chart-section .section-title,
-[data-theme='dark'] .section-header .section-title {
-  color: #ffffff;
-}
-
-/* Ensure y-axis labels are visible in dark mode */
-[data-theme='dark'] .graph-y-axis {
-  color: #aaaaaa;
-}
-
-[data-theme='dark'] .y-tick {
-  color: #aaaaaa;
 }

@@ -279,17 +279,17 @@
 }
 
 .summary-card {
-  background: #121212;
+  background: #ffffff;
   border-radius: 12px;
   padding: 20px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
 }
 
 .summary-card .label {
   font-size: 12px;
-  color: #cfcfcf;
+  color: #757575;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 8px 0;
@@ -298,18 +298,18 @@
 .summary-card .value {
   font-size: 28px;
   font-weight: 700;
-  color: #ffffff;
+  color: #424242;
   margin: 0;
 }
 
 /* Search Section */
 .search-section {
-  background: #121212;
+  background: #ffffff;
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 40px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
 }
 
 .search-form {
@@ -321,12 +321,12 @@
 .search-input {
   flex: 1;
   padding: 12px 16px;
-  border: 2px solid rgba(255, 255, 255, 0.16);
+  border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
   transition: border-color 0.3s;
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
+  background: #ffffff;
+  color: #424242;
 }
 
 .search-input:focus {
@@ -372,7 +372,7 @@
 .search-results h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin-bottom: 16px;
 }
 
@@ -383,8 +383,8 @@
 }
 
 .result-card {
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 16px;
   transition: all 0.3s;
@@ -398,13 +398,13 @@
 .result-card h4 {
   font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin: 0 0 4px 0;
 }
 
 .result-card .serving {
   font-size: 12px;
-  color: #d0d0d0;
+  color: #757575;
   margin: 0 0 12px 0;
   display: block;
 }
@@ -415,13 +415,13 @@
   gap: 8px;
   margin-bottom: 12px;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.3);
+  background: #f5f5f5;
   border-radius: 6px;
 }
 
 .result-card .nutrition-item {
   font-size: 12px;
-  color: #e0e0e0;
+  color: #616161;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -429,7 +429,7 @@
 
 .result-card .nutrition-item strong {
   font-size: 14px;
-  color: #ffffff;
+  color: #424242;
   font-weight: 600;
 }
 
@@ -452,11 +452,11 @@
 
 /* Today's Meals Section */
 .todays-meals-section {
-  background: #121212;
+  background: #ffffff;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
 }
 
 .meals-section-header {
@@ -471,7 +471,7 @@
   margin: 0;
   font-size: 22px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   flex: 1;
 }
 
@@ -495,14 +495,15 @@
 }
 
 .history-btn.active {
-  background: #121212;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  color: #2e7d32;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
 
 .no-meals {
   text-align: center;
-  color: #d0d0d0;
+  color: #757575;
   padding: 40px 20px;
   font-size: 14px;
 }
@@ -518,7 +519,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: #f9f9f9;
   border-radius: 8px;
   border-left: 4px solid #66bb6a;
 }
@@ -530,7 +531,7 @@
 .meal-item h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: #424242;
   margin: 0 0 8px 0;
 }
 
@@ -538,7 +539,7 @@
   display: flex;
   gap: 16px;
   font-size: 12px;
-  color: #d0d0d0;
+  color: #757575;
 }
 
 .meal-macros span {
@@ -642,6 +643,55 @@
 [data-theme='dark'] .todays-meals-section,
 [data-theme='dark'] .nutrition-container {
   background: rgba(25, 25, 25, 0.99);
+}
+
+[data-theme='dark'] .summary-card,
+[data-theme='dark'] .search-section,
+[data-theme='dark'] .todays-meals-section {
+  background: #121212;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='dark'] .summary-card .label,
+[data-theme='dark'] .result-card .serving,
+[data-theme='dark'] .meal-macros,
+[data-theme='dark'] .no-meals {
+  color: #d0d0d0;
+}
+
+[data-theme='dark'] .summary-card .value,
+[data-theme='dark'] .result-card h4,
+[data-theme='dark'] .result-card .nutrition-item strong,
+[data-theme='dark'] .meal-item h4 {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .search-input {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .result-card,
+[data-theme='dark'] .meal-item {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme='dark'] .result-card .nutrition-info {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .result-card .nutrition-item {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .history-btn.active {
+  background: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
 [data-theme='dark'] .todays-meals-section h2,
