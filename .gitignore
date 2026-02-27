@@ -12,6 +12,7 @@ node_modules/
 
 # Misc
 .DS_Store
+tmpclaude-*
 .env
 .env.local
 .env.development
