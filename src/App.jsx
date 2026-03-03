@@ -10,6 +10,7 @@ import History from './pages/History'
 import PersonalInfo from './pages/PersonalInfo'
 import TwoFactorAuth from './pages/TwoFactorAuth'
 import AppPreferences from './pages/AppPreferences'
+import FAQ from './pages/FAQ'
 import './App.css'
 
 function App() {
@@ -56,6 +57,7 @@ function App() {
       <Route path="/personal-info" element={<PersonalInfo />} />
       <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
       <Route path="/app-preferences" element={<AppPreferences />} />
+      <Route path="/faq" element={<FAQ />} />
       <Route path="/history" element={<History />} />
     </Routes>
   )

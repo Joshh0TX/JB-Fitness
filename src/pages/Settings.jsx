@@ -47,10 +47,8 @@ function Settings() {
   ]
 
   const helpItems = [
-    { iconType: 'question', label: 'Frequently Asked Questions' },
+    { iconType: 'question', label: 'Frequently Asked Questions', path: '/faq' },
     { iconType: 'headset', label: 'Contact Support' },
-    { iconType: 'book', label: 'User Guide' },
-    { iconType: 'forum', label: 'Community Forum' },
     { iconType: 'info', label: 'About JBFitness' }
   ]
 
@@ -155,7 +153,11 @@ function Settings() {
           <h2 className="card-title">Help & Support</h2>
           <div className="settings-list">
             {helpItems.map((item, index) => (
-              <div key={index} className="settings-item">
+              <div
+                key={index}
+                className="settings-item"
+                onClick={() => handleItemClick(item.path)}
+              >
                 <div className="item-left">
                   <SettingsIcon type={item.iconType} />
                   <span className="item-label">{item.label}</span>
