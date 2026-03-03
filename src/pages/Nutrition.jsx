@@ -302,13 +302,13 @@ function Nutrition() {
         {/* Today's Meals / History */}
         <section className="todays-meals-section">
           <div className="meals-section-header">
-            <h2>{historyDate === new Date().toISOString().split('T')[0] ? "Today's Meals" : "Meals on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyMeals.length : userMeals.length})</h2>
+            <h2>{historyDate === new Date().toISOString().split('T')[0] ? "Today's Meals" : "Previously Consumed on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyMeals.length : userMeals.length})</h2>
             <button 
               className={`history-btn ${showCalendar ? 'active' : ''}`} 
               onClick={() => setShowCalendar(!showCalendar)}
-              title="View meal history"
+              title="View previously consumed meals"
             >
-              📅 History
+              📅 Previously Consumed
             </button>
           </div>
 

@@ -1,6 +1,6 @@
 .nutrition-page {
   min-height: 100vh;
-  background-color: #90EE90;
+  background-color: #ffffff;
   transition: background-color 0.3s ease;
 }
 
@@ -103,7 +103,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #424242;
+  background-color: #757575;
   color: white;
   display: flex;
   align-items: center;
@@ -171,8 +171,8 @@
   display: inline-block;
   font-size: 12px;
   font-weight: 600;
-  color: #66bb6a;
-  background-color: #90EE90;
+  color: #616161;
+  background-color: #f5f5f5;
   padding: 4px 10px;
   border-radius: 12px;
   margin-bottom: 8px;

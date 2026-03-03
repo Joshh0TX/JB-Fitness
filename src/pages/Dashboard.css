@@ -1,6 +1,6 @@
 .dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #90EE90 0%, #7dd87d 50%, #6bc26b 100%);
+  background: #ffffff;
   background-size: 200% 200%;
   animation: gradient-pan 14s var(--ease-inout) infinite;
   position: relative;
@@ -20,7 +20,7 @@
   right: 0;
   bottom: 0;
   background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(102, 187, 106, 0.1) 0%, transparent 50%);
+              radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -111,7 +111,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
+  background: #757575;
   color: white;
   display: flex;
   align-items: center;
@@ -119,12 +119,12 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+  box-shadow: 0 4px 12px rgba(117, 117, 117, 0.35);
 }
 
 .profile-icon:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+  box-shadow: 0 6px 20px rgba(117, 117, 117, 0.45);
 }
 
 /* Main Content */

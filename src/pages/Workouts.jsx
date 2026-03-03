@@ -518,13 +518,13 @@ function Workouts({ setSummaryData }) {
         {/* Today's Workouts / History */}
         <section className="todays-workouts-section">
           <div className="workouts-section-header">
-            <h2>{historyDate === new Date().toISOString().split('T')[0] ? "Today's Workouts" : "Workouts on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyWorkouts.length : savedWorkouts.length})</h2>
+            <h2>{historyDate === new Date().toISOString().split('T')[0] ? "Today's Workouts" : "Previous Workouts on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyWorkouts.length : savedWorkouts.length})</h2>
             <button 
               className={`history-btn ${showCalendar ? 'active' : ''}`}
               onClick={() => setShowCalendar(!showCalendar)}
-              title="View workout history"
+              title="View previous workouts"
             >
-              📅 History
+              📅 Previous Workouts
             </button>
           </div>
 

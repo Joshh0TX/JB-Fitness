@@ -10,7 +10,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #90EE90;
+  background-color: #ffffff;
   overflow-x: hidden;
 }
 
@@ -27,7 +27,7 @@ body {
   --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
   
   /* Light mode colors (default) */
-  --bg-primary: #e8f5e9;
+  --bg-primary: #ffffff;
   --bg-secondary: #f1f8e9;
   --text-primary: #424242;
   --text-secondary: #757575;

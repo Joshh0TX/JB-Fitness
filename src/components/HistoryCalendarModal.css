@@ -157,8 +157,8 @@
 }
 
 .calendar-day:not(.other-month):hover {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: #f2f2f2;
+  color: #424242;
 }
 
 .calendar-day.selected {
