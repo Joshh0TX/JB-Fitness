@@ -12,6 +12,7 @@ import TwoFactorAuth from './pages/TwoFactorAuth'
 import AppPreferences from './pages/AppPreferences'
 import FAQ from './pages/FAQ'
 import ContactSupport from './pages/ContactSupport'
+import About from './pages/About'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import './App.css'
@@ -64,6 +65,7 @@ function App() {
       <Route path="/app-preferences" element={<AppPreferences />} />
       <Route path="/faq" element={<FAQ />} />
       <Route path="/contact-support" element={<ContactSupport />} />
+      <Route path="/about" element={<About />} />
       <Route path="/history" element={<History />} />
     </Routes>
   )

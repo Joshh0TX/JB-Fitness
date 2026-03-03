@@ -105,7 +105,7 @@ function LoginPage() {
           <Logo />
         </div>
         <nav className="header-nav">
-          <a href="#about">About</a>
+          <a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about') }}>About</a>
         </nav>
       </header>
 

@@ -49,7 +49,7 @@ function Settings() {
   const helpItems = [
     { iconType: 'question', label: 'Frequently Asked Questions', path: '/faq' },
     { iconType: 'headset', label: 'Contact Support', path: '/contact-support' },
-    { iconType: 'info', label: 'About JBFitness' }
+    { iconType: 'info', label: 'About JBFitness', path: '/about' }
   ]
 
   const handleItemClick = (path) => {
