@@ -1,6 +1,6 @@
 .personal-info-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #90EE90 0%, #7dd87d 50%, #6bc26b 100%);
+  background: #ffffff;
   background-size: 200% 200%;
   animation: gradient-pan 14s var(--ease-inout) infinite;
   display: flex;

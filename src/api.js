@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const DEMO_MODE = String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === "true";
+const DEMO_LOGIN_OTPS = new Map();
 
 function safeJsonParse(maybeJson, fallback = {}) {
   if (maybeJson == null) return fallback;
@@ -106,6 +107,15 @@ const demoAdapter = async (config) => {
   const body = safeJsonParse(config.data, {});
 
   // Auth
+  if (url === "/api/auth/validate-email" && method === "post") {
+    const email = String(body.email || "").trim().toLowerCase();
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !email.endsWith("@invalid");
+    if (!valid) {
+      return makeDemoResponse(config, { msg: "Email doesn't exist", exists: false }, 400);
+    }
+    return makeDemoResponse(config, { msg: "Email is valid", exists: true }, 200);
+  }
+
   if (url === "/api/auth/register" && method === "post") {
     const demoUser = { id: 1, name: body.name || "Demo User", email: body.email || "demo@jbfitness.com" };
     setStore("demo.user", demoUser);
@@ -115,6 +125,41 @@ const demoAdapter = async (config) => {
   if (url === "/api/auth/login" && method === "post") {
     const demoUser = getStore("demo.user", { id: 1, name: "Demo User", email: body.email || "demo@jbfitness.com" });
     setStore("demo.user", demoUser);
+    const challengeId = Math.random().toString(36).slice(2);
+    DEMO_LOGIN_OTPS.set(challengeId, "123456");
+    return makeDemoResponse(
+      config,
+      {
+        requires2FA: true,
+        challengeId,
+        email: demoUser.email,
+        msg: "Verification code sent to your email",
+      },
+      200
+    );
+  }
+
+  if (url === "/api/auth/resend-login-otp" && method === "post") {
+    const challengeId = body.challengeId;
+    if (!challengeId || !DEMO_LOGIN_OTPS.has(challengeId)) {
+      return makeDemoResponse(config, { msg: "Verification session expired. Please sign in again." }, 400);
+    }
+    DEMO_LOGIN_OTPS.set(challengeId, "123456");
+    return makeDemoResponse(config, { msg: "A new OTP has been sent" }, 200);
+  }
+
+  if (url === "/api/auth/verify-login-otp" && method === "post") {
+    const challengeId = body.challengeId;
+    const otp = String(body.otp || "");
+    if (!challengeId || !DEMO_LOGIN_OTPS.has(challengeId)) {
+      return makeDemoResponse(config, { msg: "Verification session expired. Please sign in again." }, 400);
+    }
+    if (otp !== "123456") {
+      return makeDemoResponse(config, { msg: "Invalid OTP" }, 401);
+    }
+
+    DEMO_LOGIN_OTPS.delete(challengeId);
+    const demoUser = getStore("demo.user", { id: 1, name: "Demo User", email: "demo@jbfitness.com" });
     return makeDemoResponse(config, { token: "demo-token", user: demoUser }, 200);
   }
 

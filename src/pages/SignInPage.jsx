@@ -39,6 +39,23 @@ function SignInPage() {
         password: formData.password,
       });
 
+      if (response.data?.requires2FA && response.data?.challengeId) {
+        const pending2FA = {
+          challengeId: response.data.challengeId,
+          email: response.data.email || formData.email,
+        };
+
+        localStorage.setItem("pending2FA", JSON.stringify(pending2FA));
+        navigate("/two-factor-auth", {
+          state: {
+            mode: "login",
+            challengeId: pending2FA.challengeId,
+            email: pending2FA.email,
+          },
+        });
+        return;
+      }
+
       const { token, user } = response.data;
 
       // Save token & user info

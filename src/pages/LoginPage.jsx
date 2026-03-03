@@ -38,6 +38,20 @@ function LoginPage() {
       alert("Email is required");
       return;
     }
+
+    try {
+      await API.post("/api/auth/validate-email", {
+        email: formData.email,
+      });
+    } catch (error) {
+      const validationMsg =
+        error.response?.data?.msg ||
+        error.response?.data?.message ||
+        "Email doesn't exist";
+      alert(validationMsg);
+      return;
+    }
+
     if (formData.password.length < 8) {
       alert("Password must be at least 8 characters");
       return;

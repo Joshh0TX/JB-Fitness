@@ -125,7 +125,7 @@ function History() {
         </div>
 
         <section className="history-section">
-          <h2>Meals on {formatDateLabel(selectedDate)}</h2>
+          <h2>Previously Consumed on {formatDateLabel(selectedDate)}</h2>
           {dayMeals.length === 0 ? (
             <p className="empty-state">No meals logged for this day.</p>
           ) : (
@@ -146,7 +146,7 @@ function History() {
         </section>
 
         <section className="history-section">
-          <h2>Workouts on {formatDateLabel(selectedDate)}</h2>
+          <h2>Previous Workouts on {formatDateLabel(selectedDate)}</h2>
           {dayWorkouts.length === 0 ? (
             <p className="empty-state">No workouts logged for this day.</p>
           ) : (

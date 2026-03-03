@@ -87,42 +87,20 @@ function AppPreferences() {
             Choose your preferred theme for the application
           </p>
 
-          <div className="theme-selector">
-            <div className="theme-option">
-              <input
-                type="radio"
-                id="light-theme"
-                name="theme"
-                value="light"
-                checked={preferences.theme === 'light'}
-                onChange={() => handleThemeChange('light')}
-              />
-              <label htmlFor="light-theme" className="theme-label light">
-                <div className="theme-preview light-preview">☀️</div>
-                <span>Light Mode</span>
-                {preferences.theme === 'light' && (
-                  <span className="selected-badge">✓ Selected</span>
-                )}
-              </label>
-            </div>
-
-            <div className="theme-option">
-              <input
-                type="radio"
-                id="dark-theme"
-                name="theme"
-                value="dark"
-                checked={preferences.theme === 'dark'}
-                onChange={() => handleThemeChange('dark')}
-              />
-              <label htmlFor="dark-theme" className="theme-label dark">
-                <div className="theme-preview dark-preview">🌙</div>
-                <span>Dark Mode</span>
-                {preferences.theme === 'dark' && (
-                  <span className="selected-badge">✓ Selected</span>
-                )}
-              </label>
-            </div>
+          <div className="toggle-item">
+            <label htmlFor="dark-mode" className="toggle-label">
+              <span className="toggle-text">Dark Mode</span>
+              <span className="toggle-description">
+                Toggle on for dark mode, off for light mode
+              </span>
+            </label>
+            <input
+              type="checkbox"
+              id="dark-mode"
+              checked={preferences.theme === 'dark'}
+              onChange={(e) => handleThemeChange(e.target.checked ? 'dark' : 'light')}
+              className="toggle-checkbox"
+            />
           </div>
         </div>
 
