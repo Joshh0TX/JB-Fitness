@@ -48,7 +48,7 @@ function Settings() {
 
   const helpItems = [
     { iconType: 'question', label: 'Frequently Asked Questions', path: '/faq' },
-    { iconType: 'headset', label: 'Contact Support' },
+    { iconType: 'headset', label: 'Contact Support', path: '/contact-support' },
     { iconType: 'info', label: 'About JBFitness' }
   ]
 
