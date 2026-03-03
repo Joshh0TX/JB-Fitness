@@ -202,6 +202,30 @@ function Dashboard() {
     { label: "Fats", value: dailySummary.totalFats, max: 100 },
   ];
 
+  const macroCardsData = [
+    { key: "protein", label: "Protein", value: dailySummary.totalProtein, goal: 200, color: "#4caf50" },
+    { key: "carbs", label: "Carbs", value: dailySummary.totalCarbs, goal: 300, color: "#ffc107" },
+    { key: "fats", label: "Fats", value: dailySummary.totalFats, goal: 100, color: "#ff9800" },
+  ];
+
+  const totalMacroGrams = macroCardsData.reduce((sum, item) => sum + item.value, 0);
+  const macroDistributionData = macroCardsData.map((item) => ({
+    ...item,
+    percentage: totalMacroGrams > 0 ? (item.value / totalMacroGrams) * 100 : 0,
+    progress: item.goal > 0 ? Math.min((item.value / item.goal) * 100, 100) : 0,
+  }));
+
+  let runningMacroPercent = 0;
+  const macroConicGradient = totalMacroGrams > 0
+    ? `conic-gradient(${macroDistributionData
+        .map((item) => {
+          const start = runningMacroPercent;
+          runningMacroPercent += item.percentage;
+          return `${item.color} ${start.toFixed(2)}% ${runningMacroPercent.toFixed(2)}%`;
+        })
+        .join(", ")})`
+    : null;
+
 
 
   return (
@@ -474,105 +498,57 @@ function Dashboard() {
 {/* Today's Macro Distribution */}
 <div className="macro-cards">
   <h2 className="section-title">Today's Macro Distribution</h2>
+
+  <div className="macro-overview-card">
+    <div className="macro-donut-wrap">
+      <div
+        className={`macro-donut ${totalMacroGrams === 0 ? "is-empty" : ""}`}
+        style={macroConicGradient ? { background: macroConicGradient } : undefined}
+      >
+        <div className="macro-label">
+          <p className="macro-label-title">Total</p>
+          <p className="macro-total-value">{totalMacroGrams}g</p>
+        </div>
+      </div>
+    </div>
+
+    <div className="macro-breakdown">
+      {macroDistributionData.map((item) => (
+        <div key={item.key} className="macro-breakdown-row">
+          <div className="macro-breakdown-left">
+            <span className="macro-dot" style={{ backgroundColor: item.color }}></span>
+            <span className="macro-breakdown-name">{item.label}</span>
+          </div>
+          <div className="macro-breakdown-right">
+            <span className="macro-breakdown-value">{item.value}g</span>
+            <span className="macro-breakdown-percent">{Math.round(item.percentage)}%</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
   <div className="macro-grid">
-    <div className="macro-card protein">
-      <div className="macro-circle">
-        <svg viewBox="0 0 100 100" className="macro-pie">
-          <circle cx="50" cy="50" r="45" fill="#f5f5f5" />
-          <circle
-            cx="50"
-            cy="50"
-            r="45"
-            fill="none"
-            stroke="#4caf50"
-            strokeWidth="8"
-            strokeDasharray={`${(dailySummary.totalProtein / 200) * 282.7} 282.7`}
-            transform="rotate(-90 50 50)"
-          />
-        </svg>
-        <div className="macro-label">
-          <p className="macro-value">{dailySummary.totalProtein}</p>
-          <p className="macro-unit">g</p>
+    {macroDistributionData.map((item) => (
+      <div key={item.key} className={`macro-card ${item.key}`}>
+        <div className="macro-card-top">
+          <h3>{item.label}</h3>
+          <span className="macro-unit">grams</span>
         </div>
-      </div>
-      <h3>Protein</h3>
-      <p className="macro-goal">Goal: 200g</p>
-      <div className="macro-progress">
-        <div
-          className="macro-progress-bar"
-          style={{
-            width: `${Math.min((dailySummary.totalProtein / 200) * 100, 100)}%`,
-            backgroundColor: '#4caf50',
-          }}
-        ></div>
-      </div>
-    </div>
-
-    <div className="macro-card carbs">
-      <div className="macro-circle">
-        <svg viewBox="0 0 100 100" className="macro-pie">
-          <circle cx="50" cy="50" r="45" fill="#f5f5f5" />
-          <circle
-            cx="50"
-            cy="50"
-            r="45"
-            fill="none"
-            stroke="#ffc107"
-            strokeWidth="8"
-            strokeDasharray={`${(dailySummary.totalCarbs / 300) * 282.7} 282.7`}
-            transform="rotate(-90 50 50)"
-          />
-        </svg>
-        <div className="macro-label">
-          <p className="macro-value">{dailySummary.totalCarbs}</p>
-          <p className="macro-unit">g</p>
+        <p className="macro-value">{item.value}g</p>
+        <p className="macro-goal">Goal: {item.goal}g</p>
+        <div className="macro-progress">
+          <div
+            className="macro-progress-bar"
+            style={{
+              width: `${item.progress}%`,
+              backgroundColor: item.color,
+            }}
+          ></div>
         </div>
+        <p className="macro-progress-label">{Math.round(item.progress)}% of goal</p>
       </div>
-      <h3>Carbs</h3>
-      <p className="macro-goal">Goal: 300g</p>
-      <div className="macro-progress">
-        <div
-          className="macro-progress-bar"
-          style={{
-            width: `${Math.min((dailySummary.totalCarbs / 300) * 100, 100)}%`,
-            backgroundColor: '#ffc107',
-          }}
-        ></div>
-      </div>
-    </div>
-
-    <div className="macro-card fats">
-      <div className="macro-circle">
-        <svg viewBox="0 0 100 100" className="macro-pie">
-          <circle cx="50" cy="50" r="45" fill="#f5f5f5" />
-          <circle
-            cx="50"
-            cy="50"
-            r="45"
-            fill="none"
-            stroke="#ff9800"
-            strokeWidth="8"
-            strokeDasharray={`${(dailySummary.totalFats / 100) * 282.7} 282.7`}
-            transform="rotate(-90 50 50)"
-          />
-        </svg>
-        <div className="macro-label">
-          <p className="macro-value">{dailySummary.totalFats}</p>
-          <p className="macro-unit">g</p>
-        </div>
-      </div>
-      <h3>Fats</h3>
-      <p className="macro-goal">Goal: 100g</p>
-      <div className="macro-progress">
-        <div
-          className="macro-progress-bar"
-          style={{
-            width: `${Math.min((dailySummary.totalFats / 100) * 100, 100)}%`,
-            backgroundColor: '#ff9800',
-          }}
-        ></div>
-      </div>
-    </div>
+    ))}
   </div>
 </div>
 

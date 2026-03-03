@@ -713,21 +713,55 @@
 
 .macro-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
+}
+
+.macro-overview-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.macro-donut-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.macro-donut {
+  width: clamp(170px, 22vw, 210px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.macro-donut.is-empty {
+  background: conic-gradient(#d9d9d9 0% 100%);
 }
 
 .macro-card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 16px;
-  padding: 24px;
+  padding: 18px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: stretch;
+  text-align: left;
   transition: all 0.3s ease;
 }
 
@@ -736,54 +770,69 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
+.macro-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
 .macro-card h3 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #1a1a1a;
-  margin: 16px 0 8px 0;
+  margin: 0;
 }
 
 .macro-goal {
   font-size: 13px;
   color: #999;
-  margin: 0 0 16px 0;
-}
-
-.macro-circle {
-  position: relative;
-  width: 140px;
-  height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.macro-pie {
-  width: 100%;
-  height: 100%;
+  margin: 0 0 10px 0;
 }
 
 .macro-label {
-  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  padding: 10px;
+}
+
+.macro-label-title {
+  font-size: 12px;
+  color: #757575;
+  margin: 0;
+  font-weight: 600;
+}
+
+.macro-total-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 2px 0 0;
+  line-height: 1;
 }
 
 .macro-value {
-  font-size: 24px;
+  font-size: 30px;
   font-weight: 700;
   color: #1a1a1a;
-  margin: 0;
+  margin: 0 0 8px;
   line-height: 1;
 }
 
 .macro-unit {
   font-size: 12px;
   color: #999;
-  margin: 4px 0 0 0;
+  margin: 0;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .macro-progress {
@@ -799,6 +848,63 @@
   height: 100%;
   border-radius: 3px;
   transition: width 0.4s ease;
+}
+
+.macro-progress-label {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #757575;
+  font-weight: 600;
+}
+
+.macro-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.macro-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.macro-breakdown-left,
+.macro-breakdown-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.macro-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.macro-breakdown-name {
+  font-size: 14px;
+  color: #424242;
+  font-weight: 600;
+}
+
+.macro-breakdown-value {
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.macro-breakdown-percent {
+  font-size: 12px;
+  color: #757575;
+  font-weight: 700;
+  min-width: 34px;
+  text-align: right;
 }
 
 /* Chart Legend */
@@ -857,6 +963,16 @@
     grid-template-columns: 1fr;
   }
 
+  .macro-overview-card {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .macro-donut {
+    width: min(180px, 60vw);
+  }
+
   .chart-legend {
     gap: 16px;
   }
@@ -896,6 +1012,80 @@
   .section-title {
     font-size: 18px;
     margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .dashboard-main {
+    padding: 16px;
+  }
+
+  .macro-cards h2 {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .macro-overview-card {
+    padding: 12px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .macro-donut {
+    width: min(156px, 62vw);
+    padding: 12px;
+  }
+
+  .macro-total-value {
+    font-size: 22px;
+  }
+
+  .macro-label-title {
+    font-size: 11px;
+  }
+
+  .macro-breakdown {
+    gap: 8px;
+  }
+
+  .macro-breakdown-row {
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+
+  .macro-breakdown-name,
+  .macro-breakdown-value {
+    font-size: 12px;
+  }
+
+  .macro-breakdown-percent {
+    font-size: 11px;
+    min-width: 28px;
+  }
+
+  .macro-card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .macro-card h3 {
+    font-size: 14px;
+  }
+
+  .macro-value {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+
+  .macro-goal,
+  .macro-progress-label,
+  .macro-unit {
+    font-size: 11px;
+  }
+
+  .macro-progress {
+    height: 5px;
+    margin-top: 10px;
   }
 }
 
@@ -1050,6 +1240,12 @@
   padding: 8px 16px;
   border-radius: 20px;
   font-weight: 600;
+
+@media (max-width: 1024px) {
+  .macro-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
   font-size: 14px;
   box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
 }
@@ -1207,22 +1403,34 @@
   color: #ffffff;
 }
 
-/* macro-card h3, macro-value and macro-unit live inside/near the pie chart
-   which renders on a white SVG background, so keep them dark */
-[data-theme='dark'] .macro-card h3 {
+[data-theme='dark'] .dashboard .macro-overview-card,
+[data-theme='dark'] .dashboard .macro-card {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme='dark'] .dashboard .macro-card h3,
+[data-theme='dark'] .dashboard .macro-value,
+[data-theme='dark'] .dashboard .macro-total-value,
+[data-theme='dark'] .dashboard .macro-label-title,
+[data-theme='dark'] .dashboard .macro-breakdown-name,
+[data-theme='dark'] .dashboard .macro-breakdown-value {
   color: #1a1a1a;
 }
 
-[data-theme='dark'] .macro-value {
-  color: #1a1a1a;
+[data-theme='dark'] .dashboard .macro-label {
+  background: #ffffff;
 }
 
-[data-theme='dark'] .macro-goal,
-[data-theme='dark'] .macro-unit {
+[data-theme='dark'] .dashboard .macro-goal,
+[data-theme='dark'] .dashboard .macro-unit,
+[data-theme='dark'] .dashboard .macro-progress-label,
+[data-theme='dark'] .dashboard .macro-breakdown-percent {
   color: #666;
 }
 
-[data-theme='dark'] .macro-progress {
+[data-theme='dark'] .dashboard .macro-progress {
   background-color: #ddd;
 }
 
