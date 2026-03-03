@@ -16,7 +16,6 @@ function PersonalInfo() {
     zipCode: '',
     country: ''
   })
-  const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState(user)
   const [message, setMessage] = useState('')
 
@@ -58,7 +57,6 @@ function PersonalInfo() {
         const updatedUser = { ...userData, ...formData }
         localStorage.setItem('user', JSON.stringify(updatedUser))
         setUser(formData)
-        setIsEditing(false)
         setMessage('Profile updated successfully!')
         setTimeout(() => setMessage(''), 3000)
       }
@@ -71,7 +69,6 @@ function PersonalInfo() {
 
   const handleCancel = () => {
     setFormData(user)
-    setIsEditing(false)
   }
 
   return (
@@ -90,71 +87,8 @@ function PersonalInfo() {
         <div className="info-card">
           {message && <div className="message-alert">{message}</div>}
 
-          {!isEditing ? (
-            <>
-              <div className="info-section">
-                <h2 className="section-title">Basic Information</h2>
-                <div className="info-grid">
-                  <div className="info-item">
-                    <label className="info-label">Name</label>
-                    <p className="info-value">{user.username || 'Not set'}</p>
-                  </div>
-                  <div className="info-item">
-                    <label className="info-label">Email</label>
-                    <p className="info-value">{user.email || 'Not set'}</p>
-                  </div>
-                  <div className="info-item">
-                    <label className="info-label">Phone</label>
-                    <p className="info-value">{user.phone || 'Not set'}</p>
-                  </div>
-                  <div className="info-item">
-                    <label className="info-label">Date of Birth</label>
-                    <p className="info-value">{user.dateOfBirth || 'Not set'}</p>
-                  </div>
-                  <div className="info-item">
-                    <label className="info-label">Gender</label>
-                    <p className="info-value">{user.gender || 'Not set'}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="info-section">
-                <h2 className="section-title">Address</h2>
-                <div className="info-grid">
-                  <div className="info-item full-width">
-                    <label className="info-label">Street Address</label>
-                    <p className="info-value">{user.address || 'Not set'}</p>
-                  </div>
-                  <div className="info-item">
-                    <label className="info-label">City</label>
-                    <p className="info-value">{user.city || 'Not set'}</p>
-                  </div>
-                  <div className="info-item">
-                    <label className="info-label">State</label>
-                    <p className="info-value">{user.state || 'Not set'}</p>
-                  </div>
-                  <div className="info-item">
-                    <label className="info-label">Zip Code</label>
-                    <p className="info-value">{user.zipCode || 'Not set'}</p>
-                  </div>
-                  <div className="info-item">
-                    <label className="info-label">Country</label>
-                    <p className="info-value">{user.country || 'Not set'}</p>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                className="edit-button"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit Information
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="info-section">
-                <h2 className="section-title">Basic Information</h2>
+          <div className="info-section">
+            <h2 className="section-title">Basic Information</h2>
                 <div className="form-grid">
                   <div className="form-item">
                     <label htmlFor="username" className="form-label">
@@ -164,9 +98,10 @@ function PersonalInfo() {
                       type="text"
                       id="username"
                       name="username"
-                      value={formData.username}
+                      value={formData.username || ''}
                       onChange={handleInputChange}
                       className="form-input"
+                      placeholder=""
                     />
                   </div>
                   <div className="form-item">
@@ -177,9 +112,10 @@ function PersonalInfo() {
                       type="email"
                       id="email"
                       name="email"
-                      value={formData.email}
+                      value={formData.email || ''}
                       onChange={handleInputChange}
                       className="form-input"
+                      placeholder=""
                     />
                   </div>
                   <div className="form-item">
@@ -190,9 +126,10 @@ function PersonalInfo() {
                       type="tel"
                       id="phone"
                       name="phone"
-                      value={formData.phone}
+                      value={formData.phone || ''}
                       onChange={handleInputChange}
                       className="form-input"
+                      placeholder=""
                     />
                   </div>
                   <div className="form-item">
@@ -203,7 +140,7 @@ function PersonalInfo() {
                       type="date"
                       id="dateOfBirth"
                       name="dateOfBirth"
-                      value={formData.dateOfBirth}
+                      value={formData.dateOfBirth || ''}
                       onChange={handleInputChange}
                       className="form-input"
                     />
@@ -215,7 +152,7 @@ function PersonalInfo() {
                     <select
                       id="gender"
                       name="gender"
-                      value={formData.gender}
+                      value={formData.gender || ''}
                       onChange={handleInputChange}
                       className="form-input"
                     >
@@ -231,7 +168,7 @@ function PersonalInfo() {
                 </div>
               </div>
 
-              <div className="info-section">
+            <div className="info-section">
                 <h2 className="section-title">Address</h2>
                 <div className="form-grid">
                   <div className="form-item full-width">
@@ -242,9 +179,10 @@ function PersonalInfo() {
                       type="text"
                       id="address"
                       name="address"
-                      value={formData.address}
+                      value={formData.address || ''}
                       onChange={handleInputChange}
                       className="form-input"
+                      placeholder=""
                     />
                   </div>
                   <div className="form-item">
@@ -255,9 +193,10 @@ function PersonalInfo() {
                       type="text"
                       id="city"
                       name="city"
-                      value={formData.city}
+                      value={formData.city || ''}
                       onChange={handleInputChange}
                       className="form-input"
+                      placeholder=""
                     />
                   </div>
                   <div className="form-item">
@@ -268,9 +207,10 @@ function PersonalInfo() {
                       type="text"
                       id="state"
                       name="state"
-                      value={formData.state}
+                      value={formData.state || ''}
                       onChange={handleInputChange}
                       className="form-input"
+                      placeholder=""
                     />
                   </div>
                   <div className="form-item">
@@ -281,9 +221,10 @@ function PersonalInfo() {
                       type="text"
                       id="zipCode"
                       name="zipCode"
-                      value={formData.zipCode}
+                      value={formData.zipCode || ''}
                       onChange={handleInputChange}
                       className="form-input"
+                      placeholder=""
                     />
                   </div>
                   <div className="form-item">
@@ -294,24 +235,23 @@ function PersonalInfo() {
                       type="text"
                       id="country"
                       name="country"
-                      value={formData.country}
+                      value={formData.country || ''}
                       onChange={handleInputChange}
                       className="form-input"
+                      placeholder=""
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="form-actions">
-                <button className="save-button" onClick={handleSave}>
-                  Save Changes
-                </button>
-                <button className="cancel-button" onClick={handleCancel}>
-                  Cancel
-                </button>
-              </div>
-            </>
-          )}
+            <div className="form-actions">
+            <button className="save-button" onClick={handleSave}>
+              Save Changes
+            </button>
+            <button className="cancel-button" onClick={handleCancel}>
+              Cancel
+            </button>
+          </div>
         </div>
       </main>
     </div>

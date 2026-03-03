@@ -69,8 +69,6 @@ function SignInPage() {
           <Logo />
         </div>
         <nav className="header-nav">
-          <a href="#features">Features</a>
-          <a href="#pricing">Pricing</a>
           <a href="#about">About</a>
         </nav>
       </header>
@@ -103,7 +101,16 @@ function SignInPage() {
             <div className="form-group">
               <div className="password-label-row">
                 <label htmlFor="password">Password</label>
-                <a href="#forgot" className="forgot-password-link">Forgot password?</a>
+                <a
+                href="#forgot"
+                className="forgot-password-link"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigate('/forgot-password')
+                }}
+              >
+                Forgot password?
+              </a>
               </div>
               <div className="input-wrapper">
                 <span className="input-icon lock-icon">
@@ -158,11 +165,6 @@ function SignInPage() {
       <footer className="signin-footer">
         <div className="footer-content">
           <p className="copyright">© 2026 JBFitness. All rights reserved.</p>
-          <nav className="footer-nav">
-            <a href="#privacy">Privacy</a>
-            <a href="#terms">Terms</a>
-            <a href="#support">Support</a>
-          </nav>
         </div>
       </footer>
     </div>

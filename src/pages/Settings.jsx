@@ -37,7 +37,6 @@ function Settings() {
 
   const accountItems = [
     { iconType: 'person', label: 'Personal Information', path: '/personal-info' },
-    { iconType: 'lock', label: 'Privacy & Security', path: '/privacy' },
     { iconType: 'shield', label: 'Two-Factor Authentication', status: 'Enabled', path: '/two-factor-auth' },
     { iconType: 'settings', label: 'App Preferences', path: '/app-preferences' }
   ]
@@ -48,10 +47,8 @@ function Settings() {
   ]
 
   const helpItems = [
-    { iconType: 'question', label: 'Frequently Asked Questions' },
-    { iconType: 'headset', label: 'Contact Support' },
-    { iconType: 'book', label: 'User Guide' },
-    { iconType: 'forum', label: 'Community Forum' },
+    { iconType: 'question', label: 'Frequently Asked Questions', path: '/faq' },
+    { iconType: 'headset', label: 'Contact Support', path: '/contact-support' },
     { iconType: 'info', label: 'About JBFitness' }
   ]
 
@@ -156,7 +153,11 @@ function Settings() {
           <h2 className="card-title">Help & Support</h2>
           <div className="settings-list">
             {helpItems.map((item, index) => (
-              <div key={index} className="settings-item">
+              <div
+                key={index}
+                className="settings-item"
+                onClick={() => handleItemClick(item.path)}
+              >
                 <div className="item-left">
                   <SettingsIcon type={item.iconType} />
                   <span className="item-label">{item.label}</span>

@@ -10,6 +10,10 @@ import History from './pages/History'
 import PersonalInfo from './pages/PersonalInfo'
 import TwoFactorAuth from './pages/TwoFactorAuth'
 import AppPreferences from './pages/AppPreferences'
+import FAQ from './pages/FAQ'
+import ContactSupport from './pages/ContactSupport'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import './App.css'
 
 function App() {
@@ -37,6 +41,8 @@ function App() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signin" element={<SignInPage />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/nutrition" element={<Nutrition />} />
       <Route path="/workouts" element={<Workouts />} />
@@ -44,6 +50,8 @@ function App() {
       <Route path="/personal-info" element={<PersonalInfo />} />
       <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
       <Route path="/app-preferences" element={<AppPreferences />} />
+      <Route path="/faq" element={<FAQ />} />
+      <Route path="/contact-support" element={<ContactSupport />} />
       <Route path="/history" element={<History />} />
     </Routes>
   )

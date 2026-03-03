@@ -91,8 +91,6 @@ function LoginPage() {
           <Logo />
         </div>
         <nav className="header-nav">
-          <a href="#features">Features</a>
-          <a href="#pricing">Pricing</a>
           <a href="#about">About</a>
         </nav>
       </header>
