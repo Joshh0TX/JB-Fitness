@@ -8,7 +8,6 @@ import Workouts from './pages/Workouts'
 import Settings from './pages/Settings'
 import History from './pages/History'
 import PersonalInfo from './pages/PersonalInfo'
-import TwoFactorAuth from './pages/TwoFactorAuth'
 import AppPreferences from './pages/AppPreferences'
 import FAQ from './pages/FAQ'
 import ContactSupport from './pages/ContactSupport'
@@ -61,7 +60,6 @@ function App() {
       <Route path="/workouts" element={<Workouts />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/personal-info" element={<PersonalInfo />} />
-      <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
       <Route path="/app-preferences" element={<AppPreferences />} />
       <Route path="/faq" element={<FAQ />} />
       <Route path="/contact-support" element={<ContactSupport />} />

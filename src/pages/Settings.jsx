@@ -1,13 +1,23 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import SettingsIcon from '../components/SettingsIcon'
 import Logo from '../components/Logo'
+import API from '../api'
 import './Settings.css'
 
 function Settings() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState({ username: 'User', email: 'user@example.com' })
   const [userInitials, setUserInitials] = useState('JD')
+  const [subscription, setSubscription] = useState({
+    planName: 'No Active Plan',
+    priceDisplay: 'Free',
+    renewalText: 'Upgrade to premium to unlock subscription benefits',
+    status: 'inactive'
+  })
+  const [isStartingPayment, setIsStartingPayment] = useState(false)
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false)
 
   // 🔹 Fetch user data from localStorage on component load
   useEffect(() => {
@@ -37,7 +47,6 @@ function Settings() {
 
   const accountItems = [
     { iconType: 'person', label: 'Personal Information', path: '/personal-info' },
-    { iconType: 'shield', label: 'Two-Factor Authentication', status: 'Enabled', path: '/two-factor-auth' },
     { iconType: 'settings', label: 'App Preferences', path: '/app-preferences' }
   ]
 
@@ -55,6 +64,81 @@ function Settings() {
   const handleItemClick = (path) => {
     if (path) {
       navigate(path)
+    }
+  }
+
+  const loadCurrentSubscription = async () => {
+    try {
+      const { data } = await API.get('/api/payments/subscription/current')
+      setSubscription({
+        planName: data.planName || 'No Active Plan',
+        priceDisplay: data.priceDisplay || 'Free',
+        renewalText: data.renewalText || 'Upgrade to premium to unlock subscription benefits',
+        status: data.status || 'inactive'
+      })
+    } catch (error) {
+      console.error('Failed to fetch subscription:', error)
+    }
+  }
+
+  useEffect(() => {
+    loadCurrentSubscription()
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const reference = params.get('reference') || params.get('trxref')
+
+    if (!reference) return
+
+    let isMounted = true
+
+    const verifyPayment = async () => {
+      try {
+        setIsVerifyingPayment(true)
+        await API.get(`/api/payments/paystack/verify/${reference}`)
+        if (isMounted) {
+          await loadCurrentSubscription()
+          window.alert('Payment verified successfully. Your subscription is now active.')
+        }
+      } catch (error) {
+        console.error('Payment verification failed:', error)
+        if (isMounted) {
+          window.alert(error?.response?.data?.message || 'Unable to verify payment. Please contact support if you were charged.')
+        }
+      } finally {
+        if (isMounted) {
+          setIsVerifyingPayment(false)
+          navigate('/settings', { replace: true })
+        }
+      }
+    }
+
+    verifyPayment()
+
+    return () => {
+      isMounted = false
+    }
+  }, [location.search, navigate])
+
+  const handleChangePlan = async () => {
+    try {
+      setIsStartingPayment(true)
+      const callbackUrl = `${window.location.origin}/settings`
+      const { data } = await API.post('/api/payments/paystack/initialize', {
+        plan: 'premium_monthly',
+        callbackUrl
+      })
+
+      if (!data?.authorizationUrl) {
+        throw new Error('No authorization URL returned')
+      }
+
+      window.location.href = data.authorizationUrl
+    } catch (error) {
+      console.error('Failed to initialize payment:', error)
+      window.alert(error?.response?.data?.message || 'Unable to start payment right now. Please try again.')
+      setIsStartingPayment(false)
     }
   }
 
@@ -115,13 +199,20 @@ function Settings() {
           <div className="current-plan-section">
             <div className="plan-header">
               <h3 className="plan-subtitle">Current Plan</h3>
-              <span className="plan-badge">Active</span>
+              <span className="plan-badge">{subscription.status === 'active' ? 'Active' : 'Inactive'}</span>
             </div>
             <div className="plan-details">
-              <p className="plan-name">Premium Monthly</p>
-              <p className="plan-price">$9.99/month</p>
-              <p className="plan-renewal">Renews Dec 15, 2024</p>
-              <a href="#change" className="change-plan-link">Change Plan</a>
+              <p className="plan-name">{subscription.planName}</p>
+              <p className="plan-price">{subscription.priceDisplay}</p>
+              <p className="plan-renewal">{subscription.renewalText}</p>
+              <button
+                type="button"
+                className="change-plan-link"
+                onClick={handleChangePlan}
+                disabled={isStartingPayment || isVerifyingPayment}
+              >
+                {isStartingPayment ? 'Redirecting to Paystack...' : isVerifyingPayment ? 'Verifying payment...' : 'Change Plan'}
+              </button>
             </div>
           </div>
           <div className="payment-methods-section">

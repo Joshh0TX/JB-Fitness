@@ -1335,7 +1335,18 @@
 [data-theme='dark'] .workout-card:hover,
 [data-theme='dark'] .meal-card:hover,
 [data-theme='dark'] .macro-card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .summary-cards,
+[data-theme='dark'] .weekly-progress,
+[data-theme='dark'] .saved-section,
+[data-theme='dark'] .summary-card,
+[data-theme='dark'] .workout-card,
+[data-theme='dark'] .meal-card,
+[data-theme='dark'] .macro-card {
+  animation-duration: 480ms;
 }
 
 /* Primary text (headings, values) */
@@ -1484,7 +1495,7 @@
 /* Buttons */
 [data-theme='dark'] .dashboard button,
 [data-theme='dark'] .btn {
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 /* Input elements */

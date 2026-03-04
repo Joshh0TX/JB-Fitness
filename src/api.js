@@ -2,6 +2,7 @@ import axios from "axios";
 
 const DEMO_MODE = String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === "true";
 const DEMO_LOGIN_OTPS = new Map();
+const DEMO_RESET_OTPS = new Map();
 
 function safeJsonParse(maybeJson, fallback = {}) {
   if (maybeJson == null) return fallback;
@@ -130,7 +131,7 @@ const demoAdapter = async (config) => {
     return makeDemoResponse(
       config,
       {
-        requires2FA: true,
+        requiresOtp: true,
         challengeId,
         email: demoUser.email,
         msg: "Verification code sent to your email",
@@ -200,6 +201,68 @@ const demoAdapter = async (config) => {
       ]},
     ];
     return makeDemoResponse(config, demoFaq, 200);
+  }
+
+  if (url === "/api/auth/request-password-reset-otp" && method === "post") {
+    const email = String(body.email || "").trim().toLowerCase();
+    if (!email) {
+      return makeDemoResponse(config, { msg: "Email is required" }, 400);
+    }
+
+    const challengeId = Math.random().toString(36).slice(2);
+    DEMO_RESET_OTPS.set(challengeId, "123456");
+    return makeDemoResponse(
+      config,
+      {
+        msg: "OTP sent to your email",
+        challengeId,
+        email,
+        expiresInMs: 10 * 60 * 1000,
+      },
+      200
+    );
+  }
+
+  if (url === "/api/auth/resend-password-reset-otp" && method === "post") {
+    const challengeId = body.challengeId;
+    if (!challengeId || !DEMO_RESET_OTPS.has(challengeId)) {
+      return makeDemoResponse(config, { msg: "Password reset session expired. Please request a new OTP." }, 400);
+    }
+
+    const refreshedChallengeId = Math.random().toString(36).slice(2);
+    DEMO_RESET_OTPS.delete(challengeId);
+    DEMO_RESET_OTPS.set(refreshedChallengeId, "123456");
+
+    return makeDemoResponse(
+      config,
+      {
+        msg: "A new OTP has been sent",
+        challengeId: refreshedChallengeId,
+        expiresInMs: 10 * 60 * 1000,
+      },
+      200
+    );
+  }
+
+  if (url === "/api/auth/reset-password-with-otp" && method === "post") {
+    const challengeId = body.challengeId;
+    const otp = String(body.otp || "");
+    const newPassword = String(body.newPassword || "");
+
+    if (!challengeId || !otp || !newPassword) {
+      return makeDemoResponse(config, { msg: "Challenge ID, OTP, and new password are required" }, 400);
+    }
+
+    if (!DEMO_RESET_OTPS.has(challengeId)) {
+      return makeDemoResponse(config, { msg: "Password reset session expired. Please request a new OTP." }, 400);
+    }
+
+    if (otp !== "123456") {
+      return makeDemoResponse(config, { msg: "Invalid OTP" }, 401);
+    }
+
+    DEMO_RESET_OTPS.delete(challengeId);
+    return makeDemoResponse(config, { msg: "Password reset successful. You can now sign in." }, 200);
   }
 
   // Meals
@@ -343,6 +406,83 @@ const demoAdapter = async (config) => {
     const updated = Math.min(current + 1, 8);
     setStore("demo.water", updated);
     return makeDemoResponse(config, { water: updated }, 201);
+  }
+
+  // Payments (demo)
+  if (url === "/api/payments/subscription/current" && method === "get") {
+    const currentSub = getStore("demo.subscription", null);
+    if (!currentSub) {
+      return makeDemoResponse(
+        config,
+        {
+          hasSubscription: false,
+          planName: "No Active Plan",
+          priceDisplay: "Free",
+          renewalText: "Upgrade to premium to unlock subscription benefits",
+          status: "inactive",
+        },
+        200
+      );
+    }
+
+    return makeDemoResponse(config, currentSub, 200);
+  }
+
+  if (url === "/api/payments/paystack/initialize" && method === "post") {
+    const reference = `demo_ref_${Date.now()}`;
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
+    const authorizationUrl = `${origin}/settings?reference=${reference}`;
+
+    return makeDemoResponse(
+      config,
+      {
+        message: "Payment initialized",
+        authorizationUrl,
+        reference,
+        plan: {
+          key: "premium_monthly",
+          name: "Premium Monthly",
+          amountKobo: 99900,
+          priceDisplay: "₦999.00/month",
+        },
+      },
+      200
+    );
+  }
+
+  if (url.startsWith("/api/payments/paystack/verify/") && method === "get") {
+    const reference = url.split("/").pop();
+    const nowIso = new Date().toISOString();
+
+    const nextSub = {
+      hasSubscription: true,
+      planName: "Premium Monthly",
+      priceDisplay: "₦999.00/month",
+      renewalText: `Started ${new Date(nowIso).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })}`,
+      status: "active",
+      startedAt: nowIso,
+    };
+
+    setStore("demo.subscription", nextSub);
+
+    return makeDemoResponse(
+      config,
+      {
+        message: "Payment verified successfully",
+        subscription: nextSub,
+        payment: {
+          reference,
+          amountKobo: 99900,
+          paidAt: nowIso,
+          channel: "demo",
+        },
+      },
+      200
+    );
   }
 
   // Default demo

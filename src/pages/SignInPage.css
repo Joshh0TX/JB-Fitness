@@ -278,6 +278,41 @@
   transform: translateY(0);
 }
 
+.otp-input-wrapper input {
+  padding-left: 16px;
+  text-align: center;
+  letter-spacing: 6px;
+  font-size: 24px;
+}
+
+.otp-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.text-action {
+  border: none;
+  background: transparent;
+  color: #2e7d32;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.text-action:hover {
+  color: #4caf50;
+  text-decoration: underline;
+}
+
+.text-action:disabled {
+  color: #999;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 /* Divider */
 .divider {
   display: flex;
