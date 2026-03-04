@@ -10,6 +10,8 @@ import nodemailer from "nodemailer";
 
 const LOGIN_OTP_TTL_MS = 10 * 60 * 1000;
 const LOGIN_OTP_TTL_SECONDS = Math.floor(LOGIN_OTP_TTL_MS / 1000);
+const RESET_OTP_TTL_MS = 10 * 60 * 1000;
+const RESET_OTP_TTL_SECONDS = Math.floor(RESET_OTP_TTL_MS / 1000);
 
 const smtpService = String(process.env.SMTP_SERVICE || "").trim().toLowerCase();
 const smtpHost = String(process.env.SMTP_HOST || "").trim();
@@ -69,10 +71,34 @@ const createLoginChallengeToken = ({ userId, username, email, otp }) => {
   );
 };
 
+const createPasswordResetChallengeToken = ({ userId, username, email, otp, passwordHash }) => {
+  return jwt.sign(
+    {
+      type: "password-reset-otp",
+      userId,
+      username,
+      email,
+      otp,
+      passwordHash,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: RESET_OTP_TTL_SECONDS }
+  );
+};
+
 const decodeLoginChallengeToken = (challengeId) => {
   const payload = jwt.verify(challengeId, process.env.JWT_SECRET);
   if (!payload || payload.type !== "login-otp") {
     throw new Error("Invalid login challenge");
+  }
+
+  return payload;
+};
+
+const decodePasswordResetChallengeToken = (challengeId) => {
+  const payload = jwt.verify(challengeId, process.env.JWT_SECRET);
+  if (!payload || payload.type !== "password-reset-otp") {
+    throw new Error("Invalid password reset challenge");
   }
 
   return payload;
@@ -105,6 +131,25 @@ const sendOtpEmail = async ({ email, otp, username }) => {
     html: `
       <p>Hi ${username || "there"},</p>
       <p>Your JBFitness verification code is:</p>
+      <h2 style="letter-spacing:4px;">${otp}</h2>
+      <p>This code expires in 10 minutes.</p>
+    `,
+  });
+};
+
+const sendPasswordResetOtpEmail = async ({ email, otp, username }) => {
+  if (!isEmailServiceConfigured()) {
+    throw new Error("Email service is not configured");
+  }
+
+  await mailTransporter.sendMail({
+    from: smtpFrom,
+    to: email,
+    subject: "JBFitness Password Reset Code",
+    text: `Hi ${username || "there"}, your JBFitness password reset code is ${otp}. It expires in 10 minutes.`,
+    html: `
+      <p>Hi ${username || "there"},</p>
+      <p>Your JBFitness password reset code is:</p>
       <h2 style="letter-spacing:4px;">${otp}</h2>
       <p>This code expires in 10 minutes.</p>
     `,
@@ -226,7 +271,7 @@ export const loginUser = async (req, res) => {
 
     res.json({
       msg: "Verification code sent to your email",
-      requires2FA: true,
+      requiresOtp: true,
       challengeId,
       email: user.email,
       expiresInMs: LOGIN_OTP_TTL_MS,
@@ -390,6 +435,144 @@ export const resetPassword = async (req, res) => {
   } catch (err) {
     console.error("Reset password ERROR:", err);
     res.status(500).json({ msg: "Server error" });
+  }
+};
+
+export const requestPasswordResetOtp = async (req, res) => {
+  const normalizedEmail = normalizeEmail(req.body?.email || "");
+
+  if (!normalizedEmail) {
+    return res.status(400).json({ msg: "Email is required" });
+  }
+
+  if (!isValidEmailSyntax(normalizedEmail)) {
+    return res.status(400).json({ msg: "Invalid email address" });
+  }
+
+  if (!isEmailServiceConfigured()) {
+    return res.status(500).json({ msg: "Email service is not configured" });
+  }
+
+  try {
+    const [rows] = await db.query("SELECT id, username, email, password FROM users WHERE email = ? LIMIT 1", [normalizedEmail]);
+    if (!rows.length) {
+      return res.json({ msg: "If the email exists, an OTP has been sent." });
+    }
+
+    const user = rows[0];
+    const otp = generateOtp();
+    const challengeId = createPasswordResetChallengeToken({
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      otp,
+      passwordHash: user.password,
+    });
+
+    await sendPasswordResetOtpEmail({ email: user.email, otp, username: user.username });
+
+    return res.json({
+      msg: "OTP sent to your email",
+      challengeId,
+      email: user.email,
+      expiresInMs: RESET_OTP_TTL_MS,
+    });
+  } catch (err) {
+    console.error("Request password reset OTP ERROR:", err);
+    return res.status(500).json({ msg: err.message || "Failed to send password reset OTP" });
+  }
+};
+
+export const resendPasswordResetOtp = async (req, res) => {
+  const { challengeId } = req.body;
+
+  if (!challengeId) {
+    return res.status(400).json({ msg: "Challenge ID is required" });
+  }
+
+  let challenge;
+  try {
+    challenge = decodePasswordResetChallengeToken(challengeId);
+  } catch {
+    return res.status(400).json({ msg: "Password reset session expired. Please request a new OTP." });
+  }
+
+  try {
+    const [rows] = await db.query("SELECT id, username, email, password FROM users WHERE id = ? LIMIT 1", [challenge.userId]);
+    if (!rows.length) {
+      return res.status(400).json({ msg: "Password reset session is invalid." });
+    }
+
+    const user = rows[0];
+    if (user.password !== challenge.passwordHash) {
+      return res.status(400).json({ msg: "Password reset session is no longer valid. Please request a new OTP." });
+    }
+
+    const otp = generateOtp();
+    const refreshedChallengeId = createPasswordResetChallengeToken({
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      otp,
+      passwordHash: user.password,
+    });
+
+    await sendPasswordResetOtpEmail({ email: user.email, otp, username: user.username });
+
+    return res.json({
+      msg: "A new OTP has been sent",
+      challengeId: refreshedChallengeId,
+      expiresInMs: RESET_OTP_TTL_MS,
+    });
+  } catch (err) {
+    console.error("Resend password reset OTP ERROR:", err);
+    return res.status(500).json({ msg: err.message || "Failed to resend password reset OTP" });
+  }
+};
+
+export const resetPasswordWithOtp = async (req, res) => {
+  const { challengeId, otp, newPassword } = req.body;
+
+  if (!challengeId || !otp || !newPassword) {
+    return res.status(400).json({ msg: "Challenge ID, OTP, and new password are required" });
+  }
+
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ msg: "New password must be at least 6 characters" });
+  }
+
+  let challenge;
+  try {
+    challenge = decodePasswordResetChallengeToken(challengeId);
+  } catch (err) {
+    if (err?.name === "TokenExpiredError") {
+      return res.status(400).json({ msg: "OTP expired. Please request a new one." });
+    }
+    return res.status(400).json({ msg: "Password reset session expired. Please request a new OTP." });
+  }
+
+  if (String(otp).trim() !== String(challenge.otp)) {
+    return res.status(401).json({ msg: "Invalid OTP" });
+  }
+
+  try {
+    const [rows] = await db.query("SELECT id, password FROM users WHERE id = ? LIMIT 1", [challenge.userId]);
+    if (!rows.length) {
+      return res.status(400).json({ msg: "Invalid password reset session" });
+    }
+
+    const user = rows[0];
+    if (user.password !== challenge.passwordHash) {
+      return res.status(400).json({ msg: "Password reset session is no longer valid. Please request a new OTP." });
+    }
+
+    const hashedPassword = await bcrypt.hash(String(newPassword), 10);
+    await db.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, challenge.userId]);
+
+    return res.json({ msg: "Password reset successful. You can now sign in." });
+  } catch (err) {
+    console.error("Reset password with OTP ERROR:", err);
+    return res.status(500).json({ msg: err.message || "Failed to reset password" });
   }
 };
  

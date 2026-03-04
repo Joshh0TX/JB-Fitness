@@ -9,6 +9,9 @@ import {
   verifyLoginOtp,
   resendLoginOtp,
   validateRegistrationEmail,
+	requestPasswordResetOtp,
+	resendPasswordResetOtp,
+	resetPasswordWithOtp,
 } from "../controllers/auth.controller.js";
 
 const router = express.Router();
@@ -33,5 +36,14 @@ router.post("/verify-login-otp", verifyLoginOtp);
 
 // POST /api/auth/resend-login-otp
 router.post("/resend-login-otp", resendLoginOtp);
+
+// POST /api/auth/request-password-reset-otp
+router.post("/request-password-reset-otp", requestPasswordResetOtp);
+
+// POST /api/auth/resend-password-reset-otp
+router.post("/resend-password-reset-otp", resendPasswordResetOtp);
+
+// POST /api/auth/reset-password-with-otp
+router.post("/reset-password-with-otp", resetPasswordWithOtp);
 
 export default router;
