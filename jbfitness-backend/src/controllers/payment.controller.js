@@ -3,6 +3,35 @@ import db from "../config/db.js";
 
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 
+const PAYSTACK_SECRET_ENV_KEYS = [
+  "PAYSTACK_SECRET_KEY",
+  "PAYSTACK_SECRET",
+  "PAYSTACK_TEST_SECRET_KEY",
+  "PAYSTACK_LIVE_SECRET_KEY",
+  "PAYSTACK_SECRETKEY",
+  "VITE_PAYSTACK_SECRET_KEY",
+];
+
+const getPaystackSecretKey = () => {
+  for (const key of PAYSTACK_SECRET_ENV_KEYS) {
+    const value = String(process.env[key] || "").trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
+};
+
+const getMissingPaystackKeyResponse = () => {
+  return {
+    message: "Paystack secret key is not configured",
+    checkedEnvVars: PAYSTACK_SECRET_ENV_KEYS,
+    envFileUsed: process.env.ENV_FILE_USED || null,
+    nodeEnv: process.env.NODE_ENV || null,
+  };
+};
+
 const getAllowedOrigins = () => {
   const raw = String(process.env.ALLOWED_ORIGINS || "");
   return raw
@@ -54,8 +83,10 @@ const formatNaira = (amountKobo) => {
 
 export const initializePaystackPayment = async (req, res) => {
   try {
-    if (!process.env.PAYSTACK_SECRET_KEY) {
-      return res.status(500).json({ message: "Paystack secret key is not configured" });
+    const paystackSecretKey = getPaystackSecretKey();
+
+    if (!paystackSecretKey) {
+      return res.status(500).json(getMissingPaystackKeyResponse());
     }
 
     const userId = req.user?.id;
@@ -103,7 +134,7 @@ export const initializePaystackPayment = async (req, res) => {
       payload,
       {
         headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          Authorization: `Bearer ${paystackSecretKey}`,
           "Content-Type": "application/json",
         },
       }
@@ -135,8 +166,10 @@ export const initializePaystackPayment = async (req, res) => {
 
 export const verifyPaystackPayment = async (req, res) => {
   try {
-    if (!process.env.PAYSTACK_SECRET_KEY) {
-      return res.status(500).json({ message: "Paystack secret key is not configured" });
+    const paystackSecretKey = getPaystackSecretKey();
+
+    if (!paystackSecretKey) {
+      return res.status(500).json(getMissingPaystackKeyResponse());
     }
 
     const userId = req.user?.id;
@@ -154,7 +187,7 @@ export const verifyPaystackPayment = async (req, res) => {
       `${PAYSTACK_BASE_URL}/transaction/verify/${encodeURIComponent(reference)}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          Authorization: `Bearer ${paystackSecretKey}`,
         },
       }
     );

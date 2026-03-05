@@ -1,6 +1,4 @@
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
+import "./src/config/env.js";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
@@ -10,12 +8,6 @@ import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 
 const { resourceFromAttributes } = resourcesPkg;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const envFileName = process.env.NODE_ENV === "production" ? ".env.production" : ".env.development";
-const envPath = path.join(__dirname, envFileName);
-dotenv.config({ path: envPath });
 
 const logLevelMap = {
 	ALL: DiagLogLevel.ALL,
@@ -42,6 +34,8 @@ const metricsUrl =
 	process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ||
 	(baseOtlpEndpoint ? `${baseOtlpEndpoint}/v1/metrics` : undefined);
 const exportIntervalMillis = Number(process.env.OTEL_METRIC_EXPORT_INTERVAL || 10000);
+const telemetryEnabled = String(process.env.OTEL_ENABLED || "true").toLowerCase() !== "false";
+const hasConfiguredEndpoint = Boolean(tracesUrl || metricsUrl);
 
 const headers = apiKey ? { "x-otel-api-key": apiKey } : undefined;
 
@@ -62,52 +56,59 @@ if (baseOtlpEndpoint?.includes("vercel.app")) {
 	);
 }
 
-console.log("[otel] telemetry config", {
-	serviceName,
-	environment: deploymentEnvironment,
-	tracesEnabled: Boolean(traceExporter),
-	metricsEnabled: Boolean(metricReader),
-	tracesUrl,
-	metricsUrl,
-	exportIntervalMillis,
-	diagnosticLogLevel: diagLogLevelKey,
-});
+if (!telemetryEnabled || !hasConfiguredEndpoint) {
+	console.log("[otel] telemetry disabled", {
+		reason: !telemetryEnabled ? "OTEL_ENABLED=false" : "no OTLP endpoint configured",
+		environment: deploymentEnvironment,
+	});
+} else {
+	console.log("[otel] telemetry config", {
+		serviceName,
+		environment: deploymentEnvironment,
+		tracesEnabled: Boolean(traceExporter),
+		metricsEnabled: Boolean(metricReader),
+		tracesUrl,
+		metricsUrl,
+		exportIntervalMillis,
+		diagnosticLogLevel: diagLogLevelKey,
+	});
 
-const sdk = new NodeSDK({
-	resource: resourceFromAttributes({
-		"service.name": serviceName,
-		"service.version": serviceVersion,
-		"deployment.environment": deploymentEnvironment,
-	}),
-	traceExporter,
-	metricReaders: metricReader ? [metricReader] : undefined,
-	instrumentations: [
-		getNodeAutoInstrumentations({
-			"@opentelemetry/instrumentation-http": { enabled: true },
-			"@opentelemetry/instrumentation-express": { enabled: true },
-			"@opentelemetry/instrumentation-mysql2": { enabled: true },
+	const sdk = new NodeSDK({
+		resource: resourceFromAttributes({
+			"service.name": serviceName,
+			"service.version": serviceVersion,
+			"deployment.environment": deploymentEnvironment,
 		}),
-	],
-});
+		traceExporter,
+		metricReaders: metricReader ? [metricReader] : undefined,
+		instrumentations: [
+			getNodeAutoInstrumentations({
+				"@opentelemetry/instrumentation-http": { enabled: true },
+				"@opentelemetry/instrumentation-express": { enabled: true },
+				"@opentelemetry/instrumentation-mysql2": { enabled: true },
+			}),
+		],
+	});
 
-try {
-	const startResult = sdk.start();
-	if (startResult && typeof startResult.then === "function") {
-		startResult.catch((error) => {
-			console.error("OpenTelemetry initialization failed:", error);
-		});
-	}
-} catch (error) {
-	console.error("OpenTelemetry initialization failed:", error);
-}
-
-const shutdown = async () => {
 	try {
-		await sdk.shutdown();
+		const startResult = sdk.start();
+		if (startResult && typeof startResult.then === "function") {
+			startResult.catch((error) => {
+				console.error("OpenTelemetry initialization failed:", error);
+			});
+		}
 	} catch (error) {
-		console.error("OpenTelemetry shutdown failed:", error);
+		console.error("OpenTelemetry initialization failed:", error);
 	}
-};
 
-process.on("SIGTERM", shutdown);
-process.on("SIGINT", shutdown);
+	const shutdown = async () => {
+		try {
+			await sdk.shutdown();
+		} catch (error) {
+			console.error("OpenTelemetry shutdown failed:", error);
+		}
+	};
+
+	process.on("SIGTERM", shutdown);
+	process.on("SIGINT", shutdown);
+}

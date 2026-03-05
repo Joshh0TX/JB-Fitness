@@ -2,7 +2,6 @@
 
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 
 // Import routes
 import authRoutes from "./routes/auth.routes.js";
@@ -14,15 +13,10 @@ import mealsRoutes from "./routes/meals.routes.js";
 import userProfileRoutes from "./routes/user.profile.routes.js";
 import nutritionRoutes from "./routes/nutrition.routes.js";
 import exerciseRoutes from "./routes/exercise.routes.js";
-import faqRoutes from "./routes/faq.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 
 // Import DB (just to confirm connection at startup)
 import db from "./config/db.js";
-
-// Load correct .env file based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-dotenv.config({ path: envFile });
 
 const app = express();
 
@@ -53,7 +47,6 @@ app.use("/api/meals", mealsRoutes);
 app.use("/api/users", userProfileRoutes);
 app.use("/api/nutrition", nutritionRoutes);
 app.use("/api/exercises", exerciseRoutes);
-app.use("/api/faq", faqRoutes);
 app.use("/api/payments", paymentRoutes);
 
 /* Health check route */
