@@ -1,10 +1,23 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import './About.css'
 
 function About() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [theme, setTheme] = useState('light')
+
+  const fromPath = location.state?.from
+
+  const handleBack = () => {
+    if (typeof fromPath === 'string' && fromPath.startsWith('/')) {
+      navigate(fromPath, { replace: true })
+      return
+    }
+
+    const hasToken = Boolean(localStorage.getItem('token'))
+    navigate(hasToken ? '/settings' : '/login', { replace: true })
+  }
 
   useEffect(() => {
     try {
@@ -21,7 +34,7 @@ function About() {
   return (
     <div className="about-page page-animate" data-theme={theme}>
       <header className="about-header">
-        <button className="back-button" onClick={() => navigate('/settings')}>
+        <button className="back-button" onClick={handleBack}>
           <span className="back-arrow">←</span>
         </button>
         <h1 className="page-title">About JBFitness</h1>

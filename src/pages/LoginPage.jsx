@@ -95,7 +95,7 @@ function LoginPage() {
           <button
             type="button"
             className="nav-link-button"
-            onClick={() => navigate('/about')}
+            onClick={() => navigate('/about', { state: { from: '/login' } })}
           >
             About
           </button>

@@ -41,7 +41,7 @@ function ForgotPassword() {
           <Logo />
         </div>
         <nav className="header-nav">
-          <a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about') }}>About</a>
+          <a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about', { state: { from: '/forgot-password' } }) }}>About</a>
         </nav>
       </header>
 

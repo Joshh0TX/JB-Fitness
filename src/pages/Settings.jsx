@@ -63,6 +63,11 @@ function Settings() {
 
   const handleItemClick = (path) => {
     if (path) {
+      if (path === '/about') {
+        navigate(path, { state: { from: '/settings' } })
+        return
+      }
+
       navigate(path)
     }
   }

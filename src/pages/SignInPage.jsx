@@ -286,7 +286,7 @@ function SignInPage() {
           <button
             type="button"
             className="nav-link-button"
-            onClick={() => navigate('/about')}
+            onClick={() => navigate('/about', { state: { from: '/signin' } })}
           >
             About
           </button>
