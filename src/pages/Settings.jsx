@@ -137,7 +137,11 @@ function Settings() {
       window.location.href = data.authorizationUrl
     } catch (error) {
       console.error('Failed to initialize payment:', error)
-      window.alert(error?.response?.data?.message || 'Unable to start payment right now. Please try again.')
+      const errorData = error?.response?.data
+      const details = Array.isArray(errorData?.checkedEnvVars)
+        ? `\nChecked env vars: ${errorData.checkedEnvVars.join(', ')}`
+        : ''
+      window.alert((errorData?.message || 'Unable to start payment right now. Please try again.') + details)
       setIsStartingPayment(false)
     }
   }

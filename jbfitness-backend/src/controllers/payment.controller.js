@@ -24,9 +24,14 @@ const getPaystackSecretKey = () => {
 };
 
 const getMissingPaystackKeyResponse = () => {
+  const presentEnvVars = PAYSTACK_SECRET_ENV_KEYS.filter((key) =>
+    Boolean(String(process.env[key] || "").trim())
+  );
+
   return {
     message: "Paystack secret key is not configured",
     checkedEnvVars: PAYSTACK_SECRET_ENV_KEYS,
+    presentEnvVars,
     envFileUsed: process.env.ENV_FILE_USED || null,
     nodeEnv: process.env.NODE_ENV || null,
   };
@@ -86,7 +91,9 @@ export const initializePaystackPayment = async (req, res) => {
     const paystackSecretKey = getPaystackSecretKey();
 
     if (!paystackSecretKey) {
-      return res.status(500).json(getMissingPaystackKeyResponse());
+      const diagnostics = getMissingPaystackKeyResponse();
+      console.error("[payments] missing Paystack secret key", diagnostics);
+      return res.status(500).json(diagnostics);
     }
 
     const userId = req.user?.id;
@@ -169,7 +176,9 @@ export const verifyPaystackPayment = async (req, res) => {
     const paystackSecretKey = getPaystackSecretKey();
 
     if (!paystackSecretKey) {
-      return res.status(500).json(getMissingPaystackKeyResponse());
+      const diagnostics = getMissingPaystackKeyResponse();
+      console.error("[payments] missing Paystack secret key", diagnostics);
+      return res.status(500).json(diagnostics);
     }
 
     const userId = req.user?.id;

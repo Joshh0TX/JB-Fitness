@@ -53,16 +53,22 @@
   gap: 32px;
 }
 
-.header-nav a {
+.header-nav a,
+.header-nav .nav-link-button {
   color: #1a1a1a;
   text-decoration: none;
   font-size: 15px;
   font-weight: 500;
   transition: all 0.3s ease;
   position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.header-nav a::after {
+.header-nav a::after,
+.header-nav .nav-link-button::after {
   content: '';
   position: absolute;
   bottom: -4px;
@@ -73,11 +79,13 @@
   transition: width 0.3s ease;
 }
 
-.header-nav a:hover::after {
+.header-nav a:hover::after,
+.header-nav .nav-link-button:hover::after {
   width: 100%;
 }
 
-.header-nav a:hover {
+.header-nav a:hover,
+.header-nav .nav-link-button:hover {
   color: #2e7d32;
 }
 

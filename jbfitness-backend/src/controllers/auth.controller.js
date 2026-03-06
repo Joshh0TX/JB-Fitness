@@ -55,8 +55,19 @@ const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 
+const isObjectPayload = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
 const getUserPasswordHash = (user = {}) => {
   return user.password || user.password_hash || null;
+};
+
+const withTimeout = (promise, timeoutMs, timeoutMessage) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+    }),
+  ]);
 };
 
 const isValidEmailSyntax = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -91,8 +102,12 @@ const createPasswordResetChallengeToken = ({ userId, username, email, otp, passw
 };
 
 const decodeLoginChallengeToken = (challengeId) => {
+  if (!challengeId) {
+    throw new Error("Invalid login challenge");
+  }
+
   const payload = jwt.verify(challengeId, process.env.JWT_SECRET);
-  if (!payload || payload.type !== "login-otp") {
+  if (!isObjectPayload(payload) || payload.type !== "login-otp") {
     throw new Error("Invalid login challenge");
   }
 
@@ -100,8 +115,12 @@ const decodeLoginChallengeToken = (challengeId) => {
 };
 
 const decodePasswordResetChallengeToken = (challengeId) => {
+  if (!challengeId) {
+    throw new Error("Invalid password reset challenge");
+  }
+
   const payload = jwt.verify(challengeId, process.env.JWT_SECRET);
-  if (!payload || payload.type !== "password-reset-otp") {
+  if (!isObjectPayload(payload) || payload.type !== "password-reset-otp") {
     throw new Error("Invalid password reset challenge");
   }
 
@@ -277,30 +296,22 @@ export const loginUser = async (req, res) => {
     });
 
     try {
-      await sendOtpEmail({ email: user.email, otp, username: user.username });
-
-      return res.json({
-        msg: "Verification code sent to your email",
-        requiresOtp: true,
-        challengeId,
-        email: user.email,
-        expiresInMs: LOGIN_OTP_TTL_MS,
-      });
-    } catch (mailError) {
-      console.error("Login OTP email send failed, bypassing OTP:", mailError);
-      const token = jwt.sign(
-        { id: user.id, username: user.username, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: "1d" }
+      await withTimeout(
+        sendOtpEmail({ email: user.email, otp, username: user.username }),
+        6000,
+        "Login OTP email timeout"
       );
-
-      return res.json({
-        msg: "Login successful",
-        token,
-        user: { id: user.id, username: user.username, email: user.email },
-        twoFactorBypassed: true,
-      });
+    } catch (mailError) {
+      console.error("Login OTP email send issue:", mailError);
     }
+
+    return res.json({
+      msg: "Verification code sent to your email",
+      requiresOtp: true,
+      challengeId,
+      email: user.email,
+      expiresInMs: LOGIN_OTP_TTL_MS,
+    });
   } catch (err) {
     console.error("Login ERROR:", err);
     res.status(500).json({ msg: err.message || "Server error" });
@@ -308,7 +319,7 @@ export const loginUser = async (req, res) => {
 };
 
 export const verifyLoginOtp = async (req, res) => {
-  const { challengeId, otp } = req.body;
+  const { challengeId, otp } = req.body || {};
 
   if (!challengeId || !otp) {
     return res.status(400).json({ msg: "Challenge ID and OTP are required" });
@@ -342,7 +353,7 @@ export const verifyLoginOtp = async (req, res) => {
 };
 
 export const resendLoginOtp = async (req, res) => {
-  const { challengeId } = req.body;
+  const { challengeId } = req.body || {};
 
   if (!challengeId) {
     return res.status(400).json({ msg: "Challenge ID is required" });
@@ -378,7 +389,7 @@ export const resendLoginOtp = async (req, res) => {
 
 /* ---------------- FORGOT PASSWORD ---------------- */
 export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
+  const { email } = req.body || {};
 
   if (!email || !email.trim()) {
     return res.status(400).json({ msg: "Email is required" });
@@ -423,7 +434,7 @@ export const forgotPassword = async (req, res) => {
 
 /* ---------------- RESET PASSWORD ---------------- */
 export const resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
+  const { token, newPassword } = req.body || {};
 
   if (!token || !newPassword) {
     return res.status(400).json({ msg: "Token and new password are required" });
@@ -514,7 +525,7 @@ export const requestPasswordResetOtp = async (req, res) => {
 };
 
 export const resendPasswordResetOtp = async (req, res) => {
-  const { challengeId } = req.body;
+  const { challengeId } = req.body || {};
 
   if (!challengeId) {
     return res.status(400).json({ msg: "Challenge ID is required" });
@@ -566,7 +577,7 @@ export const resendPasswordResetOtp = async (req, res) => {
 };
 
 export const resetPasswordWithOtp = async (req, res) => {
-  const { challengeId, otp, newPassword } = req.body;
+  const { challengeId, otp, newPassword } = req.body || {};
 
   if (!challengeId || !otp || !newPassword) {
     return res.status(400).json({ msg: "Challenge ID, OTP, and new password are required" });

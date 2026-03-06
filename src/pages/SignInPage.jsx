@@ -24,6 +24,20 @@ function SignInPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const getAuthErrorMessage = (error, fallback) => {
+    const rawMessage =
+      error?.response?.data?.msg ||
+      error?.response?.data?.message ||
+      error?.message ||
+      fallback;
+
+    if (String(rawMessage).includes("reading 'type'")) {
+      return 'Verification session expired. Please request a new OTP.';
+    }
+
+    return rawMessage;
+  };
+
   const isLoginOtpStep = Boolean(loginChallenge?.challengeId);
   const isForgotStep = forgotFlow.step !== 'none';
 
@@ -72,7 +86,7 @@ function SignInPage() {
       navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      const msg = error.response?.data?.msg || error.response?.data?.message || "Login failed";
+      const msg = getAuthErrorMessage(error, 'Login failed');
       alert(msg);
     } finally {
       setLoading(false);
@@ -102,7 +116,7 @@ function SignInPage() {
       setLoginOtpCode('');
       navigate('/dashboard');
     } catch (error) {
-      const msg = error.response?.data?.msg || error.response?.data?.message || 'OTP verification failed';
+      const msg = getAuthErrorMessage(error, 'OTP verification failed');
       alert(msg);
     } finally {
       setLoading(false);
@@ -127,7 +141,7 @@ function SignInPage() {
 
       alert('A new OTP has been sent to your email');
     } catch (error) {
-      const msg = error.response?.data?.msg || error.response?.data?.message || 'Failed to resend OTP';
+      const msg = getAuthErrorMessage(error, 'Failed to resend OTP');
       alert(msg);
     } finally {
       setLoading(false);
@@ -190,7 +204,7 @@ function SignInPage() {
       }));
       alert('OTP sent to your email');
     } catch (error) {
-      const msg = error.response?.data?.msg || error.response?.data?.message || 'Failed to send OTP';
+      const msg = getAuthErrorMessage(error, 'Failed to send OTP');
       alert(msg);
     } finally {
       setLoading(false);
@@ -212,7 +226,7 @@ function SignInPage() {
 
       alert('A new OTP has been sent to your email');
     } catch (error) {
-      const msg = error.response?.data?.msg || error.response?.data?.message || 'Failed to resend OTP';
+      const msg = getAuthErrorMessage(error, 'Failed to resend OTP');
       alert(msg);
     } finally {
       setLoading(false);
@@ -249,7 +263,7 @@ function SignInPage() {
       setFormData((prev) => ({ ...prev, email: forgotFlow.email, password: '' }));
       closeForgotPassword();
     } catch (error) {
-      const msg = error.response?.data?.msg || error.response?.data?.message || 'Failed to reset password';
+      const msg = getAuthErrorMessage(error, 'Failed to reset password');
       alert(msg);
     } finally {
       setLoading(false);
@@ -269,7 +283,13 @@ function SignInPage() {
           <Logo />
         </div>
         <nav className="header-nav">
-          <a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about') }}>About</a>
+          <button
+            type="button"
+            className="nav-link-button"
+            onClick={() => navigate('/about')}
+          >
+            About
+          </button>
         </nav>
       </header>
 
