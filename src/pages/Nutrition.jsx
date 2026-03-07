@@ -23,6 +23,7 @@ function Nutrition() {
   const [weeklySummary, setWeeklySummary] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [gramsByResult, setGramsByResult] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userMeals, setUserMeals] = useState([]);
@@ -92,6 +93,25 @@ function Nutrition() {
     fetchSummaries();
   }, []);
 
+  const getResultKey = (result, index) => {
+    return String(result?.fdcId || `${result?.name || "food"}-${index}`);
+  };
+
+  const getSafeGrams = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return 100;
+    }
+
+    return Math.min(2000, Math.round(parsed));
+  };
+
+  const scaleNutrientByGrams = (basePer100g, grams) => {
+    const base = Number(basePer100g) || 0;
+    const portion = getSafeGrams(grams);
+    return Math.round((base * portion) / 100);
+  };
+
   // ✅ Search for meals via Nutritionix API
   const searchMeals = async (e) => {
     e.preventDefault();
@@ -112,6 +132,11 @@ function Nutrition() {
 
       if (response.data.results && response.data.results.length > 0) {
         setSearchResults(response.data.results);
+        const initialGrams = {};
+        response.data.results.forEach((result, index) => {
+          initialGrams[getResultKey(result, index)] = 100;
+        });
+        setGramsByResult(initialGrams);
       } else {
         setError("No foods found. Try a different search.");
       }
@@ -127,22 +152,28 @@ function Nutrition() {
   };
 
   // ✅ Add meal from search results to today
-  const addMealToToday = async (meal) => {
+  const addMealToToday = async (meal, gramsInput) => {
     if (!token) {
       alert("Session expired. Please log in again.");
       navigate("/api/login");
       return;
     }
 
+    const grams = getSafeGrams(gramsInput);
+    const calories = scaleNutrientByGrams(meal.calories, grams);
+    const protein = scaleNutrientByGrams(meal.protein, grams);
+    const carbs = scaleNutrientByGrams(meal.carbs, grams);
+    const fats = scaleNutrientByGrams(meal.fats, grams);
+
     try {
       await API.post(
         "/api/meals",
         {
-          name: meal.name,
-          calories: meal.calories,
-          protein: meal.protein,
-          carbs: meal.carbs,
-          fats: meal.fats,
+          name: `${meal.name} (${grams}g)`,
+          calories,
+          protein,
+          carbs,
+          fats,
         },
         {
           headers: {
@@ -151,7 +182,7 @@ function Nutrition() {
         }
       );
 
-      alert(`✅ ${meal.name} added to today!`);
+      alert(`✅ ${meal.name} (${grams}g) added to today!`);
 
       // 🔄 Refresh all data
       setSearchQuery("");
@@ -268,27 +299,50 @@ function Nutrition() {
                   <div key={index} className="result-card">
                     <h4>{result.name}</h4>
                     <p className="serving">
-                      {result.serving_qty} {result.serving_unit}
+                      {result.serving_size || `${result.serving_qty || 100} ${result.serving_unit || "g"}`}
                     </p>
+
+                    <div className="grams-input-row">
+                      <label htmlFor={`grams-${index}`} className="grams-label">Amount eaten (g)</label>
+                      <input
+                        id={`grams-${index}`}
+                        type="number"
+                        min="1"
+                        max="2000"
+                        step="1"
+                        className="grams-input"
+                        value={gramsByResult[getResultKey(result, index)] ?? 100}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const key = getResultKey(result, index);
+                          setGramsByResult((prev) => ({
+                            ...prev,
+                            [key]: value === "" ? "" : getSafeGrams(value),
+                          }));
+                        }}
+                      />
+                    </div>
+
+                    <p className="nutrition-base-note">Nutrition shown for entered grams (base per 100g)</p>
 
                     <div className="nutrition-info">
                       <span className="nutrition-item">
-                        <strong>{result.calories}</strong> cal
+                        <strong>{scaleNutrientByGrams(result.calories, gramsByResult[getResultKey(result, index)] ?? 100)}</strong> cal
                       </span>
                       <span className="nutrition-item">
-                        <strong>{result.protein}g</strong> protein
+                        <strong>{scaleNutrientByGrams(result.protein, gramsByResult[getResultKey(result, index)] ?? 100)}g</strong> protein
                       </span>
                       <span className="nutrition-item">
-                        <strong>{result.carbs}g</strong> carbs
+                        <strong>{scaleNutrientByGrams(result.carbs, gramsByResult[getResultKey(result, index)] ?? 100)}g</strong> carbs
                       </span>
                       <span className="nutrition-item">
-                        <strong>{result.fats}g</strong> fats
+                        <strong>{scaleNutrientByGrams(result.fats, gramsByResult[getResultKey(result, index)] ?? 100)}g</strong> fats
                       </span>
                     </div>
 
                     <button
                       className="add-result-btn"
-                      onClick={() => addMealToToday(result)}
+                      onClick={() => addMealToToday(result, gramsByResult[getResultKey(result, index)] ?? 100)}
                     >
                       Add to Today
                     </button>

@@ -409,6 +409,42 @@
   display: block;
 }
 
+.grams-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.grams-label {
+  font-size: 12px;
+  color: #616161;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.grams-input {
+  width: 100%;
+  max-width: 120px;
+  padding: 8px 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #424242;
+  background: #ffffff;
+}
+
+.grams-input:focus {
+  outline: none;
+  border-color: #66bb6a;
+}
+
+.nutrition-base-note {
+  font-size: 11px;
+  color: #757575;
+  margin: 0 0 10px 0;
+}
+
 .result-card .nutrition-info {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -658,6 +694,17 @@
 [data-theme='dark'] .meal-macros,
 [data-theme='dark'] .no-meals {
   color: #d0d0d0;
+}
+
+[data-theme='dark'] .grams-label,
+[data-theme='dark'] .nutrition-base-note {
+  color: #d0d0d0;
+}
+
+[data-theme='dark'] .grams-input {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
 [data-theme='dark'] .summary-card .value,
