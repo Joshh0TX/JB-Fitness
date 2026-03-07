@@ -12,14 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.70.1",
-    "@opentelemetry/exporter-metrics-otlp-http": "^0.213.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.213.0",
-    "@opentelemetry/resources": "^2.6.0",
-    "@opentelemetry/sdk-metrics": "^2.6.0",
-    "@opentelemetry/sdk-node": "^0.212.0",
-    "@opentelemetry/semantic-conventions": "^1.40.0",
     "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
@@ -32,6 +24,7 @@
     "nodemailer": "^8.0.1"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "nodemon": "^3.1.11"
   }
 }

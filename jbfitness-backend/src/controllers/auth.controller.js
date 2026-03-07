@@ -12,42 +12,49 @@ const LOGIN_OTP_TTL_MS = 10 * 60 * 1000;
 const LOGIN_OTP_TTL_SECONDS = Math.floor(LOGIN_OTP_TTL_MS / 1000);
 const RESET_OTP_TTL_MS = 10 * 60 * 1000;
 const RESET_OTP_TTL_SECONDS = Math.floor(RESET_OTP_TTL_MS / 1000);
+const EMAIL_SEND_TIMEOUT_MS = Number(process.env.EMAIL_SEND_TIMEOUT_MS || 20000);
 
 const smtpService = String(process.env.SMTP_SERVICE || "").trim().toLowerCase();
 const smtpHost = String(process.env.SMTP_HOST || "").trim();
-const smtpPort = Number(process.env.SMTP_PORT || 587);
-const smtpSecure = String(process.env.SMTP_SECURE).toLowerCase() === "true";
+const smtpResolvedHost = smtpHost || (smtpService === "gmail" ? "smtp.gmail.com" : "");
+const smtpPort = Number(process.env.SMTP_PORT || (smtpService === "gmail" ? 587 : 587));
+const smtpSecure =
+  String(process.env.SMTP_SECURE || (smtpPort === 465 ? "true" : "false")).toLowerCase() ===
+  "true";
 const smtpUser = String(process.env.SMTP_USER || "").trim();
 const smtpPass = String(process.env.SMTP_PASS || "").trim();
 const smtpFrom = String(process.env.SMTP_FROM || smtpUser).trim();
 const smtpAuthConfigured = Boolean(smtpUser && smtpPass);
+const smtpConnectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 15000);
+const smtpGreetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 15000);
+const smtpSocketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 20000);
+const smtpForceIpv4 = String(process.env.SMTP_FORCE_IPV4 || "true").toLowerCase() !== "false";
 
-const mailTransporter = nodemailer.createTransport(
-  smtpService === "gmail"
+const mailTransporter = nodemailer.createTransport({
+  host: smtpResolvedHost,
+  port: smtpPort,
+  secure: smtpSecure,
+  requireTLS: !smtpSecure,
+  family: smtpForceIpv4 ? 4 : undefined,
+  connectionTimeout: smtpConnectionTimeout,
+  greetingTimeout: smtpGreetingTimeout,
+  socketTimeout: smtpSocketTimeout,
+  tls: smtpResolvedHost
     ? {
-        service: "gmail",
-        auth: smtpAuthConfigured
-          ? {
-              user: smtpUser,
-              pass: smtpPass,
-            }
-          : undefined,
+        servername: smtpResolvedHost,
+        minVersion: "TLSv1.2",
       }
-    : {
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpSecure,
-        auth: smtpAuthConfigured
-          ? {
-              user: smtpUser,
-              pass: smtpPass,
-            }
-          : undefined,
+    : undefined,
+  auth: smtpAuthConfigured
+    ? {
+        user: smtpUser,
+        pass: smtpPass,
       }
-);
+    : undefined,
+});
 
 const isEmailServiceConfigured = () => {
-  const hasProvider = smtpService === "gmail" || Boolean(smtpHost);
+  const hasProvider = Boolean(smtpResolvedHost);
   return Boolean(hasProvider && smtpAuthConfigured && smtpFrom);
 };
 
@@ -272,45 +279,16 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ msg: "Invalid credentials" });
     }
 
-    if (!isEmailServiceConfigured()) {
-      const token = jwt.sign(
-        { id: user.id, username: user.username, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: "1d" }
-      );
-
-      return res.json({
-        msg: "Login successful",
-        token,
-        user: { id: user.id, username: user.username, email: user.email },
-        twoFactorBypassed: true,
-      });
-    }
-
-    const otp = generateOtp();
-    const challengeId = createLoginChallengeToken({
-      userId: user.id,
-      username: user.username,
-      email: user.email,
-      otp,
-    });
-
-    try {
-      await withTimeout(
-        sendOtpEmail({ email: user.email, otp, username: user.username }),
-        6000,
-        "Login OTP email timeout"
-      );
-    } catch (mailError) {
-      console.error("Login OTP email send issue:", mailError);
-    }
+    const token = jwt.sign(
+      { id: user.id, username: user.username, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     return res.json({
-      msg: "Verification code sent to your email",
-      requiresOtp: true,
-      challengeId,
-      email: user.email,
-      expiresInMs: LOGIN_OTP_TTL_MS,
+      msg: "Login successful",
+      token,
+      user: { id: user.id, username: user.username, email: user.email },
     });
   } catch (err) {
     console.error("Login ERROR:", err);
