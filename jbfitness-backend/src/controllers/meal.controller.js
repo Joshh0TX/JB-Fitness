@@ -153,7 +153,7 @@ export const getDailySummary = async (req, res) => {
         COUNT(*) AS mealsCount
       FROM meals
       WHERE user_id = ?
-        AND DATE(created_at) = CURDATE()
+        AND created_at::date = CURRENT_DATE
     `;
 
     const [rows] = await db.execute(sql, [userId]);

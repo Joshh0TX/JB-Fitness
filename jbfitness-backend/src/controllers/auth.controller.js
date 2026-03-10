@@ -68,6 +68,20 @@ const getUserPasswordHash = (user = {}) => {
   return user.password || user.password_hash || null;
 };
 
+const resolvePasswordColumnName = async () => {
+  const [rows] = await db.query(
+    `SELECT column_name
+     FROM information_schema.columns
+     WHERE table_schema = 'public'
+       AND table_name = 'users'
+       AND column_name ILIKE 'password%'
+     ORDER BY ordinal_position ASC
+     LIMIT 1`
+  );
+
+  return rows.length > 0 ? rows[0].column_name : "password";
+};
+
 const withTimeout = (promise, timeoutMs, timeoutMessage) => {
   return Promise.race([
     promise,
@@ -436,8 +450,7 @@ export const resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Support both 'password' and 'password_hash' column names
-    const [cols] = await db.query("SHOW COLUMNS FROM users LIKE 'password%'");
-    const pwdCol = cols.length > 0 ? cols[0].Field : "password";
+    const pwdCol = await resolvePasswordColumnName();
 
     await db.query(`UPDATE users SET ${pwdCol} = ? WHERE id = ?`, [
       hashedPassword,
@@ -596,8 +609,7 @@ export const resetPasswordWithOtp = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(String(newPassword), 10);
-    const [cols] = await db.query("SHOW COLUMNS FROM users LIKE 'password%'");
-    const passwordColumn = cols.length > 0 ? cols[0].Field : "password";
+    const passwordColumn = await resolvePasswordColumnName();
     await db.query(`UPDATE users SET ${passwordColumn} = ? WHERE id = ?`, [hashedPassword, challenge.userId]);
 
     return res.json({ msg: "Password reset successful. You can now sign in." });

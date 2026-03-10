@@ -1,63 +1,80 @@
-import mysql from "mysql2/promise";
+import { Pool } from "pg";
 import dotenv from "dotenv";
 import * as fs from "fs";
 
 dotenv.config();
 
 const initDatabase = async () => {
-  let connection;
+  let pool;
   try {
-    // Create connection (note: host might be a full URL for Railway)
-    const config = {
-      host: process.env.MYSQL_URL,
-      user: process.env.MYSQLUSER,
-      password: process.env.MYSQL_ROOT_PASSWORD,
-      database: process.env.MYSQL_DATABASE,
-      port: process.env.MYSQLPORT || 3306,
-    };
+    const connectionString =
+      process.env.DATABASE_URL ||
+      process.env.SUPABASE_DB_URL ||
+      process.env.POSTGRES_URL;
+
+    const config = connectionString
+      ? {
+          connectionString,
+          ssl: { rejectUnauthorized: false },
+        }
+      : {
+          host: process.env.PGHOST,
+          user: process.env.PGUSER,
+          password: process.env.PGPASSWORD,
+          database: process.env.PGDATABASE,
+          port: Number(process.env.PGPORT || 5432),
+          ssl: { rejectUnauthorized: false },
+        };
 
     console.log("Connecting to database...");
-    console.log(`Host: ${config.host}, User: ${config.user}, Database: ${config.database}`);
+    console.log(`Database: ${config.database || "from connection string"}`);
 
-    connection = await mysql.createConnection(config);
+    pool = new Pool(config);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS nigerian_foods (
+        id SERIAL PRIMARY KEY,
+        food_name VARCHAR(100) NOT NULL,
+        serving_size VARCHAR(50),
+        calories INT,
+        protein NUMERIC(5,2),
+        carbs NUMERIC(5,2),
+        fat NUMERIC(5,2)
+      )
+    `);
+
+    await pool.query(
+      "CREATE INDEX IF NOT EXISTS idx_nigerian_foods_food_name ON nigerian_foods (food_name)"
+    );
 
     // Read the SQL file
     const sqlContent = fs.readFileSync("./jbfitness_nigerian_foods.sql", "utf8");
 
-    // Split by semicolon and execute each statement
-    const statements = sqlContent.split(";").filter((stmt) => stmt.trim().length > 0);
+    const insertStart = sqlContent.indexOf("INSERT INTO nigerian_foods");
+    const insertEnd = sqlContent.indexOf(";", insertStart);
 
-    console.log(`Found ${statements.length} SQL statements`);
-
-    for (const statement of statements) {
-      const trimmedStatement = statement.trim();
-      // Skip comments and MySQL-specific directives
-      if (!trimmedStatement.startsWith("/*") && !trimmedStatement.startsWith("!")) {
-        try {
-          console.log(`Executing: ${trimmedStatement.substring(0, 100)}...`);
-          await connection.execute(trimmedStatement);
-        } catch (error) {
-          // Ignore if table already exists or other non-critical errors
-          if (!error.message.includes("already exists")) {
-            console.log(`Note: ${error.message}`);
-          }
-        }
-      }
+    if (insertStart === -1 || insertEnd === -1) {
+      throw new Error("Could not find INSERT statement in jbfitness_nigerian_foods.sql");
     }
+
+    const insertSql = sqlContent.slice(insertStart, insertEnd + 1);
+    await pool.query(insertSql);
 
     console.log("✅ Nigerian foods table initialized successfully!");
 
     // Verify by checking if table exists and counting rows
-    const [tables] = await connection.query("SHOW TABLES LIKE 'nigerian_foods'");
-    if (tables.length > 0) {
-      const [foods] = await connection.query("SELECT COUNT(*) as count FROM nigerian_foods");
-      console.log(`✅ Table exists with ${foods[0].count} foods`);
+    const tableCheck = await pool.query(
+      "SELECT to_regclass('public.nigerian_foods') AS table_name"
+    );
+    if (tableCheck.rows[0]?.table_name) {
+      const foods = await pool.query("SELECT COUNT(*)::int AS count FROM nigerian_foods");
+      console.log(`✅ Table exists with ${foods.rows[0].count} foods`);
     }
   } catch (error) {
     console.error("❌ Error initializing database:", error.message);
     process.exit(1);
   } finally {
-    if (connection) await connection.end();
+    if (pool) await pool.end();
   }
 };
 

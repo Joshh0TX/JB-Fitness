@@ -20,27 +20,22 @@
 -- Table structure for table `nigerian_foods`
 --
 
-DROP TABLE IF EXISTS `nigerian_foods`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `nigerian_foods` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `food_name` VARCHAR(100) NOT NULL,
-  `serving_size` VARCHAR(50),
-  `calories` INT,
-  `protein` DECIMAL(5,2),
-  `carbs` DECIMAL(5,2),
-  `fat` DECIMAL(5,2),
-  KEY `idx_food_name` (`food_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET @saved_cs_client = @@character_set_client */;
+DROP TABLE IF EXISTS nigerian_foods;
+CREATE TABLE nigerian_foods (
+  id BIGSERIAL PRIMARY KEY,
+  food_name VARCHAR(100) NOT NULL,
+  serving_size VARCHAR(50),
+  calories INT,
+  protein NUMERIC(5,2),
+  carbs NUMERIC(5,2),
+  fat NUMERIC(5,2)
+);
+CREATE INDEX IF NOT EXISTS idx_nigerian_foods_food_name ON nigerian_foods(food_name);
 
 --
 -- Dumping data for table `nigerian_foods`
 --
 
-LOCK TABLES `nigerian_foods` WRITE;
-/*!40000 ALTER TABLE `nigerian_foods` DISABLE KEYS */;
 INSERT INTO nigerian_foods (food_name, serving_size, calories, protein, carbs, fat) VALUES
 ('Jollof Rice', '1 cup', 320, 6, 55, 8),
 ('Fried Rice', '1 cup', 350, 7, 50, 12),
@@ -240,8 +235,6 @@ INSERT INTO nigerian_foods (food_name, serving_size, calories, protein, carbs, f
 ('Vegetable Soup', '1 bowl', 140, 6, 12, 7),
 ('Chicken Salad', '1 bowl', 280, 20, 10, 18),
 ('Tuna Salad', '1 bowl', 260, 22, 8, 16);
-/*!40000 ALTER TABLE `nigerian_foods` ENABLE KEYS */;
-UNLOCK TABLES;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

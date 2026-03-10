@@ -12,7 +12,7 @@ export const getDashboard = async (req, res) => {
         COALESCE(SUM(workouts_completed), 0) AS workouts,
         COALESCE(SUM(water_intake), 0) AS water
       FROM metrics
-      WHERE user_id = ? AND date = CURDATE()
+      WHERE user_id = ? AND date = CURRENT_DATE
       `,
       [userId]
     );
@@ -23,7 +23,7 @@ export const getDashboard = async (req, res) => {
       SELECT date, SUM(calories) AS calories
       FROM metrics
       WHERE user_id = ?
-        AND date >= CURDATE() - INTERVAL 6 DAY
+        AND date >= CURRENT_DATE - INTERVAL '6 days'
       GROUP BY date
       ORDER BY date ASC
       `,

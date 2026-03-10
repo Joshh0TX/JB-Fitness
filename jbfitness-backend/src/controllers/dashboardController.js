@@ -19,7 +19,7 @@ export const getDashboardSummary = async (req, res) => {
       `SELECT COUNT(*) AS total_workouts, SUM(calories_burned) AS total_calories
        FROM workouts
        WHERE user_id = ? 
-         AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)`,
+         AND created_at >= CURRENT_DATE - INTERVAL '7 days'`,
       [userId]
     );
 

@@ -100,7 +100,7 @@ export const incrementWater = async (req, res) => {
     const userId = req.user.id;
 
     // Check if a metrics row exists for today
-    const [rows] = await db.query("SELECT id, water_intake FROM metrics WHERE user_id = ? AND date = CURDATE()", [userId]);
+    const [rows] = await db.query("SELECT id, water_intake FROM metrics WHERE user_id = ? AND date = CURRENT_DATE", [userId]);
 
     if (rows && rows.length > 0) {
       const metricId = rows[0].id;
@@ -112,7 +112,7 @@ export const incrementWater = async (req, res) => {
 
     // Insert a new metric row for today with water_intake = 1
     const [result] = await db.query(
-      "INSERT INTO metrics (user_id, date, calories, water_intake, workouts_completed) VALUES (?, CURDATE(), 0, 1, 0)",
+      "INSERT INTO metrics (user_id, date, calories, water_intake, workouts_completed) VALUES (?, CURRENT_DATE, 0, 1, 0)",
       [userId]
     );
 

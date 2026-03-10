@@ -44,7 +44,7 @@ export const createWorkout = async (req, res) => {
     // After creating a workout, increment today's workouts_completed metric (upsert)
     try {
       const [rows] = await db.query(
-        "SELECT id, workouts_completed FROM metrics WHERE user_id = ? AND date = CURDATE()",
+        "SELECT id, workouts_completed FROM metrics WHERE user_id = ? AND date = CURRENT_DATE",
         [userId]
       );
 
@@ -56,7 +56,7 @@ export const createWorkout = async (req, res) => {
         );
       } else {
         await db.query(
-          "INSERT INTO metrics (user_id, date, calories, water_intake, workouts_completed) VALUES (?, CURDATE(), 0, 0, 1)",
+          "INSERT INTO metrics (user_id, date, calories, water_intake, workouts_completed) VALUES (?, CURRENT_DATE, 0, 0, 1)",
           [userId]
         );
       }
@@ -134,7 +134,7 @@ export const getWeeklyWorkoutSummary = async (req, res) => {
         COALESCE(SUM(calories_burned), 0) AS totalCalories
       FROM workouts
       WHERE user_id = ?
-        AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+        AND created_at >= CURRENT_DATE - INTERVAL '6 days'
       GROUP BY DATE(created_at)
       ORDER BY day
     `;
