@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import dns from "dns";
 
 function toPgPlaceholders(sql) {
   let idx = 0;
@@ -75,12 +76,48 @@ const connectionString =
   process.env.POSTGRES_URL;
 const shouldUseSsl = String(process.env.PGSSL || "true").toLowerCase() !== "false";
 
-const pool = new Pool(
+const forceIpv4Lookup = (hostname, options, callback) =>
+  dns.lookup(hostname, { ...options, family: 4, all: false }, callback);
+
+function buildPoolConfig(urlString) {
+  return {
+    connectionString: urlString,
+    ssl: shouldUseSsl ? { rejectUnauthorized: false } : false,
+    lookup: forceIpv4Lookup,
+  };
+}
+
+function buildSupabaseSessionFallbackConfig(urlString) {
+  if (!urlString) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(urlString);
+    if (!/pooler\.supabase\.com$/i.test(parsed.hostname)) {
+      return null;
+    }
+
+    parsed.port = "5432";
+    parsed.username = "postgres";
+    parsed.search = "";
+
+    return buildPoolConfig(parsed.toString());
+  } catch {
+    return null;
+  }
+}
+
+function isTenantOrUserError(error) {
+  return (
+    String(error?.code || "").toUpperCase() === "XX000" &&
+    /tenant or user not found/i.test(String(error?.message || ""))
+  );
+}
+
+const primaryPool = new Pool(
   connectionString
-    ? {
-        connectionString,
-        ssl: shouldUseSsl ? { rejectUnauthorized: false } : false,
-      }
+    ? buildPoolConfig(connectionString)
     : {
         host: process.env.PGHOST,
         user: process.env.PGUSER,
@@ -88,8 +125,29 @@ const pool = new Pool(
         database: process.env.PGDATABASE,
         port: Number(process.env.PGPORT || 5432),
         ssl: shouldUseSsl ? { rejectUnauthorized: false } : false,
+        lookup: forceIpv4Lookup,
       }
 );
+
+const fallbackPoolConfig = buildSupabaseSessionFallbackConfig(connectionString);
+let fallbackPool = null;
+
+async function runWithPoolFallback(execute) {
+  try {
+    return await execute(primaryPool);
+  } catch (error) {
+    if (!isTenantOrUserError(error) || !fallbackPoolConfig) {
+      throw error;
+    }
+
+    if (!fallbackPool) {
+      fallbackPool = new Pool(fallbackPoolConfig);
+      console.warn("⚠️ Supabase transaction pooler auth failed, retrying with session pooler...");
+    }
+
+    return execute(fallbackPool);
+  }
+}
 
 async function runQuery(sql, params = [], client = pool) {
   const normalized = normalizeSql(sql, params);
@@ -130,15 +188,15 @@ async function runQuery(sql, params = [], client = pool) {
 
 const db = {
   query(sql, params = []) {
-    return runQuery(sql, params, pool);
+    return runWithPoolFallback((client) => runQuery(sql, params, client));
   },
 
   execute(sql, params = []) {
-    return runQuery(sql, params, pool);
+    return runWithPoolFallback((client) => runQuery(sql, params, client));
   },
 
   async getConnection() {
-    const client = await pool.connect();
+    const client = await runWithPoolFallback((poolClient) => poolClient.connect());
     return {
       query(sql, params = []) {
         return runQuery(sql, params, client);
@@ -153,7 +211,10 @@ const db = {
   },
 
   end() {
-    return pool.end();
+    if (fallbackPool) {
+      fallbackPool.end();
+    }
+    return primaryPool.end();
   },
 };
 

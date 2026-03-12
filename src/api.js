@@ -33,7 +33,11 @@ function setStore(key, value) {
 }
 
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function last7DaysISO() {
@@ -41,14 +45,38 @@ function last7DaysISO() {
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    out.push(d.toISOString().slice(0, 10));
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    out.push(`${year}-${month}-${day}`);
   }
   return out;
 }
 
+function getMealDay(meal) {
+  if (!meal) return "";
+
+  if (typeof meal.day === "string" && meal.day.length >= 10) {
+    return meal.day.slice(0, 10);
+  }
+
+  const createdAt = meal.created_at || meal.createdAt;
+  if (!createdAt) return "";
+
+  const parsed = new Date(createdAt);
+  if (Number.isNaN(parsed.getTime())) {
+    return String(createdAt).slice(0, 10);
+  }
+
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function computeMealSummaries(meals) {
   const today = todayISO();
-  const todaysMeals = meals.filter((m) => m.day === today);
+  const todaysMeals = meals.filter((m) => getMealDay(m) === today);
 
   const daily = {
     totalCalories: todaysMeals.reduce((s, m) => s + (Number(m.calories) || 0), 0),
@@ -59,7 +87,7 @@ function computeMealSummaries(meals) {
   };
 
   const weekly = last7DaysISO().map((day) => {
-    const dayMeals = meals.filter((m) => m.day === day);
+    const dayMeals = meals.filter((m) => getMealDay(m) === day);
     return {
       day,
       totalCalories: dayMeals.reduce((s, m) => s + (Number(m.calories) || 0), 0),
@@ -118,13 +146,37 @@ const demoAdapter = async (config) => {
   }
 
   if (url === "/api/auth/register" && method === "post") {
-    const demoUser = { id: 1, name: body.name || "Demo User", email: body.email || "demo@jbfitness.com" };
+    const demoUser = {
+      id: 1,
+      name: body.name || "Demo User",
+      email: body.email || "demo@jbfitness.com",
+      phone: "",
+      dateOfBirth: "",
+      gender: "",
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "",
+    };
     setStore("demo.user", demoUser);
     return makeDemoResponse(config, { token: "demo-token", user: demoUser }, 201);
   }
 
   if (url === "/api/auth/login" && method === "post") {
-    const demoUser = getStore("demo.user", { id: 1, name: "Demo User", email: body.email || "demo@jbfitness.com" });
+    const demoUser = getStore("demo.user", {
+      id: 1,
+      name: "Demo User",
+      email: body.email || "demo@jbfitness.com",
+      phone: "",
+      dateOfBirth: "",
+      gender: "",
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "",
+    });
     setStore("demo.user", demoUser);
     const challengeId = Math.random().toString(36).slice(2);
     DEMO_LOGIN_OTPS.set(challengeId, "123456");
@@ -160,8 +212,92 @@ const demoAdapter = async (config) => {
     }
 
     DEMO_LOGIN_OTPS.delete(challengeId);
-    const demoUser = getStore("demo.user", { id: 1, name: "Demo User", email: "demo@jbfitness.com" });
+    const demoUser = getStore("demo.user", {
+      id: 1,
+      name: "Demo User",
+      email: "demo@jbfitness.com",
+      phone: "",
+      dateOfBirth: "",
+      gender: "",
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "",
+    });
     return makeDemoResponse(config, { token: "demo-token", user: demoUser }, 200);
+  }
+
+  if (url === "/api/users/me" && method === "get") {
+    const demoUser = getStore("demo.user", {
+      id: 1,
+      name: "Demo User",
+      email: "demo@jbfitness.com",
+      phone: "",
+      dateOfBirth: "",
+      gender: "",
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "",
+    });
+
+    return makeDemoResponse(config, {
+      id: demoUser.id,
+      username: demoUser.username || demoUser.name || "Demo User",
+      email: demoUser.email || "demo@jbfitness.com",
+      phone: demoUser.phone || "",
+      dateOfBirth: demoUser.dateOfBirth || "",
+      gender: demoUser.gender || "",
+      address: demoUser.address || "",
+      city: demoUser.city || "",
+      state: demoUser.state || "",
+      zipCode: demoUser.zipCode || "",
+      country: demoUser.country || "",
+    }, 200);
+  }
+
+  if (url === "/api/users/me" && method === "put") {
+    const existing = getStore("demo.user", {
+      id: 1,
+      name: "Demo User",
+      email: "demo@jbfitness.com",
+    });
+
+    const next = {
+      ...existing,
+      name: body.username || existing.username || existing.name || "Demo User",
+      username: body.username || existing.username || existing.name || "Demo User",
+      email: body.email || existing.email || "demo@jbfitness.com",
+      phone: body.phone || "",
+      dateOfBirth: body.dateOfBirth || "",
+      gender: body.gender || "",
+      address: body.address || "",
+      city: body.city || "",
+      state: body.state || "",
+      zipCode: body.zipCode || "",
+      country: body.country || "",
+    };
+
+    setStore("demo.user", next);
+
+    return makeDemoResponse(config, {
+      message: "Profile updated successfully",
+      user: {
+        id: next.id,
+        username: next.username || next.name,
+        email: next.email,
+        phone: next.phone || "",
+        dateOfBirth: next.dateOfBirth || "",
+        gender: next.gender || "",
+        address: next.address || "",
+        city: next.city || "",
+        state: next.state || "",
+        zipCode: next.zipCode || "",
+        country: next.country || "",
+      },
+    }, 200);
   }
 
   if ((url.includes("auth/forgot-password") || url.endsWith("forgot-password")) && method === "post") {

@@ -4,6 +4,21 @@ import API from "../api.js";
 import Logo from "../components/Logo";
 import "./Dashboard.css";
 
+const toLocalISODate = (input = new Date()) => {
+  const date = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeDay = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value.slice(0, 10);
+  return toLocalISODate(value);
+};
+
 function Dashboard() {
   const navigate = useNavigate();
 
@@ -76,11 +91,11 @@ function Dashboard() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const dailyData = dailyRes.data ?? {
-          totalCalories: 0,
-          totalProtein: 0,
-          totalCarbs: 0,
-          totalFats: 0,
+        const dailyData = {
+          totalCalories: Number(dailyRes?.data?.totalCalories ?? 0),
+          totalProtein: Number(dailyRes?.data?.totalProtein ?? 0),
+          totalCarbs: Number(dailyRes?.data?.totalCarbs ?? 0),
+          totalFats: Number(dailyRes?.data?.totalFats ?? 0),
         };
 
         const dashData = dashRes.data ?? {
@@ -121,10 +136,9 @@ function Dashboard() {
         );
 
         // 5️⃣ Weekly workout summary (calories burned from workouts per day)
-        const weeklyWorkoutData = (weeklyWorkoutRes.data ?? []).map(d => {
-          let dayStr = d.day;
-          if (dayStr && dayStr.includes('T')) dayStr = dayStr.split('T')[0];
-          if (!dayStr) dayStr = new Date().toISOString().split('T')[0];
+        const weeklyWorkoutData = (weeklyWorkoutRes.data ?? []).map((d) => {
+          let dayStr = normalizeDay(d?.day);
+          if (!dayStr) dayStr = toLocalISODate();
           return {
             day: dayStr,
             totalCalories: Number(d.totalCalories ?? 0), // Ensure it's a number, not string
@@ -169,12 +183,11 @@ function Dashboard() {
   );
 
   // Ensure we have 7 days of data for the chart (fill missing days with 0)
-  const dayOfWeek = new Date().getDay(); // 0=Sun, 1=Mon, etc.
   const sevenDaysData = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const dayStr = d.toISOString().split('T')[0];
+    const dayStr = toLocalISODate(d);
     const existingData = weeklyWorkoutSummary.find(w => w.day === dayStr);
     sevenDaysData.push(existingData || { day: dayStr, totalCalories: 0, totalWorkouts: 0 });
   }
@@ -401,7 +414,7 @@ function Dashboard() {
             const dayWidth = 700 / 7;
             const x = i * dayWidth + (dayWidth - barWidth) / 2;
             const y = 230 - barHeight;
-            const today = new Date().toISOString().split("T")[0];
+            const today = toLocalISODate();
             const isToday = d.day === today;
 
             return (
@@ -459,7 +472,7 @@ function Dashboard() {
         {/* X-axis: day name + workout count */}
         <div className="graph-x-axis workout-x-axis">
           {sevenDaysData.map((d, i) => {
-            const today = new Date().toISOString().split("T")[0];
+            const today = toLocalISODate();
             const isToday = d.day === today;
             const count = d.totalWorkouts ?? 0;
             const dObj = d.day ? new Date(d.day + "T12:00:00") : null;

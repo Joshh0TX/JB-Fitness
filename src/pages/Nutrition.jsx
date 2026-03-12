@@ -3,7 +3,25 @@ import { useState, useEffect } from "react";
 import API from "../api.js";
 import Logo from "../components/Logo";
 import HistoryCalendarModal from "../components/HistoryCalendarModal";
+import { notify } from "../components/appNotifications";
 import "./Nutrition.css";
+
+const toLocalISODate = (input = new Date()) => {
+  const date = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getMealDate = (meal) => {
+  if (!meal) return "";
+  if (typeof meal.day === "string" && meal.day.length >= 10) return meal.day.slice(0, 10);
+  if (meal.created_at) return toLocalISODate(meal.created_at);
+  if (meal.createdAt) return toLocalISODate(meal.createdAt);
+  return "";
+};
 
 function Nutrition() {
   const navigate = useNavigate();
@@ -30,7 +48,7 @@ function Nutrition() {
   
   // Calendar history states
   const [showCalendar, setShowCalendar] = useState(false);
-  const [historyDate, setHistoryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [historyDate, setHistoryDate] = useState(toLocalISODate());
   const [allMeals, setAllMeals] = useState([]); // All meals for history
   const [historyMeals, setHistoryMeals] = useState([]); // Meals for selected date
 
@@ -72,16 +90,18 @@ function Nutrition() {
       ]);
 
       const mealsData = mealsRes.data || [];
-      setDailySummary(dailyRes.data);
+      setDailySummary({
+        totalCalories: Number(dailyRes?.data?.totalCalories ?? 0),
+        totalProtein: Number(dailyRes?.data?.totalProtein ?? 0),
+        totalCarbs: Number(dailyRes?.data?.totalCarbs ?? 0),
+        totalFats: Number(dailyRes?.data?.totalFats ?? 0),
+      });
       setWeeklySummary(weeklyRes.data);
       setAllMeals(mealsData); // Store all meals for history
       
       // Filter meals for today
-      const todayStr = new Date().toISOString().split('T')[0];
-      const todayMeals = mealsData.filter(m => {
-        const mealDate = m.created_at ? m.created_at.split('T')[0] : todayStr;
-        return mealDate === todayStr;
-      });
+      const todayStr = toLocalISODate();
+      const todayMeals = mealsData.filter((m) => getMealDate(m) === todayStr);
       setUserMeals(todayMeals);
     } catch (error) {
       console.error("Summary fetch error:", error);
@@ -154,7 +174,7 @@ function Nutrition() {
   // ✅ Add meal from search results to today
   const addMealToToday = async (meal, gramsInput) => {
     if (!token) {
-      alert("Session expired. Please log in again.");
+      notify("Session expired. Please log in again.", "error");
       navigate("/api/login");
       return;
     }
@@ -182,7 +202,7 @@ function Nutrition() {
         }
       );
 
-      alert(`✅ ${meal.name} (${grams}g) added to today!`);
+      notify(`${meal.name} (${grams}g) added to today!`, "success");
 
       // 🔄 Refresh all data
       setSearchQuery("");
@@ -190,7 +210,7 @@ function Nutrition() {
       fetchSummaries();
     } catch (error) {
       console.error("Add meal error:", error);
-      alert(error.response?.data?.message || "Failed to add meal");
+      notify(error.response?.data?.message || "Failed to add meal", "error");
     }
   };
 
@@ -207,28 +227,25 @@ function Nutrition() {
         },
       });
 
-      alert("Meal deleted");
+      notify("Meal deleted", "success");
       fetchSummaries();
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Failed to delete meal");
+      notify("Failed to delete meal", "error");
     }
   };
 
   // ✅ Handle history date selection from calendar
   const handleHistoryDateSelect = (dateStr) => {
     setHistoryDate(dateStr);
-    const mealsThatDay = allMeals.filter(m => {
-      const mealDate = m.created_at ? m.created_at.split('T')[0] : null;
-      return mealDate === dateStr;
-    });
+    const mealsThatDay = allMeals.filter((m) => getMealDate(m) === dateStr);
     setHistoryMeals(mealsThatDay);
   };
 
   // Build object showing which dates have meal data
   const mealsByDate = {};
-  allMeals.forEach(m => {
-    const mealDate = m.created_at ? m.created_at.split('T')[0] : null;
+  allMeals.forEach((m) => {
+    const mealDate = getMealDate(m);
     if (mealDate) {
       mealsByDate[mealDate] = true;
     }
@@ -356,7 +373,7 @@ function Nutrition() {
         {/* Today's Meals / History */}
         <section className="todays-meals-section">
           <div className="meals-section-header">
-            <h2>{historyDate === new Date().toISOString().split('T')[0] ? "Today's Meals" : "Previously Consumed on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyMeals.length : userMeals.length})</h2>
+            <h2>{historyDate === toLocalISODate() ? "Today's Meals" : "Previously Consumed on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyMeals.length : userMeals.length})</h2>
             <button 
               className={`history-btn ${showCalendar ? 'active' : ''}`} 
               onClick={() => setShowCalendar(!showCalendar)}

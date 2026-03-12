@@ -1,6 +1,16 @@
 import db from "../config/db.js";
 import axios from "axios";
 
+const toIsoDay = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value.slice(0, 10);
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  return parsed.toISOString().slice(0, 10);
+};
+
 /**
  * SEARCH foods from USDA with fallback to Nigerian foods database
  */
@@ -194,7 +204,7 @@ export const getWeeklySummary = async (req, res) => {
       day.setDate(day.getDate() - i);
       const dayString = day.toISOString().split("T")[0];
 
-      const existing = rows.find((r) => r.day === dayString);
+      const existing = rows.find((r) => toIsoDay(r.day) === dayString);
       result.push(
         existing || {
           day: dayString,

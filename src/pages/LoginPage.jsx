@@ -4,6 +4,7 @@ import NotificationIcon from "../components/NotificationIcon";
 import LockIcon from "../components/LockIcon";
 import Logo from "../components/Logo";
 import API from "../api.js";
+import { notify } from "../components/appNotifications";
 import "./LoginPage.css";
 
 function LoginPage() {
@@ -31,24 +32,24 @@ function LoginPage() {
 
     // Validation
     if (!formData.username.trim()) {
-      alert("Username is required");
+      notify("Username is required", "error");
       return;
     }
     if (!formData.email.trim()) {
-      alert("Email is required");
+      notify("Email is required", "error");
       return;
     }
 
     if (formData.password.length < 8) {
-      alert("Password must be at least 8 characters");
+      notify("Password must be at least 8 characters", "error");
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords must match!");
+      notify("Passwords must match!", "error");
       return;
     }
     if (!formData.agreeToTerms) {
-      alert("You must agree to the Terms of Service and Privacy Policy.");
+      notify("You must agree to the Terms of Service and Privacy Policy.", "error");
       return;
     }
 
@@ -73,7 +74,7 @@ function LoginPage() {
         error.response?.data?.msg ||
         error.response?.data?.message ||
         "Registration failed";
-      alert(msg);
+      notify(msg, "error");
     } finally {
       setLoading(false);
     }

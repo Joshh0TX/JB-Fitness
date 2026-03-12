@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import API from "../api.js";
 import LockIcon from '../components/LockIcon';
 import Logo from '../components/Logo';
+import { notify } from '../components/appNotifications';
 import './SignInPage.css';
 
 function SignInPage() {
@@ -54,7 +55,7 @@ function SignInPage() {
 
     // Basic validation
     if (!formData.email.trim() || !formData.password.trim()) {
-      alert("Email and password are required");
+      notify("Email and password are required", "error");
       return;
     }
 
@@ -87,7 +88,7 @@ function SignInPage() {
     } catch (error) {
       console.error("Login error:", error);
       const msg = getAuthErrorMessage(error, 'Login failed');
-      alert(msg);
+      notify(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -97,7 +98,7 @@ function SignInPage() {
     e.preventDefault();
 
     if (loginOtpCode.length !== 6 || isNaN(loginOtpCode)) {
-      alert('Please enter a valid 6-digit OTP');
+      notify('Please enter a valid 6-digit OTP', 'error');
       return;
     }
 
@@ -117,7 +118,7 @@ function SignInPage() {
       navigate('/dashboard');
     } catch (error) {
       const msg = getAuthErrorMessage(error, 'OTP verification failed');
-      alert(msg);
+      notify(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -139,10 +140,10 @@ function SignInPage() {
         }));
       }
 
-      alert('A new OTP has been sent to your email');
+      notify('A new OTP has been sent to your email', 'success');
     } catch (error) {
       const msg = getAuthErrorMessage(error, 'Failed to resend OTP');
-      alert(msg);
+      notify(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -179,7 +180,7 @@ function SignInPage() {
   const handleRequestResetOtp = async (e) => {
     e.preventDefault();
     if (!forgotFlow.email.trim()) {
-      alert('Email is required');
+      notify('Email is required', 'error');
       return;
     }
 
@@ -190,7 +191,7 @@ function SignInPage() {
       });
 
       if (!response.data?.challengeId) {
-        alert(response.data?.msg || 'If the email exists, an OTP has been sent.');
+        notify(response.data?.msg || 'If the email exists, an OTP has been sent.', 'info');
         return;
       }
 
@@ -202,10 +203,10 @@ function SignInPage() {
         newPassword: '',
         confirmPassword: '',
       }));
-      alert('OTP sent to your email');
+      notify('OTP sent to your email', 'success');
     } catch (error) {
       const msg = getAuthErrorMessage(error, 'Failed to send OTP');
-      alert(msg);
+      notify(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -224,10 +225,10 @@ function SignInPage() {
         setForgotFlow((prev) => ({ ...prev, challengeId: response.data.challengeId }));
       }
 
-      alert('A new OTP has been sent to your email');
+      notify('A new OTP has been sent to your email', 'success');
     } catch (error) {
       const msg = getAuthErrorMessage(error, 'Failed to resend OTP');
-      alert(msg);
+      notify(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -237,17 +238,17 @@ function SignInPage() {
     e.preventDefault();
 
     if (forgotFlow.otp.length !== 6 || isNaN(forgotFlow.otp)) {
-      alert('Please enter a valid 6-digit OTP');
+      notify('Please enter a valid 6-digit OTP', 'error');
       return;
     }
 
     if (!forgotFlow.newPassword || forgotFlow.newPassword.length < 6) {
-      alert('New password must be at least 6 characters');
+      notify('New password must be at least 6 characters', 'error');
       return;
     }
 
     if (forgotFlow.newPassword !== forgotFlow.confirmPassword) {
-      alert('Passwords do not match');
+      notify('Passwords do not match', 'error');
       return;
     }
 
@@ -259,12 +260,12 @@ function SignInPage() {
         newPassword: forgotFlow.newPassword,
       });
 
-      alert(response.data?.msg || 'Password reset successful');
+      notify(response.data?.msg || 'Password reset successful', 'success');
       setFormData((prev) => ({ ...prev, email: forgotFlow.email, password: '' }));
       closeForgotPassword();
     } catch (error) {
       const msg = getAuthErrorMessage(error, 'Failed to reset password');
-      alert(msg);
+      notify(msg, 'error');
     } finally {
       setLoading(false);
     }

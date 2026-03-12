@@ -1,4 +1,4 @@
-import axios from "axios";
+ import axios from "axios";
 import db from "../config/db.js";
 
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
@@ -102,7 +102,7 @@ export const initializePaystackPayment = async (req, res) => {
     }
 
     const [[user]] = await db.query(
-      "SELECT id, username, email FROM users WHERE id = ? LIMIT 1",
+      "SELECT id, name, email FROM users WHERE id = ? LIMIT 1",
       [userId]
     );
 
@@ -117,7 +117,7 @@ export const initializePaystackPayment = async (req, res) => {
       amount: planConfig.amountKobo,
       metadata: {
         user_id: user.id,
-        username: user.username,
+        username: user.name,
         plan_key: planConfig.key,
         plan_name: planConfig.name,
       },

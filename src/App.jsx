@@ -14,6 +14,7 @@ import ContactSupport from './pages/ContactSupport'
 import About from './pages/About'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import AppNotificationCenter from './components/AppNotificationCenter'
 import './App.css'
 
 function App() {
@@ -49,23 +50,26 @@ function App() {
   }, [location.pathname])
 
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signin" element={<SignInPage />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/nutrition" element={<Nutrition />} />
-      <Route path="/workouts" element={<Workouts />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/personal-info" element={<PersonalInfo />} />
-      <Route path="/app-preferences" element={<AppPreferences />} />
-      <Route path="/faq" element={<FAQ />} />
-      <Route path="/contact-support" element={<ContactSupport />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/history" element={<History />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signin" element={<SignInPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/nutrition" element={<Nutrition />} />
+        <Route path="/workouts" element={<Workouts />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/personal-info" element={<PersonalInfo />} />
+        <Route path="/app-preferences" element={<AppPreferences />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/contact-support" element={<ContactSupport />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/history" element={<History />} />
+      </Routes>
+      <AppNotificationCenter />
+    </>
   )
 }
 

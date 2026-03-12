@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import API from '../api'
 import './PersonalInfo.css'
 
 function PersonalInfo() {
@@ -18,51 +19,109 @@ function PersonalInfo() {
   })
   const [formData, setFormData] = useState(user)
   const [message, setMessage] = useState('')
+  const token = localStorage.getItem('token')
 
   useEffect(() => {
-    try {
-      const userStr = localStorage.getItem('user')
-      if (userStr) {
-        const userData = JSON.parse(userStr)
+    const fetchProfile = async () => {
+      if (!token) {
+        navigate('/login')
+        return
+      }
+
+      try {
+        const profileRes = await API.get('/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+
+        const profile = profileRes.data || {}
         const userInfo = {
-          username: userData.username || userData.name || '',
-          email: userData.email || '',
-          phone: userData.phone || '',
-          dateOfBirth: userData.dateOfBirth || '',
-          gender: userData.gender || '',
-          address: userData.address || '',
-          city: userData.city || '',
-          state: userData.state || '',
-          zipCode: userData.zipCode || '',
-          country: userData.country || ''
+          username: profile.username || profile.name || '',
+          email: profile.email || '',
+          phone: profile.phone || '',
+          dateOfBirth: profile.dateOfBirth || '',
+          gender: profile.gender || '',
+          address: profile.address || '',
+          city: profile.city || '',
+          state: profile.state || '',
+          zipCode: profile.zipCode || '',
+          country: profile.country || ''
         }
+
         setUser(userInfo)
         setFormData(userInfo)
+
+        const existing = JSON.parse(localStorage.getItem('user') || '{}')
+        localStorage.setItem('user', JSON.stringify({ ...existing, ...userInfo }))
+      } catch (error) {
+        console.error('Failed to fetch profile from server:', error)
+        try {
+          const userStr = localStorage.getItem('user')
+          if (userStr) {
+            const userData = JSON.parse(userStr)
+            const userInfo = {
+              username: userData.username || userData.name || '',
+              email: userData.email || '',
+              phone: userData.phone || '',
+              dateOfBirth: userData.dateOfBirth || '',
+              gender: userData.gender || '',
+              address: userData.address || '',
+              city: userData.city || '',
+              state: userData.state || '',
+              zipCode: userData.zipCode || '',
+              country: userData.country || ''
+            }
+            setUser(userInfo)
+            setFormData(userInfo)
+          }
+        } catch (localErr) {
+          console.error('Failed to parse user from localStorage:', localErr)
+        }
       }
-    } catch (error) {
-      console.error('Failed to parse user from localStorage:', error)
     }
-  }, [])
+
+    fetchProfile()
+  }, [navigate, token])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData({ ...formData, [name]: value })
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!token) {
+      navigate('/login')
+      return
+    }
+
     try {
-      const userStr = localStorage.getItem('user')
-      if (userStr) {
-        const userData = JSON.parse(userStr)
-        const updatedUser = { ...userData, ...formData }
-        localStorage.setItem('user', JSON.stringify(updatedUser))
-        setUser(formData)
-        setMessage('Profile updated successfully!')
-        setTimeout(() => setMessage(''), 3000)
+      const response = await API.put('/api/users/me', formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      const saved = response?.data?.user || formData
+      const normalizedSaved = {
+        username: saved.username || saved.name || '',
+        email: saved.email || '',
+        phone: saved.phone || '',
+        dateOfBirth: saved.dateOfBirth || '',
+        gender: saved.gender || '',
+        address: saved.address || '',
+        city: saved.city || '',
+        state: saved.state || '',
+        zipCode: saved.zipCode || '',
+        country: saved.country || ''
       }
+
+      const existing = JSON.parse(localStorage.getItem('user') || '{}')
+      localStorage.setItem('user', JSON.stringify({ ...existing, ...normalizedSaved }))
+
+      setUser(normalizedSaved)
+      setFormData(normalizedSaved)
+      setMessage('Profile updated successfully!')
+      setTimeout(() => setMessage(''), 3000)
     } catch (error) {
       console.error('Failed to save user:', error)
-      setMessage('Failed to save changes')
+      setMessage(error?.response?.data?.message || 'Failed to save changes')
       setTimeout(() => setMessage(''), 3000)
     }
   }

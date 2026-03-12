@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import SettingsIcon from '../components/SettingsIcon'
 import Logo from '../components/Logo'
 import API from '../api'
+import { notify } from '../components/appNotifications'
 import './Settings.css'
 
 function Settings() {
@@ -104,12 +105,12 @@ function Settings() {
         await API.get(`/api/payments/paystack/verify/${reference}`)
         if (isMounted) {
           await loadCurrentSubscription()
-          window.alert('Payment verified successfully. Your subscription is now active.')
+          notify('Payment verified successfully. Your subscription is now active.', 'success')
         }
       } catch (error) {
         console.error('Payment verification failed:', error)
         if (isMounted) {
-          window.alert(error?.response?.data?.message || 'Unable to verify payment. Please contact support if you were charged.')
+          notify(error?.response?.data?.message || 'Unable to verify payment. Please contact support if you were charged.', 'error')
         }
       } finally {
         if (isMounted) {
@@ -146,7 +147,7 @@ function Settings() {
       const details = Array.isArray(errorData?.checkedEnvVars)
         ? `\nChecked env vars: ${errorData.checkedEnvVars.join(', ')}`
         : ''
-      window.alert((errorData?.message || 'Unable to start payment right now. Please try again.') + details)
+      notify((errorData?.message || 'Unable to start payment right now. Please try again.') + details, 'error')
       setIsStartingPayment(false)
     }
   }

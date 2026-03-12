@@ -226,13 +226,14 @@ export const registerUser = async (req, res) => {
 
     // Insert new user
     const [result] = await db.query(
-      "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+      "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
       [username, normalizedEmail, hashedPassword]
     );
 
     // Generate JWT
     const token = jwt.sign(
       { id: result.insertId, username, email: normalizedEmail },
+
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -294,7 +295,7 @@ export const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email },
+      { id: user.id, username: user.name, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -302,10 +303,10 @@ export const loginUser = async (req, res) => {
     return res.json({
       msg: "Login successful",
       token,
-      user: { id: user.id, username: user.username, email: user.email },
+      user: { id: user.id, username: user.name, email: user.email },
     });
   } catch (err) {
-    console.error("Login ERROR:", err);
+    console.error("Login ERROR:", err.message, err.stack);
     res.status(500).json({ msg: err.message || "Server error" });
   }
 };
@@ -495,13 +496,13 @@ export const requestPasswordResetOtp = async (req, res) => {
     const otp = generateOtp();
     const challengeId = createPasswordResetChallengeToken({
       userId: user.id,
-      username: user.username,
+      username: user.name,
       email: user.email,
       otp,
       passwordHash,
     });
 
-    await sendPasswordResetOtpEmail({ email: user.email, otp, username: user.username });
+    await sendPasswordResetOtpEmail({ email: user.email, otp, username: user.name });
 
     return res.json({
       msg: "OTP sent to your email",
@@ -548,13 +549,13 @@ export const resendPasswordResetOtp = async (req, res) => {
     const otp = generateOtp();
     const refreshedChallengeId = createPasswordResetChallengeToken({
       userId: user.id,
-      username: user.username,
+      username: user.name,
       email: user.email,
       otp,
       passwordHash,
     });
 
-    await sendPasswordResetOtpEmail({ email: user.email, otp, username: user.username });
+    await sendPasswordResetOtpEmail({ email: user.email, otp, username: user.name });
 
     return res.json({
       msg: "A new OTP has been sent",

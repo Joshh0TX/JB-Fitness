@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import API from '../api'
 import Logo from '../components/Logo'
 import HistoryCalendarModal from '../components/HistoryCalendarModal'
+import { notify } from '../components/appNotifications'
 import './Workouts.css'
 
 function Workouts({ setSummaryData }) {
@@ -195,7 +196,7 @@ function Workouts({ setSummaryData }) {
     }
 
     if (!token) {
-      alert('Session expired. Please log in again.')
+      notify('Session expired. Please log in again.', 'error')
       navigate('/api/login')
       return
     }
@@ -225,7 +226,7 @@ function Workouts({ setSummaryData }) {
         ? `${selectedExercise.name} - ${distance} ${distanceUnit}`
         : `${selectedExercise.name} - ${reps} reps`
 
-      alert(`✅ ${exerciseDesc} added! (${estimatedCalories} cal burned)`)
+      notify(`${exerciseDesc} added! (${estimatedCalories} cal burned)`, 'success')
 
       // Reset form
       setSearchQuery('')
@@ -298,7 +299,7 @@ function Workouts({ setSummaryData }) {
       setWeeklySummary(weeklyRes.data ?? [])
     } catch (error) {
       console.error('Failed to delete workout:', error)
-      alert('Failed to delete workout')
+      notify('Failed to delete workout', 'error')
     }
   }
 

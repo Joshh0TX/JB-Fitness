@@ -17,6 +17,7 @@ import paymentRoutes from "./routes/payment.routes.js";
 
 // Import DB (just to confirm connection at startup)
 import db from "./config/db.js";
+import { sql, testConnection } from "./config/db-postgres.js";
 
 const app = express();
 
@@ -28,14 +29,9 @@ app.use(cors({
 app.use(express.json()); // parse JSON bodies
 
 /* Optional: check DB connection on startup */
-db.getConnection()
-  .then(conn => {
-    console.log(" MySQL pool connected");
-    conn.release();
-  })
-  .catch(err => {
-    console.error(" MySQL connection failed:", err);
-  });
+testConnection().catch(err => {
+  console.error(" Postgres connection failed:", err.message);
+});
 
 /* Routes */
 app.use("/api/auth", authRoutes);
