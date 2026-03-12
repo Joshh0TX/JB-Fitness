@@ -215,6 +215,14 @@ function Dashboard() {
     { label: "Fats", value: dailySummary.totalFats, max: 100 },
   ];
 
+  const nutritionChartWidth = 700;
+  const nutritionChartHeight = 220;
+  const nutritionChartBaseY = 200;
+  const nutritionBarMaxHeight = 180;
+  const nutritionSlotWidth = nutritionChartWidth / dailyMacroData.length;
+  const nutritionBarWidth = Math.min(84, nutritionSlotWidth * 0.48);
+  const nutritionBarColors = ["#2e7d32", "#43a047", "#66bb6a", "#81c784"];
+
   const macroCardsData = [
     { key: "protein", label: "Protein", value: dailySummary.totalProtein, goal: 200, color: "#4caf50" },
     { key: "carbs", label: "Carbs", value: dailySummary.totalCarbs, goal: 300, color: "#ffc107" },
@@ -316,11 +324,11 @@ function Dashboard() {
       <div className="graph-content">
         <svg
           className="graph-svg"
-          viewBox="0 0 700 200"
+          viewBox="0 0 700 220"
           preserveAspectRatio="none"
         >
           {/* grid lines */}
-          {[0, 50, 100, 150, 200].map((y, i) => (
+          {[20, 65, 110, 155, 200].map((y, i) => (
             <line
               key={i}
               x1="0"
@@ -335,17 +343,19 @@ function Dashboard() {
           {/* bars */}
           {dailyMacroData.map((item, i) => {
             const height = item.max > 0
-              ? Math.min(item.value / item.max, 1) * 180
+              ? Math.min(item.value / item.max, 1) * nutritionBarMaxHeight
               : 0;
+            const x = i * nutritionSlotWidth + (nutritionSlotWidth - nutritionBarWidth) / 2;
+            const y = nutritionChartBaseY - height;
             return (
               <g key={i}>
                 <rect
-                  x={i * 150 + 70}
-                  y={200 - height}
-                  width="70"
+                  x={x}
+                  y={y}
+                  width={nutritionBarWidth}
                   height={height}
                   rx="8"
-                  fill={["#2e7d32", "#4caf50", "#66bb6a", "#81c784"][i]}
+                  fill={nutritionBarColors[i]}
                 />
               </g>
             );

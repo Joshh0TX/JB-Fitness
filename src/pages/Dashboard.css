@@ -364,7 +364,7 @@
   font-size: 13px;
   color: #666;
   font-weight: 500;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .x-tick {
@@ -375,6 +375,8 @@
 .nutrition-bars-labels {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  align-items: start;
+  margin-top: 6px;
 }
 
 .nutrition-bars-labels .x-tick {
@@ -383,6 +385,8 @@
   gap: 4px;
   padding: 0 10px;
   min-width: 60px;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .nutrition-bars-labels .bar-label {
@@ -395,6 +399,12 @@
   font-size: 12px;
   color: #666;
   font-weight: 500;
+}
+
+.workout-x-axis {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-top: 8px;
 }
 
 /* Saved Sections */
@@ -1007,9 +1017,20 @@
     font-size: 11px;
   }
 
+  .nutrition-breakdown .graph-content {
+    height: 246px;
+    padding: 12px 0 4px;
+  }
+
+  .workout-chart-section .graph-content {
+    height: 284px;
+    padding: 18px 0 6px;
+  }
+
   .nutrition-bars-labels .x-tick {
     padding: 0 5px;
     min-width: 50px;
+    gap: 2px;
   }
 
   .nutrition-bars-labels .bar-label {
@@ -1018,6 +1039,7 @@
 
   .nutrition-bars-labels .bar-value {
     font-size: 10px;
+    line-height: 1.2;
   }
 
   .weekly-progress,
@@ -1082,6 +1104,23 @@
   .macro-card {
     padding: 12px;
     border-radius: 12px;
+  }
+
+  .nutrition-breakdown .graph-content {
+    height: 232px;
+    padding-top: 10px;
+  }
+
+  .workout-chart-section .graph-content {
+    height: 268px;
+  }
+
+  .nutrition-bars-labels .bar-label {
+    font-size: 10px;
+  }
+
+  .nutrition-bars-labels .bar-value {
+    font-size: 9px;
   }
 
   .macro-card h3 {
