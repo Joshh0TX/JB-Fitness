@@ -729,6 +729,14 @@
   margin-bottom: 40px;
 }
 
+.activity-tracker-section {
+  margin-bottom: 40px;
+}
+
+.activity-summary-cards {
+  margin-bottom: 0;
+}
+
 .macro-cards h2 {
   font-size: 24px;
   font-weight: 700;

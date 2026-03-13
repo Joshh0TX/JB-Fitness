@@ -4,7 +4,8 @@ import {
   createWorkout,
   updateWorkout,
   deleteWorkout,
-  getWeeklyWorkoutSummary
+  getWeeklyWorkoutSummary,
+  getTodayWalkingActivity
 } from "../controllers/workout.controller.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
@@ -12,6 +13,7 @@ const router = express.Router();
 
 router.get("/", authMiddleware, getWorkouts);
 router.get("/weekly-summary", authMiddleware, getWeeklyWorkoutSummary);
+router.get("/activity-summary", authMiddleware, getTodayWalkingActivity);
 router.post("/start", authMiddleware, createWorkout);
 router.put("/:id", authMiddleware, updateWorkout);
 router.delete("/:id", authMiddleware, deleteWorkout);

@@ -47,6 +47,12 @@ function Dashboard() {
   const [savedWorkouts, setSavedWorkouts] = useState([]);
   const [savedMeals, setSavedMeals] = useState([]);
   const [weeklyWorkoutSummary, setWeeklyWorkoutSummary] = useState([]);
+  const [walkingSummary, setWalkingSummary] = useState({
+    steps: 0,
+    caloriesBurned: 0,
+    distanceKm: 0,
+    minutesWalked: 0,
+  });
 
   // 🔹 Fetch everything on page load
   useEffect(() => {
@@ -88,6 +94,10 @@ function Dashboard() {
 
         // 3️⃣ Fetch weekly workout breakdown (calories per day)
         const weeklyWorkoutRes = await API.get("/api/workouts/weekly-summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const walkingSummaryRes = await API.get("/api/workouts/activity-summary", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -146,6 +156,12 @@ function Dashboard() {
           };
         });
         setWeeklyWorkoutSummary(weeklyWorkoutData);
+        setWalkingSummary({
+          steps: Number(walkingSummaryRes?.data?.steps ?? 0),
+          caloriesBurned: Number(walkingSummaryRes?.data?.caloriesBurned ?? 0),
+          distanceKm: Number(walkingSummaryRes?.data?.distanceKm ?? 0),
+          minutesWalked: Number(walkingSummaryRes?.data?.minutesWalked ?? 0),
+        });
 
         // 6️⃣ Saved workouts
         const workoutsRes = await API.get("/api/workouts", {
@@ -246,6 +262,45 @@ function Dashboard() {
         })
         .join(", ")})`
     : null;
+
+  const walkingCardData = [
+    {
+      key: "steps",
+      title: "Step Tracker",
+      label: "Steps",
+      current: walkingSummary.steps,
+      goal: 10000,
+      valueDisplay: walkingSummary.steps.toLocaleString(),
+      goalSuffix: "goal",
+    },
+    {
+      key: "caloriesBurned",
+      title: "Calories Burned",
+      label: "Cal",
+      current: Math.round(walkingSummary.caloriesBurned),
+      goal: 500,
+      valueDisplay: Math.round(walkingSummary.caloriesBurned).toLocaleString(),
+      goalSuffix: "target",
+    },
+    {
+      key: "distanceWalked",
+      title: "Distance Walked",
+      label: "KM",
+      current: Number(walkingSummary.distanceKm.toFixed(1)),
+      goal: 8,
+      valueDisplay: walkingSummary.distanceKm.toFixed(1),
+      goalSuffix: "daily",
+    },
+    {
+      key: "minutesWalked",
+      title: "Minutes Walked",
+      label: "Mins",
+      current: Math.round(walkingSummary.minutesWalked),
+      goal: 60,
+      valueDisplay: Math.round(walkingSummary.minutesWalked).toLocaleString(),
+      goalSuffix: "daily",
+    },
+  ];
 
 
 
@@ -570,6 +625,32 @@ function Dashboard() {
           ></div>
         </div>
         <p className="macro-progress-label">{Math.round(item.progress)}% of goal</p>
+      </div>
+    ))}
+  </div>
+</div>
+
+<div className="activity-tracker-section">
+  <h2 className="section-title">Today's Walking Activity</h2>
+  <div className="summary-cards activity-summary-cards">
+    {walkingCardData.map((card) => (
+      <div key={card.key} className="summary-card">
+        <div className="card-header">
+          <h3>{card.title}</h3>
+          <span className="card-icon">{card.label}</span>
+        </div>
+        <div className="card-content">
+          <div className="card-value">
+            <span className="current">{card.valueDisplay}</span>
+            <span className="goal">of {card.goal} {card.goalSuffix}</span>
+          </div>
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{ width: `${calculateProgress(card.current, card.goal)}%` }}
+            ></div>
+          </div>
+        </div>
       </div>
     ))}
   </div>

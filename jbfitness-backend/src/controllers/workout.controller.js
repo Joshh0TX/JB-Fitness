@@ -1,5 +1,17 @@
 import db from "../config/db.js";
 
+const parseDistanceKmFromTitle = (title = "") => {
+  const text = String(title);
+  const match = text.match(/(\d+(?:\.\d+)?)\s*(km|kilometers?|mi|miles?)/i);
+  if (!match) return 0;
+
+  const distance = Number(match[1] ?? 0);
+  if (!Number.isFinite(distance) || distance <= 0) return 0;
+
+  const unit = String(match[2] ?? "").toLowerCase();
+  return unit.startsWith("mi") ? distance * 1.60934 : distance;
+};
+
 // GET all workouts for logged-in user
 export const getWorkouts = async (req, res) => {
   try {
@@ -130,8 +142,8 @@ export const getWeeklyWorkoutSummary = async (req, res) => {
     const sql = `
       SELECT 
         DATE(created_at) AS day,
-        COUNT(*) AS totalWorkouts,
-        COALESCE(SUM(calories_burned), 0) AS totalCalories
+        COUNT(*) AS "totalWorkouts",
+        COALESCE(SUM(calories_burned), 0) AS "totalCalories"
       FROM workouts
       WHERE user_id = ?
         AND created_at >= CURRENT_DATE - INTERVAL '6 days'
@@ -145,6 +157,51 @@ export const getWeeklyWorkoutSummary = async (req, res) => {
   } catch (error) {
     console.error("Weekly workout summary error:", error);
     res.status(500).json({ message: "Failed to fetch workout summary" });
+  }
+};
+
+export const getTodayWalkingActivity = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [rows] = await db.execute(
+      `
+      SELECT title, duration, calories_burned
+      FROM workouts
+      WHERE user_id = ?
+        AND created_at::date = CURRENT_DATE
+        AND LOWER(title) LIKE '%walk%'
+      `,
+      [userId]
+    );
+
+    const totals = (rows ?? []).reduce(
+      (acc, workout) => {
+        const minutes = Number(workout?.duration ?? 0);
+        const calories = Number(workout?.calories_burned ?? 0);
+        const distanceKmFromTitle = parseDistanceKmFromTitle(workout?.title ?? "");
+        const inferredDistanceKm = distanceKmFromTitle > 0 ? distanceKmFromTitle : (minutes / 60) * 5;
+
+        acc.minutesWalked += Number.isFinite(minutes) ? minutes : 0;
+        acc.caloriesBurned += Number.isFinite(calories) ? calories : 0;
+        acc.distanceKm += Number.isFinite(inferredDistanceKm) ? inferredDistanceKm : 0;
+        return acc;
+      },
+      { minutesWalked: 0, caloriesBurned: 0, distanceKm: 0 }
+    );
+
+    const roundedDistanceKm = Number(totals.distanceKm.toFixed(2));
+    const estimatedSteps = Math.round(roundedDistanceKm * 1312);
+
+    res.status(200).json({
+      steps: estimatedSteps,
+      caloriesBurned: Math.round(totals.caloriesBurned),
+      distanceKm: roundedDistanceKm,
+      minutesWalked: Math.round(totals.minutesWalked),
+    });
+  } catch (error) {
+    console.error("Walking activity summary error:", error);
+    res.status(500).json({ message: "Failed to fetch walking activity" });
   }
 };
 

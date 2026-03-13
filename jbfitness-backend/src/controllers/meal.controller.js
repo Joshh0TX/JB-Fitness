@@ -156,11 +156,11 @@ export const getDailySummary = async (req, res) => {
 
     const sql = `
       SELECT
-        COALESCE(SUM(calories), 0) AS totalCalories,
-        COALESCE(SUM(protein), 0) AS totalProtein,
-        COALESCE(SUM(carbs), 0) AS totalCarbs,
-        COALESCE(SUM(fats), 0) AS totalFats,
-        COUNT(*) AS mealsCount
+        COALESCE(SUM(calories), 0) AS "totalCalories",
+        COALESCE(SUM(protein), 0) AS "totalProtein",
+        COALESCE(SUM(carbs), 0) AS "totalCarbs",
+        COALESCE(SUM(fats), 0) AS "totalFats",
+        COUNT(*) AS "mealsCount"
       FROM meals
       WHERE user_id = ?
         AND created_at::date = CURRENT_DATE
@@ -185,10 +185,10 @@ export const getWeeklySummary = async (req, res) => {
     const sql = `
       SELECT
         DATE(created_at) AS day,
-        COALESCE(SUM(calories), 0) AS totalCalories,
-        COALESCE(SUM(protein), 0) AS totalProtein,
-        COALESCE(SUM(carbs), 0) AS totalCarbs,
-        COALESCE(SUM(fats), 0) AS totalFats
+        COALESCE(SUM(calories), 0) AS "totalCalories",
+        COALESCE(SUM(protein), 0) AS "totalProtein",
+        COALESCE(SUM(carbs), 0) AS "totalCarbs",
+        COALESCE(SUM(fats), 0) AS "totalFats"
       FROM meals
       WHERE user_id = ?
       GROUP BY DATE(created_at)

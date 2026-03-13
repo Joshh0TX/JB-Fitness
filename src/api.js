@@ -119,6 +119,50 @@ function computeWorkoutWeekly(workouts) {
   }));
 }
 
+function parseDistanceKmFromWorkoutTitle(title = "") {
+  const text = String(title);
+  const match = text.match(/(\d+(?:\.\d+)?)\s*(km|kilometers?|mi|miles?)/i);
+  if (!match) return 0;
+
+  const distance = Number(match[1] || 0);
+  if (!Number.isFinite(distance) || distance <= 0) return 0;
+
+  const unit = String(match[2] || "").toLowerCase();
+  return unit.startsWith("mi") ? distance * 1.60934 : distance;
+}
+
+function computeTodayWalkingActivity(workouts) {
+  const today = todayISO();
+  const walkingWorkouts = (workouts || []).filter((workout) => {
+    const day = (workout?.day || workout?.created_at || "").slice(0, 10);
+    const title = String(workout?.title || "").toLowerCase();
+    return day === today && title.includes("walk");
+  });
+
+  const totals = walkingWorkouts.reduce(
+    (acc, workout) => {
+      const minutes = Number(workout?.duration || 0);
+      const calories = Number(workout?.calories_burned || 0);
+      const distanceFromTitle = parseDistanceKmFromWorkoutTitle(workout?.title || "");
+      const inferredDistance = distanceFromTitle > 0 ? distanceFromTitle : (minutes / 60) * 5;
+
+      acc.minutesWalked += Number.isFinite(minutes) ? minutes : 0;
+      acc.caloriesBurned += Number.isFinite(calories) ? calories : 0;
+      acc.distanceKm += Number.isFinite(inferredDistance) ? inferredDistance : 0;
+      return acc;
+    },
+    { steps: 0, caloriesBurned: 0, distanceKm: 0, minutesWalked: 0 }
+  );
+
+  const roundedDistance = Number(totals.distanceKm.toFixed(2));
+  return {
+    steps: Math.round(roundedDistance * 1312),
+    caloriesBurned: Math.round(totals.caloriesBurned),
+    distanceKm: roundedDistance,
+    minutesWalked: Math.round(totals.minutesWalked),
+  };
+}
+
 function makeDemoResponse(config, data, status = 200) {
   return Promise.resolve({
     data,
@@ -437,6 +481,11 @@ const demoAdapter = async (config) => {
   }
 
   // Workouts
+  if (url === "/api/workouts/activity-summary" && method === "get") {
+    const workouts = getStore("demo.workouts", []);
+    return makeDemoResponse(config, computeTodayWalkingActivity(workouts), 200);
+  }
+
   if (url === "/api/workouts/weekly-summary" && method === "get") {
     const workouts = getStore("demo.workouts", []);
     return makeDemoResponse(config, computeWorkoutWeekly(workouts), 200);
