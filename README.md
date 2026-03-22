@@ -35,9 +35,19 @@ A modern, responsive fitness tracking web application built with React, featurin
 npm install
 ```
 
+For full-stack local setup from the root (frontend + backend):
+```bash
+npm run install:all
+```
+
 2. Start the development server:
 ```bash
 npm run dev
+```
+
+To run frontend and backend together in one terminal:
+```bash
+npm run dev:all
 ```
 
 3. Open your browser and navigate to `http://localhost:5173`
@@ -46,6 +56,11 @@ npm run dev
 
 ```bash
 npm run build
+```
+
+Root helper command:
+```bash
+npm run build:all
 ```
 
 The production build will be in the `dist` directory.
