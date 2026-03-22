@@ -97,7 +97,7 @@ export const initializePaystackPayment = async (req, res) => {
     }
 
     const userId = req.user?.id;
-    if (!userId) {
+    if (!userId) { 
       return res.status(401).json({ message: "Unauthorized" });
     }
 

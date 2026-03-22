@@ -131,12 +131,26 @@ function parseDistanceKmFromWorkoutTitle(title = "") {
   return unit.startsWith("mi") ? distance * 1.60934 : distance;
 }
 
+function parseStepsFromWorkoutTitle(title = "") {
+  const text = String(title);
+  const match = text.match(/(\d{3,6})\s*steps?/i);
+  if (!match) return 0;
+
+  const steps = Number(match[1] || 0);
+  return Number.isFinite(steps) && steps > 0 ? Math.round(steps) : 0;
+}
+
+function isStepEligibleWorkoutTitle(title = "") {
+  const text = String(title).toLowerCase();
+  return /walk|run|jog|hike|treadmill|steps?|cardio|km|kilometer|mile|mi\b/.test(text);
+}
+
 function computeTodayWalkingActivity(workouts) {
   const today = todayISO();
   const walkingWorkouts = (workouts || []).filter((workout) => {
     const day = (workout?.day || workout?.created_at || "").slice(0, 10);
-    const title = String(workout?.title || "").toLowerCase();
-    return day === today && title.includes("walk");
+    const title = String(workout?.title || "");
+    return day === today && isStepEligibleWorkoutTitle(title);
   });
 
   const totals = walkingWorkouts.reduce(
@@ -144,11 +158,18 @@ function computeTodayWalkingActivity(workouts) {
       const minutes = Number(workout?.duration || 0);
       const calories = Number(workout?.calories_burned || 0);
       const distanceFromTitle = parseDistanceKmFromWorkoutTitle(workout?.title || "");
+      const stepsFromTitle = parseStepsFromWorkoutTitle(workout?.title || "");
       const inferredDistance = distanceFromTitle > 0 ? distanceFromTitle : (minutes / 60) * 5;
+      const inferredSteps = stepsFromTitle > 0
+        ? stepsFromTitle
+        : distanceFromTitle > 0
+          ? Math.round(distanceFromTitle * 1312)
+          : Math.round(minutes * 105);
 
       acc.minutesWalked += Number.isFinite(minutes) ? minutes : 0;
       acc.caloriesBurned += Number.isFinite(calories) ? calories : 0;
       acc.distanceKm += Number.isFinite(inferredDistance) ? inferredDistance : 0;
+      acc.steps += Number.isFinite(inferredSteps) ? inferredSteps : 0;
       return acc;
     },
     { steps: 0, caloriesBurned: 0, distanceKm: 0, minutesWalked: 0 }
@@ -156,7 +177,7 @@ function computeTodayWalkingActivity(workouts) {
 
   const roundedDistance = Number(totals.distanceKm.toFixed(2));
   return {
-    steps: Math.round(roundedDistance * 1312),
+    steps: Math.round(totals.steps),
     caloriesBurned: Math.round(totals.caloriesBurned),
     distanceKm: roundedDistance,
     minutesWalked: Math.round(totals.minutesWalked),
@@ -677,8 +698,13 @@ const demoAdapter = async (config) => {
 // ----------------------------
 // Axios instance
 // ----------------------------
+const rawApiBase = String(import.meta.env.VITE_API_BASE_URL ?? "").trim();
+const resolvedApiBase = rawApiBase
+  ? rawApiBase.replace(/\/+$/, "")
+  : window.location.origin;
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: resolvedApiBase,
   adapter: DEMO_MODE ? demoAdapter : undefined,
 });
 

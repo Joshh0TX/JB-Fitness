@@ -21,9 +21,28 @@ import { sql, testConnection } from "./config/db-postgres.js";
 
 const app = express();
 
+const parseAllowedOrigins = () => {
+  const raw = String(process.env.ALLOWED_ORIGINS ?? "").trim();
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+};
+
+const allowedOrigins = parseAllowedOrigins();
+
 /* Middleware */
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS, // <-- your Vercel frontend URL
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("CORS blocked: origin not allowed"));
+  },
   credentials: true
 }));
 app.use(express.json()); // parse JSON bodies

@@ -12,6 +12,20 @@ const parseDistanceKmFromTitle = (title = "") => {
   return unit.startsWith("mi") ? distance * 1.60934 : distance;
 };
 
+const parseStepsFromTitle = (title = "") => {
+  const text = String(title);
+  const match = text.match(/(\d{3,6})\s*steps?/i);
+  if (!match) return 0;
+
+  const steps = Number(match[1] ?? 0);
+  return Number.isFinite(steps) && steps > 0 ? Math.round(steps) : 0;
+};
+
+const isStepEligibleWorkout = (title = "") => {
+  const text = String(title).toLowerCase();
+  return /walk|run|jog|hike|treadmill|steps?|cardio|km|kilometer|mile|mi\b/.test(text);
+};
+
 // GET all workouts for logged-in user
 export const getWorkouts = async (req, res) => {
   try {
@@ -170,28 +184,37 @@ export const getTodayWalkingActivity = async (req, res) => {
       FROM workouts
       WHERE user_id = ?
         AND created_at::date = CURRENT_DATE
-        AND LOWER(title) LIKE '%walk%'
       `,
       [userId]
     );
 
     const totals = (rows ?? []).reduce(
       (acc, workout) => {
+        const title = String(workout?.title ?? "");
+        if (!isStepEligibleWorkout(title)) return acc;
+
         const minutes = Number(workout?.duration ?? 0);
         const calories = Number(workout?.calories_burned ?? 0);
-        const distanceKmFromTitle = parseDistanceKmFromTitle(workout?.title ?? "");
+        const distanceKmFromTitle = parseDistanceKmFromTitle(title);
+        const stepsFromTitle = parseStepsFromTitle(title);
         const inferredDistanceKm = distanceKmFromTitle > 0 ? distanceKmFromTitle : (minutes / 60) * 5;
+        const inferredSteps = stepsFromTitle > 0
+          ? stepsFromTitle
+          : distanceKmFromTitle > 0
+            ? Math.round(distanceKmFromTitle * 1312)
+            : Math.round(minutes * 105);
 
         acc.minutesWalked += Number.isFinite(minutes) ? minutes : 0;
         acc.caloriesBurned += Number.isFinite(calories) ? calories : 0;
         acc.distanceKm += Number.isFinite(inferredDistanceKm) ? inferredDistanceKm : 0;
+        acc.steps += Number.isFinite(inferredSteps) ? inferredSteps : 0;
         return acc;
       },
-      { minutesWalked: 0, caloriesBurned: 0, distanceKm: 0 }
+      { steps: 0, minutesWalked: 0, caloriesBurned: 0, distanceKm: 0 }
     );
 
     const roundedDistanceKm = Number(totals.distanceKm.toFixed(2));
-    const estimatedSteps = Math.round(roundedDistanceKm * 1312);
+    const estimatedSteps = Math.round(totals.steps);
 
     res.status(200).json({
       steps: estimatedSteps,

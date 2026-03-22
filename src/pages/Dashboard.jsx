@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api.js";
 import Logo from "../components/Logo";
+import { useGoogleFitSteps } from "../hooks/useGoogleFitSteps.js";
 import "./Dashboard.css";
 
 const toLocalISODate = (input = new Date()) => {
@@ -53,6 +54,11 @@ function Dashboard() {
     distanceKm: 0,
     minutesWalked: 0,
   });
+  const [motionSteps, setMotionSteps] = useState(0);
+  const [motionTrackingEnabled, setMotionTrackingEnabled] = useState(false);
+  const [motionTrackingSupported, setMotionTrackingSupported] = useState(false);
+
+  const googleFit = useGoogleFitSteps();
 
   // 🔹 Fetch everything on page load
   useEffect(() => {
@@ -182,14 +188,79 @@ function Dashboard() {
     // Fetch initially
     fetchData();
 
+    // Poll for fresh dashboard metrics while page is open
+    const refreshInterval = window.setInterval(fetchData, 30000);
+
     // Refresh when workouts or water change elsewhere in the app
     const onWorkout = () => fetchData();
     window.addEventListener('workoutAdded', onWorkout);
 
     return () => {
       window.removeEventListener('workoutAdded', onWorkout);
+      window.clearInterval(refreshInterval);
     };
   }, [navigate]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setMotionTrackingSupported("DeviceMotionEvent" in window);
+  }, []);
+
+  useEffect(() => {
+    if (!motionTrackingEnabled || typeof window === "undefined" || !("DeviceMotionEvent" in window)) {
+      return;
+    }
+
+    let previousMagnitude = null;
+    let lastStepTimestamp = 0;
+
+    const onMotion = (event) => {
+      const accel = event?.accelerationIncludingGravity;
+      if (!accel) return;
+
+      const magnitude = Math.sqrt(
+        Math.pow(Number(accel.x ?? 0), 2) +
+        Math.pow(Number(accel.y ?? 0), 2) +
+        Math.pow(Number(accel.z ?? 0), 2)
+      );
+
+      if (previousMagnitude !== null) {
+        const delta = magnitude - previousMagnitude;
+        const now = Date.now();
+
+        if (delta > 1.15 && now - lastStepTimestamp > 320) {
+          lastStepTimestamp = now;
+          setMotionSteps((prev) => prev + 1);
+        }
+      }
+
+      previousMagnitude = magnitude;
+    };
+
+    window.addEventListener("devicemotion", onMotion, { passive: true });
+    return () => {
+      window.removeEventListener("devicemotion", onMotion);
+    };
+  }, [motionTrackingEnabled]);
+
+  const enableMotionTracking = async () => {
+    if (typeof window === "undefined" || !("DeviceMotionEvent" in window)) return;
+
+    const permissionAPI = window.DeviceMotionEvent?.requestPermission;
+    if (typeof permissionAPI === "function") {
+      try {
+        const permissionState = await permissionAPI();
+        if (permissionState === "granted") {
+          setMotionTrackingEnabled(true);
+        }
+      } catch (error) {
+        console.error("Motion permission denied", error);
+      }
+      return;
+    }
+
+    setMotionTrackingEnabled(true);
+  };
 
   // 🔹 Utility
   const calculateProgress = (current, goal) => Math.min((current / goal) * 100, 100);
@@ -263,44 +334,37 @@ function Dashboard() {
         .join(", ")})`
     : null;
 
-  const walkingCardData = [
-    {
-      key: "steps",
-      title: "Step Tracker",
-      label: "Steps",
-      current: walkingSummary.steps,
-      goal: 10000,
-      valueDisplay: walkingSummary.steps.toLocaleString(),
-      goalSuffix: "goal",
-    },
-    {
-      key: "caloriesBurned",
-      title: "Calories Burned",
-      label: "Cal",
-      current: Math.round(walkingSummary.caloriesBurned),
-      goal: 500,
-      valueDisplay: Math.round(walkingSummary.caloriesBurned).toLocaleString(),
-      goalSuffix: "target",
-    },
-    {
-      key: "distanceWalked",
-      title: "Distance Walked",
-      label: "KM",
-      current: Number(walkingSummary.distanceKm.toFixed(1)),
-      goal: 8,
-      valueDisplay: walkingSummary.distanceKm.toFixed(1),
-      goalSuffix: "daily",
-    },
-    {
-      key: "minutesWalked",
-      title: "Minutes Walked",
-      label: "Mins",
-      current: Math.round(walkingSummary.minutesWalked),
-      goal: 60,
-      valueDisplay: Math.round(walkingSummary.minutesWalked).toLocaleString(),
-      goalSuffix: "daily",
-    },
-  ];
+  const stepGoal = 10000;
+  const calorieGoal = 500;
+  const distanceGoal = 8;
+  const minutesGoal = 60;
+
+  // Google Fit provides background (screen-off) steps counted by the
+  // phone's hardware pedometer. When connected, use it as the primary
+  // source. Motion-based steps are added as a live in-session supplement
+  // only when Fit is NOT connected (to avoid double-counting).
+  const fitSteps = googleFit.connected ? googleFit.steps : 0;
+  const sessionSteps = googleFit.connected ? 0 : motionSteps;
+
+  const mergedSteps = googleFit.connected
+    ? fitSteps
+    : walkingSummary.steps + sessionSteps;
+  const mergedDistanceKm = mergedSteps / 1312;
+  const mergedMinutesWalked = googleFit.connected
+    ? mergedSteps / 105
+    : walkingSummary.minutesWalked + sessionSteps / 105;
+  const mergedCaloriesBurned = googleFit.connected
+    ? mergedSteps * 0.04
+    : walkingSummary.caloriesBurned + sessionSteps * 0.04;
+
+  const stepProgress = calculateProgress(mergedSteps, stepGoal);
+  const distanceProgress = calculateProgress(mergedDistanceKm, distanceGoal);
+  const ringOuterStyle = {
+    background: `conic-gradient(#2e7d32 0% ${stepProgress}%, rgba(197, 225, 165, 0.55) ${stepProgress}% 100%)`,
+  };
+  const ringInnerStyle = {
+    background: `conic-gradient(#66bb6a 0% ${distanceProgress}%, rgba(220, 237, 200, 0.8) ${distanceProgress}% 100%)`,
+  };
 
 
 
@@ -326,6 +390,108 @@ function Dashboard() {
       </header>
 
       <main className="dashboard-main">
+        <div className="activity-tracker-section">
+          <h2 className="section-title">Today's Walking Activity</h2>
+          <div className="activity-fit-card">
+            <div className="activity-fit-rings">
+              <div className="fit-ring fit-ring-outer" style={ringOuterStyle}>
+                <div className="fit-ring fit-ring-inner" style={ringInnerStyle}>
+                  <div className="fit-ring-center">
+                    <p className="fit-ring-main">{Math.round(mergedSteps).toLocaleString()}</p>
+                    <p className="fit-ring-sub">of {stepGoal.toLocaleString()} steps</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="activity-fit-labels">
+              <span className="label-heart">Heart Pts</span>
+              <span className="label-steps">Steps</span>
+            </div>
+
+            {/* ── Google Fit Integration ── */}
+            {googleFit.isAvailable && (
+              <div className="gfit-connect-row">
+                {googleFit.connected ? (
+                  <div className="gfit-connected-row">
+                    <span className="gfit-connected-badge">
+                      <span className="gfit-dot" />
+                      Google Fit synced
+                      {googleFit.lastSynced && (
+                        <span className="gfit-sync-time">
+                          {" "}· {googleFit.lastSynced.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      className="gfit-action-btn gfit-sync-btn"
+                      onClick={googleFit.manualSync}
+                      title="Refresh steps now"
+                    >
+                      ↺
+                    </button>
+                    <button
+                      type="button"
+                      className="gfit-action-btn gfit-disconnect-btn"
+                      onClick={googleFit.disconnect}
+                      title="Disconnect Google Fit"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className={`gfit-connect-btn ${googleFit.loading ? "loading" : ""}`}
+                    onClick={googleFit.connect}
+                    disabled={googleFit.loading}
+                  >
+                    <img
+                      src="https://www.gstatic.com/images/branding/product/1x/gfit_512dp.png"
+                      alt=""
+                      className="gfit-icon"
+                    />
+                    {googleFit.loading ? "Connecting…" : "Connect Google Fit"}
+                  </button>
+                )}
+                {googleFit.error && (
+                  <p className="gfit-error">{googleFit.error}</p>
+                )}
+              </div>
+            )}
+
+            {/* ── Fallback in-session motion tracking (when Fit not connected) ── */}
+            {!googleFit.connected && motionTrackingSupported && (
+              <button
+                type="button"
+                className={`motion-track-btn ${motionTrackingEnabled ? "enabled" : ""}`}
+                onClick={enableMotionTracking}
+              >
+                {motionTrackingEnabled ? "📲 Live session tracking on" : "📲 Enable session step tracking"}
+              </button>
+            )}
+
+            <div className="activity-fit-stats">
+              <div className="fit-stat-item">
+                <p className="fit-stat-value">{Math.round(mergedCaloriesBurned).toLocaleString()}</p>
+                <p className="fit-stat-unit">Cal</p>
+                <p className="fit-stat-goal">Goal {calorieGoal}</p>
+              </div>
+              <div className="fit-stat-item">
+                <p className="fit-stat-value">{mergedDistanceKm.toFixed(2)}</p>
+                <p className="fit-stat-unit">km</p>
+                <p className="fit-stat-goal">Goal {distanceGoal}</p>
+              </div>
+              <div className="fit-stat-item">
+                <p className="fit-stat-value">{Math.round(mergedMinutesWalked).toLocaleString()}</p>
+                <p className="fit-stat-unit">Move Min</p>
+                <p className="fit-stat-goal">Goal {minutesGoal}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Daily Calories Summary Card */}
         <div className="summary-cards">
           {["calories", "workouts"].map((key) => (
@@ -544,9 +710,11 @@ function Dashboard() {
             const dayLabel = dObj && !isNaN(dObj.getTime())
               ? dObj.toLocaleDateString("en-US", { weekday: "short" })
               : "—";
+            const shortDayLabel = dayLabel === "—" ? "—" : dayLabel.charAt(0);
             return (
               <div key={i} className={`x-tick ${isToday ? "x-tick-today" : ""}`}>
-                <span className="x-day-label">{dayLabel}</span>
+                <span className="x-day-label x-day-label-full">{dayLabel}</span>
+                <span className="x-day-label x-day-label-short">{shortDayLabel}</span>
                 {count > 0 && (
                   <span className="x-workout-count">
                     {count} {count === 1 ? "wkt" : "wkts"}
@@ -629,33 +797,6 @@ function Dashboard() {
     ))}
   </div>
 </div>
-
-<div className="activity-tracker-section">
-  <h2 className="section-title">Today's Walking Activity</h2>
-  <div className="summary-cards activity-summary-cards">
-    {walkingCardData.map((card) => (
-      <div key={card.key} className="summary-card">
-        <div className="card-header">
-          <h3>{card.title}</h3>
-          <span className="card-icon">{card.label}</span>
-        </div>
-        <div className="card-content">
-          <div className="card-value">
-            <span className="current">{card.valueDisplay}</span>
-            <span className="goal">of {card.goal} {card.goalSuffix}</span>
-          </div>
-          <div className="progress-bar">
-            <div
-              className="progress-fill"
-              style={{ width: `${calculateProgress(card.current, card.goal)}%` }}
-            ></div>
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
-
 
       </main>
     </div>
