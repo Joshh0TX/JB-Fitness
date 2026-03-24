@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: jbfitness-backend
-    env: node
-    rootDir: jbfitness-backend
-    buildCommand: npm install
-    startCommand: npm start
-    autoDeploy: true
-    healthCheckPath: /
