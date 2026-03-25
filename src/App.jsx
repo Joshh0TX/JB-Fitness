@@ -24,7 +24,10 @@ function App() {
   useEffect(() => {
     try {
       const token = localStorage.getItem('token')
-      const isAuthPage = location.pathname === '/login' || location.pathname === '/signin'
+      const isAuthPage =
+        location.pathname === '/login' ||
+        location.pathname === '/signin' ||
+        location.pathname === '/signup'
 
       if (!token || isAuthPage) {
         document.documentElement.setAttribute('data-theme', 'light')
@@ -53,8 +56,9 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signin" element={<SignInPage />} />
+        <Route path="/login" element={<SignInPage />} />
+        <Route path="/signin" element={<Navigate to="/login" replace />} />
+        <Route path="/signup" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />

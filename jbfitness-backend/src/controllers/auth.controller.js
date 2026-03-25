@@ -12,7 +12,10 @@ const LOGIN_OTP_TTL_MS = 10 * 60 * 1000;
 const LOGIN_OTP_TTL_SECONDS = Math.floor(LOGIN_OTP_TTL_MS / 1000);
 const RESET_OTP_TTL_MS = 10 * 60 * 1000;
 const RESET_OTP_TTL_SECONDS = Math.floor(RESET_OTP_TTL_MS / 1000);
+const AUTH_TOKEN_EXPIRES_IN = String(process.env.JWT_EXPIRES_IN || "7d").trim() || "7d";
 const EMAIL_SEND_TIMEOUT_MS = Number(process.env.EMAIL_SEND_TIMEOUT_MS || 20000);
+const EMAIL_NOT_CONFIGURED_MESSAGE =
+  "Email service is not configured. Please set SMTP_HOST/SMTP_USER/SMTP_PASS/SMTP_FROM.";
 
 const smtpService = String(process.env.SMTP_SERVICE || "").trim().toLowerCase();
 const smtpHost = String(process.env.SMTP_HOST || "").trim();
@@ -164,40 +167,48 @@ const doesEmailDomainExist = async (email) => {
 
 const sendOtpEmail = async ({ email, otp, username }) => {
   if (!isEmailServiceConfigured()) {
-    throw new Error("Email service is not configured");
+    throw new Error(EMAIL_NOT_CONFIGURED_MESSAGE);
   }
 
-  await mailTransporter.sendMail({
-    from: smtpFrom,
-    to: email,
-    subject: "JBFitness Sign-in Verification Code",
-    text: `Hi ${username || "there"}, your JBFitness verification code is ${otp}. It expires in 10 minutes.`,
-    html: `
-      <p>Hi ${username || "there"},</p>
-      <p>Your JBFitness verification code is:</p>
-      <h2 style="letter-spacing:4px;">${otp}</h2>
-      <p>This code expires in 10 minutes.</p>
-    `,
-  });
+  await withTimeout(
+    mailTransporter.sendMail({
+      from: smtpFrom,
+      to: email,
+      subject: "JBFitness Sign-in Verification Code",
+      text: `Hi ${username || "there"}, your JBFitness verification code is ${otp}. It expires in 10 minutes.`,
+      html: `
+        <p>Hi ${username || "there"},</p>
+        <p>Your JBFitness verification code is:</p>
+        <h2 style="letter-spacing:4px;">${otp}</h2>
+        <p>This code expires in 10 minutes.</p>
+      `,
+    }),
+    EMAIL_SEND_TIMEOUT_MS,
+    "Email send timed out"
+  );
 };
 
 const sendPasswordResetOtpEmail = async ({ email, otp, username }) => {
   if (!isEmailServiceConfigured()) {
-    throw new Error("Email service is not configured");
+    throw new Error(EMAIL_NOT_CONFIGURED_MESSAGE);
   }
 
-  await mailTransporter.sendMail({
-    from: smtpFrom,
-    to: email,
-    subject: "JBFitness Password Reset Code",
-    text: `Hi ${username || "there"}, your JBFitness password reset code is ${otp}. It expires in 10 minutes.`,
-    html: `
-      <p>Hi ${username || "there"},</p>
-      <p>Your JBFitness password reset code is:</p>
-      <h2 style="letter-spacing:4px;">${otp}</h2>
-      <p>This code expires in 10 minutes.</p>
-    `,
-  });
+  await withTimeout(
+    mailTransporter.sendMail({
+      from: smtpFrom,
+      to: email,
+      subject: "JBFitness Password Reset Code",
+      text: `Hi ${username || "there"}, your JBFitness password reset code is ${otp}. It expires in 10 minutes.`,
+      html: `
+        <p>Hi ${username || "there"},</p>
+        <p>Your JBFitness password reset code is:</p>
+        <h2 style="letter-spacing:4px;">${otp}</h2>
+        <p>This code expires in 10 minutes.</p>
+      `,
+    }),
+    EMAIL_SEND_TIMEOUT_MS,
+    "Email send timed out"
+  );
 };
 
 /* ---------------- REGISTER ---------------- */
@@ -235,7 +246,7 @@ export const registerUser = async (req, res) => {
       { id: result.insertId, username, email: normalizedEmail },
 
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: AUTH_TOKEN_EXPIRES_IN }
     );
 
     res.status(201).json({
@@ -297,7 +308,7 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, username: user.name, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: AUTH_TOKEN_EXPIRES_IN }
     );
 
     return res.json({
@@ -335,7 +346,7 @@ export const verifyLoginOtp = async (req, res) => {
   const token = jwt.sign(
     { id: challenge.userId, username: challenge.username, email: challenge.email },
     process.env.JWT_SECRET,
-    { expiresIn: "1d" }
+    { expiresIn: AUTH_TOKEN_EXPIRES_IN }
   );
 
   return res.json({
@@ -382,16 +393,16 @@ export const resendLoginOtp = async (req, res) => {
 
 /* ---------------- FORGOT PASSWORD ---------------- */
 export const forgotPassword = async (req, res) => {
-  const { email } = req.body || {};
+  const normalizedEmail = normalizeEmail(req.body?.email || "");
 
-  if (!email || !email.trim()) {
+  if (!normalizedEmail) {
     return res.status(400).json({ msg: "Email is required" });
   }
 
   try {
     const [rows] = await db.query(
-      "SELECT id FROM users WHERE email = ?",
-      [email.trim()]
+      "SELECT id FROM users WHERE LOWER(email) = LOWER(?)",
+      [normalizedEmail]
     );
 
     // Always return same message for security (don't reveal if email exists)
@@ -412,10 +423,14 @@ export const forgotPassword = async (req, res) => {
       [userId, token, expiresAt]
     );
 
-    const emailSent = await sendPasswordResetEmail(email.trim(), token);
+    const emailSent = await sendPasswordResetEmail(normalizedEmail, token);
     if (!emailSent && process.env.NODE_ENV !== "production") {
       console.log("[DEV] SMTP not configured. Password reset token:", token);
       console.log("[DEV] Reset URL:", `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password?token=${token}`);
+    }
+
+    if (!emailSent && process.env.NODE_ENV === "production") {
+      return res.status(500).json({ msg: "We couldn't send reset instructions right now. Please try again shortly." });
     }
 
     res.json(successMsg);
@@ -478,11 +493,11 @@ export const requestPasswordResetOtp = async (req, res) => {
   }
 
   if (!isEmailServiceConfigured()) {
-    return res.status(500).json({ msg: "Email service is not configured" });
+    return res.status(500).json({ msg: EMAIL_NOT_CONFIGURED_MESSAGE });
   }
 
   try {
-    const [rows] = await db.query("SELECT * FROM users WHERE email = ? LIMIT 1", [normalizedEmail]);
+    const [rows] = await db.query("SELECT * FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1", [normalizedEmail]);
     if (!rows.length) {
       return res.json({ msg: "If the email exists, an OTP has been sent." });
     }

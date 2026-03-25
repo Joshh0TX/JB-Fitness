@@ -493,13 +493,13 @@ function SignInPage() {
 
           {!isLoginOtpStep && !isForgotStep && (
             <p className="sign-up-link">
-              Don't have an account? <a href="#signup" onClick={(e) => { e.preventDefault(); navigate('/login') }}>Create account</a>
+              Don't have an account? <a href="#signup" onClick={(e) => { e.preventDefault(); navigate('/signup') }}>Create account</a>
             </p>
           )}
         </div>
 
         {/* Back to Home Link */}
-        <a href="#back" className="back-link" onClick={(e) => { e.preventDefault(); navigate('/login') }}>
+        <a href="#back" className="back-link" onClick={(e) => { e.preventDefault(); navigate('/signup') }}>
           <span className="back-arrow">←</span> Back to Create Account
         </a>
       </main>
