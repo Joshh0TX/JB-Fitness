@@ -305,16 +305,22 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ msg: "Invalid credentials" });
     }
 
-    const token = jwt.sign(
-      { id: user.id, username: user.name, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: AUTH_TOKEN_EXPIRES_IN }
-    );
+    const otp = generateOtp();
+    const challengeId = createLoginChallengeToken({
+      userId: user.id,
+      username: user.name,
+      email: user.email,
+      otp,
+    });
+
+    await sendOtpEmail({ email: user.email, otp, username: user.name });
 
     return res.json({
-      msg: "Login successful",
-      token,
-      user: { id: user.id, username: user.name, email: user.email },
+      msg: "OTP sent to your email",
+      requiresOtp: true,
+      challengeId,
+      email: user.email,
+      expiresInMs: LOGIN_OTP_TTL_MS,
     });
   } catch (err) {
     console.error("Login ERROR:", err.message, err.stack);
