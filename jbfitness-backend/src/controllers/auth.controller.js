@@ -13,7 +13,11 @@ const LOGIN_OTP_TTL_SECONDS = Math.floor(LOGIN_OTP_TTL_MS / 1000);
 const RESET_OTP_TTL_MS = 10 * 60 * 1000;
 const RESET_OTP_TTL_SECONDS = Math.floor(RESET_OTP_TTL_MS / 1000);
 const AUTH_TOKEN_EXPIRES_IN = String(process.env.JWT_EXPIRES_IN || "7d").trim() || "7d";
-const EMAIL_SEND_TIMEOUT_MS = Number(process.env.EMAIL_SEND_TIMEOUT_MS || 65000);
+const rawEmailSendTimeoutMs = Number(process.env.EMAIL_SEND_TIMEOUT_MS || 65000);
+const EMAIL_SEND_TIMEOUT_MS =
+  Number.isFinite(rawEmailSendTimeoutMs) && rawEmailSendTimeoutMs > 0
+    ? Math.max(rawEmailSendTimeoutMs, 65000)
+    : 65000;
 const EMAIL_NOT_CONFIGURED_MESSAGE =
   "Email service is not configured. Please set SMTP_HOST/SMTP_USER/SMTP_PASS/SMTP_FROM.";
 
@@ -35,28 +39,70 @@ const smtpGreetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 60000
 const smtpSocketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 65000);
 const smtpForceIpv4 = String(process.env.SMTP_FORCE_IPV4 || "true").toLowerCase() !== "false";
 
-const mailTransporter = nodemailer.createTransport({
+const buildSmtpTransporter = ({ host, port, secure }) =>
+  nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    requireTLS: !secure,
+    family: smtpForceIpv4 ? 4 : undefined,
+    connectionTimeout: smtpConnectionTimeout,
+    greetingTimeout: smtpGreetingTimeout,
+    socketTimeout: smtpSocketTimeout,
+    tls: host
+      ? {
+          servername: host,
+          minVersion: "TLSv1.2",
+        }
+      : undefined,
+    auth: smtpAuthConfigured
+      ? {
+          user: smtpUser,
+          pass: smtpPass,
+        }
+      : undefined,
+  });
+
+const mailTransporter = buildSmtpTransporter({
   host: smtpResolvedHost,
   port: smtpPort,
   secure: smtpSecure,
-  requireTLS: !smtpSecure,
-  family: smtpForceIpv4 ? 4 : undefined,
-  connectionTimeout: smtpConnectionTimeout,
-  greetingTimeout: smtpGreetingTimeout,
-  socketTimeout: smtpSocketTimeout,
-  tls: smtpResolvedHost
-    ? {
-        servername: smtpResolvedHost,
-        minVersion: "TLSv1.2",
-      }
-    : undefined,
-  auth: smtpAuthConfigured
-    ? {
-        user: smtpUser,
-        pass: smtpPass,
-      }
-    : undefined,
 });
+
+const isTimeoutLikeError = (err) => {
+  const raw = String(err?.message || "");
+  return /connection timeout|etimedout|greeting never received/i.test(raw);
+};
+
+const sendMailWithFallback = async (mailOptions) => {
+  try {
+    await withTimeout(
+      mailTransporter.sendMail(mailOptions),
+      EMAIL_SEND_TIMEOUT_MS,
+      "Email send timed out"
+    );
+    return;
+  } catch (err) {
+    const shouldTryGmailSslFallback =
+      smtpService === "gmail" && smtpPort !== 465 && isTimeoutLikeError(err);
+
+    if (!shouldTryGmailSslFallback) {
+      throw err;
+    }
+
+    const gmailSslTransporter = buildSmtpTransporter({
+      host: smtpResolvedHost || "smtp.gmail.com",
+      port: 465,
+      secure: true,
+    });
+
+    await withTimeout(
+      gmailSslTransporter.sendMail(mailOptions),
+      EMAIL_SEND_TIMEOUT_MS,
+      "Email send timed out"
+    );
+  }
+};
 
 const isEmailServiceConfigured = () => {
   const hasProvider = Boolean(smtpResolvedHost);
@@ -183,22 +229,18 @@ const sendOtpEmail = async ({ email, otp, username }) => {
     throw new Error(EMAIL_NOT_CONFIGURED_MESSAGE);
   }
 
-  await withTimeout(
-    mailTransporter.sendMail({
-      from: smtpFrom,
-      to: email,
-      subject: "JBFitness Sign-in Verification Code",
-      text: `Hi ${username || "there"}, your JBFitness verification code is ${otp}. It expires in 10 minutes.`,
-      html: `
-        <p>Hi ${username || "there"},</p>
-        <p>Your JBFitness verification code is:</p>
-        <h2 style="letter-spacing:4px;">${otp}</h2>
-        <p>This code expires in 10 minutes.</p>
-      `,
-    }),
-    EMAIL_SEND_TIMEOUT_MS,
-    "Email send timed out"
-  );
+  await sendMailWithFallback({
+    from: smtpFrom,
+    to: email,
+    subject: "JBFitness Sign-in Verification Code",
+    text: `Hi ${username || "there"}, your JBFitness verification code is ${otp}. It expires in 10 minutes.`,
+    html: `
+      <p>Hi ${username || "there"},</p>
+      <p>Your JBFitness verification code is:</p>
+      <h2 style="letter-spacing:4px;">${otp}</h2>
+      <p>This code expires in 10 minutes.</p>
+    `,
+  });
 };
 
 const sendPasswordResetOtpEmail = async ({ email, otp, username }) => {
@@ -206,22 +248,18 @@ const sendPasswordResetOtpEmail = async ({ email, otp, username }) => {
     throw new Error(EMAIL_NOT_CONFIGURED_MESSAGE);
   }
 
-  await withTimeout(
-    mailTransporter.sendMail({
-      from: smtpFrom,
-      to: email,
-      subject: "JBFitness Password Reset Code",
-      text: `Hi ${username || "there"}, your JBFitness password reset code is ${otp}. It expires in 10 minutes.`,
-      html: `
-        <p>Hi ${username || "there"},</p>
-        <p>Your JBFitness password reset code is:</p>
-        <h2 style="letter-spacing:4px;">${otp}</h2>
-        <p>This code expires in 10 minutes.</p>
-      `,
-    }),
-    EMAIL_SEND_TIMEOUT_MS,
-    "Email send timed out"
-  );
+  await sendMailWithFallback({
+    from: smtpFrom,
+    to: email,
+    subject: "JBFitness Password Reset Code",
+    text: `Hi ${username || "there"}, your JBFitness password reset code is ${otp}. It expires in 10 minutes.`,
+    html: `
+      <p>Hi ${username || "there"},</p>
+      <p>Your JBFitness password reset code is:</p>
+      <h2 style="letter-spacing:4px;">${otp}</h2>
+      <p>This code expires in 10 minutes.</p>
+    `,
+  });
 };
 
 /* ---------------- REGISTER ---------------- */
