@@ -13,7 +13,7 @@ const LOGIN_OTP_TTL_SECONDS = Math.floor(LOGIN_OTP_TTL_MS / 1000);
 const RESET_OTP_TTL_MS = 10 * 60 * 1000;
 const RESET_OTP_TTL_SECONDS = Math.floor(RESET_OTP_TTL_MS / 1000);
 const AUTH_TOKEN_EXPIRES_IN = String(process.env.JWT_EXPIRES_IN || "7d").trim() || "7d";
-const EMAIL_SEND_TIMEOUT_MS = Number(process.env.EMAIL_SEND_TIMEOUT_MS || 20000);
+const EMAIL_SEND_TIMEOUT_MS = Number(process.env.EMAIL_SEND_TIMEOUT_MS || 65000);
 const EMAIL_NOT_CONFIGURED_MESSAGE =
   "Email service is not configured. Please set SMTP_HOST/SMTP_USER/SMTP_PASS/SMTP_FROM.";
 
@@ -26,11 +26,13 @@ const smtpSecure =
   "true";
 const smtpUser = String(process.env.SMTP_USER || "").trim();
 const smtpPass = String(process.env.SMTP_PASS || "").trim();
-const smtpFrom = String(process.env.SMTP_FROM || smtpUser).trim();
+const smtpFrom = String(process.env.SMTP_FROM || smtpUser)
+  .trim()
+  .replace(/\/+$/, "");
 const smtpAuthConfigured = Boolean(smtpUser && smtpPass);
-const smtpConnectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 15000);
-const smtpGreetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 15000);
-const smtpSocketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 20000);
+const smtpConnectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 60000);
+const smtpGreetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 60000);
+const smtpSocketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 65000);
 const smtpForceIpv4 = String(process.env.SMTP_FORCE_IPV4 || "true").toLowerCase() !== "false";
 
 const mailTransporter = nodemailer.createTransport({
@@ -92,6 +94,17 @@ const withTimeout = (promise, timeoutMs, timeoutMessage) => {
       setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
     }),
   ]);
+};
+
+const getEmailSendErrorMessage = (err) => {
+  const raw = String(err?.message || "");
+  if (/connection timeout|etimedout/i.test(raw)) {
+    return "Email server connection timed out. Please try again in a moment.";
+  }
+  if (/greeting never received/i.test(raw)) {
+    return "Email server did not respond in time. Please try again.";
+  }
+  return raw || "Failed to send password reset OTP";
 };
 
 const isValidEmailSyntax = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -532,7 +545,7 @@ export const requestPasswordResetOtp = async (req, res) => {
     });
   } catch (err) {
     console.error("Request password reset OTP ERROR:", err);
-    return res.status(500).json({ msg: err.message || "Failed to send password reset OTP" });
+    return res.status(500).json({ msg: getEmailSendErrorMessage(err) });
   }
 };
 
@@ -584,7 +597,7 @@ export const resendPasswordResetOtp = async (req, res) => {
     });
   } catch (err) {
     console.error("Resend password reset OTP ERROR:", err);
-    return res.status(500).json({ msg: err.message || "Failed to resend password reset OTP" });
+    return res.status(500).json({ msg: getEmailSendErrorMessage(err) });
   }
 };
 
