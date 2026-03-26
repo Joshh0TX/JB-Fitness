@@ -487,6 +487,8 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+/* ---------------- PASSWORD RESET VIA OTP (Sign-in flow) ---------------- */
+
 export const requestPasswordResetOtp = async (req, res) => {
   const normalizedEmail = normalizeEmail(req.body?.email || "");
 
