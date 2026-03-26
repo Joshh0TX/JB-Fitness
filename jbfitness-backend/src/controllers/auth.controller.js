@@ -74,7 +74,7 @@ const mailTransporter = buildSmtpTransporter({
 // ---------------------------------------------------------------------------
 const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
 const resendFrom = String(
-  process.env.RESEND_FROM || process.env.SMTP_FROM || "JBFitness <onboarding@resend.dev>"
+  process.env.RESEND_FROM || send.dev>"
 ).trim();
 
 const isResendConfigured = () => Boolean(resendApiKey);
