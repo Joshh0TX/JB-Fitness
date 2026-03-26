@@ -74,34 +74,47 @@ const isTimeoutLikeError = (err) => {
   return /connection timeout|etimedout|greeting never received/i.test(raw);
 };
 
+const buildGmailFallbackAttempts = () => {
+  const host = smtpResolvedHost || "smtp.gmail.com";
+  return [
+    { host, port: smtpPort, secure: smtpSecure, label: `gmail primary ${host}:${smtpPort}` },
+    { host, port: 587, secure: false, label: `gmail starttls ${host}:587` },
+    { host, port: 465, secure: true, label: `gmail ssl ${host}:465` },
+    { host: "smtp.googlemail.com", port: 587, secure: false, label: "googlemail starttls :587" },
+    { host: "smtp.googlemail.com", port: 465, secure: true, label: "googlemail ssl :465" },
+  ];
+};
+
 const sendMailWithFallback = async (mailOptions) => {
-  try {
-    await withTimeout(
-      mailTransporter.sendMail(mailOptions),
-      EMAIL_SEND_TIMEOUT_MS,
-      "Email send timed out"
-    );
-    return;
-  } catch (err) {
-    const shouldTryGmailSslFallback =
-      smtpService === "gmail" && smtpPort !== 465 && isTimeoutLikeError(err);
+  const errors = [];
 
-    if (!shouldTryGmailSslFallback) {
-      throw err;
+  const attempts =
+    smtpService === "gmail"
+      ? buildGmailFallbackAttempts()
+      : [{ host: smtpResolvedHost, port: smtpPort, secure: smtpSecure, label: `primary ${smtpResolvedHost}:${smtpPort}` }];
+
+  for (const attempt of attempts) {
+    try {
+      const transporter =
+        attempt.host === smtpResolvedHost && attempt.port === smtpPort && attempt.secure === smtpSecure
+          ? mailTransporter
+          : buildSmtpTransporter({ host: attempt.host, port: attempt.port, secure: attempt.secure });
+
+      await withTimeout(
+        transporter.sendMail(mailOptions),
+        EMAIL_SEND_TIMEOUT_MS,
+        `Email send timed out (${attempt.label})`
+      );
+      return;
+    } catch (err) {
+      errors.push(`${attempt.label}: ${String(err?.message || err)}`);
+      if (smtpService !== "gmail" || !isTimeoutLikeError(err)) {
+        throw err;
+      }
     }
-
-    const gmailSslTransporter = buildSmtpTransporter({
-      host: smtpResolvedHost || "smtp.gmail.com",
-      port: 465,
-      secure: true,
-    });
-
-    await withTimeout(
-      gmailSslTransporter.sendMail(mailOptions),
-      EMAIL_SEND_TIMEOUT_MS,
-      "Email send timed out"
-    );
   }
+
+  throw new Error(errors.join(" | "));
 };
 
 const isEmailServiceConfigured = () => {
