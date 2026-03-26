@@ -73,9 +73,7 @@ const mailTransporter = buildSmtpTransporter({
 // Resend HTTP API — works on Render (no SMTP ports needed)
 // ---------------------------------------------------------------------------
 const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
-const resendFrom = String(
-  process.env.RESEND_FROM || send.dev>"
-).trim();
+const resendFrom = String(process.env.RESEND_FROM || "JBFitness <onboarding@resend.dev>").trim();
 
 const isResendConfigured = () => Boolean(resendApiKey);
 
