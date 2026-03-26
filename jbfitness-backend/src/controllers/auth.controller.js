@@ -69,52 +69,69 @@ const mailTransporter = buildSmtpTransporter({
   secure: smtpSecure,
 });
 
+// ---------------------------------------------------------------------------
+// Resend HTTP API — works on Render (no SMTP ports needed)
+// ---------------------------------------------------------------------------
+const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
+const resendFrom = String(
+  process.env.RESEND_FROM || process.env.SMTP_FROM || "JBFitness <onboarding@resend.dev>"
+).trim();
+
+const isResendConfigured = () => Boolean(resendApiKey);
+
+const sendViaResend = async ({ to, subject, html, text }) => {
+  const res = await withTimeout(
+    fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from: resendFrom, to: [to], subject, html, text }),
+    }),
+    EMAIL_SEND_TIMEOUT_MS,
+    "Resend API request timed out"
+  );
+
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const body = await res.json();
+      detail = body?.message || body?.name || JSON.stringify(body);
+    } catch {
+      detail = String(res.status);
+    }
+    throw new Error(`Resend API error (${res.status}): ${detail}`);
+  }
+};
+
 const isTimeoutLikeError = (err) => {
   const raw = String(err?.message || "");
   return /connection timeout|etimedout|greeting never received/i.test(raw);
 };
 
-const buildGmailFallbackAttempts = () => {
-  const host = smtpResolvedHost || "smtp.gmail.com";
-  return [
-    { host, port: smtpPort, secure: smtpSecure, label: `gmail primary ${host}:${smtpPort}` },
-    { host, port: 587, secure: false, label: `gmail starttls ${host}:587` },
-    { host, port: 465, secure: true, label: `gmail ssl ${host}:465` },
-    { host: "smtp.googlemail.com", port: 587, secure: false, label: "googlemail starttls :587" },
-    { host: "smtp.googlemail.com", port: 465, secure: true, label: "googlemail ssl :465" },
-  ];
-};
-
 const sendMailWithFallback = async (mailOptions) => {
-  const errors = [];
-
-  const attempts =
-    smtpService === "gmail"
-      ? buildGmailFallbackAttempts()
-      : [{ host: smtpResolvedHost, port: smtpPort, secure: smtpSecure, label: `primary ${smtpResolvedHost}:${smtpPort}` }];
-
-  for (const attempt of attempts) {
-    try {
-      const transporter =
-        attempt.host === smtpResolvedHost && attempt.port === smtpPort && attempt.secure === smtpSecure
-          ? mailTransporter
-          : buildSmtpTransporter({ host: attempt.host, port: attempt.port, secure: attempt.secure });
-
-      await withTimeout(
-        transporter.sendMail(mailOptions),
-        EMAIL_SEND_TIMEOUT_MS,
-        `Email send timed out (${attempt.label})`
-      );
-      return;
-    } catch (err) {
-      errors.push(`${attempt.label}: ${String(err?.message || err)}`);
-      if (smtpService !== "gmail" || !isTimeoutLikeError(err)) {
-        throw err;
-      }
-    }
+  // Prefer Resend (works over HTTPS port 443, not blocked by Render)
+  if (isResendConfigured()) {
+    await sendViaResend({
+      to: mailOptions.to,
+      subject: mailOptions.subject,
+      html: mailOptions.html,
+      text: mailOptions.text,
+    });
+    return;
   }
 
-  throw new Error(errors.join(" | "));
+  // Fallback: direct SMTP (works locally, blocked on Render free tier)
+  if (!isEmailServiceConfigured()) {
+    throw new Error(EMAIL_NOT_CONFIGURED_MESSAGE);
+  }
+
+  await withTimeout(
+    mailTransporter.sendMail(mailOptions),
+    EMAIL_SEND_TIMEOUT_MS,
+    "Email send timed out"
+  );
 };
 
 const isEmailServiceConfigured = () => {
@@ -238,10 +255,6 @@ const doesEmailDomainExist = async (email) => {
 };
 
 const sendOtpEmail = async ({ email, otp, username }) => {
-  if (!isEmailServiceConfigured()) {
-    throw new Error(EMAIL_NOT_CONFIGURED_MESSAGE);
-  }
-
   await sendMailWithFallback({
     from: smtpFrom,
     to: email,
@@ -257,10 +270,6 @@ const sendOtpEmail = async ({ email, otp, username }) => {
 };
 
 const sendPasswordResetOtpEmail = async ({ email, otp, username }) => {
-  if (!isEmailServiceConfigured()) {
-    throw new Error(EMAIL_NOT_CONFIGURED_MESSAGE);
-  }
-
   await sendMailWithFallback({
     from: smtpFrom,
     to: email,
@@ -561,7 +570,7 @@ export const requestPasswordResetOtp = async (req, res) => {
     return res.status(400).json({ msg: "Invalid email address" });
   }
 
-  if (!isEmailServiceConfigured()) {
+  if (!isResendConfigured() && !isEmailServiceConfigured()) {
     return res.status(500).json({ msg: EMAIL_NOT_CONFIGURED_MESSAGE });
   }
 
