@@ -305,22 +305,18 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ msg: "Invalid credentials" });
     }
 
-    const otp = generateOtp();
-    const challengeId = createLoginChallengeToken({
-      userId: user.id,
-      username: user.name,
-      email: user.email,
-      otp,
-    });
+    const displayName = user.name ?? user.username ?? "User";
 
-    await sendOtpEmail({ email: user.email, otp, username: user.name });
+    const token = jwt.sign(
+      { id: user.id, username: displayName, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: AUTH_TOKEN_EXPIRES_IN }
+    );
 
     return res.json({
-      msg: "OTP sent to your email",
-      requiresOtp: true,
-      challengeId,
-      email: user.email,
-      expiresInMs: LOGIN_OTP_TTL_MS,
+      msg: "Login successful",
+      token,
+      user: { id: user.id, username: displayName, email: user.email },
     });
   } catch (err) {
     console.error("Login ERROR:", err.message, err.stack);
@@ -436,9 +432,10 @@ export const forgotPassword = async (req, res) => {
     }
 
     if (!emailSent && process.env.NODE_ENV === "production") {
-      return res.status(500).json({ msg: "We couldn't send reset instructions right now. Please try again shortly." });
+      console.error("[Forgot password] SMTP failed to send; user should configure email or check logs.");
     }
 
+    // Same response whether or not email was delivered (avoid account enumeration)
     res.json(successMsg);
   } catch (err) {
     console.error("Forgot password ERROR:", err);

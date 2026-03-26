@@ -243,15 +243,16 @@ const demoAdapter = async (config) => {
       country: "",
     });
     setStore("demo.user", demoUser);
-    const challengeId = Math.random().toString(36).slice(2);
-    DEMO_LOGIN_OTPS.set(challengeId, "123456");
     return makeDemoResponse(
       config,
       {
-        requiresOtp: true,
-        challengeId,
-        email: demoUser.email,
-        msg: "Verification code sent to your email",
+        msg: "Login successful",
+        token: "demo-token",
+        user: {
+          id: demoUser.id,
+          username: demoUser.username || demoUser.name || "Demo User",
+          email: demoUser.email,
+        },
       },
       200
     );
@@ -263,7 +264,11 @@ const demoAdapter = async (config) => {
       return makeDemoResponse(config, { msg: "Verification session expired. Please sign in again." }, 400);
     }
     DEMO_LOGIN_OTPS.set(challengeId, "123456");
-    return makeDemoResponse(config, { msg: "A new OTP has been sent" }, 200);
+    return makeDemoResponse(
+      config,
+      { msg: "A new OTP has been sent", challengeId, expiresInMs: 10 * 60 * 1000 },
+      200
+    );
   }
 
   if (url === "/api/auth/verify-login-otp" && method === "post") {

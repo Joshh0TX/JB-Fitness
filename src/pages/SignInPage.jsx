@@ -12,8 +12,6 @@ function SignInPage() {
     password: '',
     rememberMe: false,
   });
-  const [loginOtpCode, setLoginOtpCode] = useState('');
-  const [loginChallenge, setLoginChallenge] = useState(null);
   const [forgotFlow, setForgotFlow] = useState({
     step: 'none',
     email: '',
@@ -39,7 +37,6 @@ function SignInPage() {
     return rawMessage;
   };
 
-  const isLoginOtpStep = Boolean(loginChallenge?.challengeId);
   const isForgotStep = forgotFlow.step !== 'none';
 
   const handleChange = (e) => {
@@ -67,16 +64,6 @@ function SignInPage() {
         password: formData.password,
       });
 
-      if (response.data?.requiresOtp && response.data?.challengeId) {
-        const loginOtpChallenge = {
-          challengeId: response.data.challengeId,
-          email: response.data.email || formData.email,
-        };
-        setLoginChallenge(loginOtpChallenge);
-        setLoginOtpCode('');
-        return;
-      }
-
       const { token, user } = response.data;
 
       // Save token & user info
@@ -89,61 +76,6 @@ function SignInPage() {
       console.error("Login error:", error);
       const msg = getAuthErrorMessage(error, 'Login failed');
       notify(msg, "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyLoginOtp = async (e) => {
-    e.preventDefault();
-
-    if (loginOtpCode.length !== 6 || isNaN(loginOtpCode)) {
-      notify('Please enter a valid 6-digit OTP', 'error');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await API.post('/api/auth/verify-login-otp', {
-        challengeId: loginChallenge.challengeId,
-        otp: loginOtpCode,
-      });
-
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      if (user) localStorage.setItem('user', JSON.stringify(user));
-
-      setLoginChallenge(null);
-      setLoginOtpCode('');
-      navigate('/dashboard');
-    } catch (error) {
-      const msg = getAuthErrorMessage(error, 'OTP verification failed');
-      notify(msg, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResendLoginOtp = async () => {
-    if (!loginChallenge?.challengeId) return;
-
-    setLoading(true);
-    try {
-      const response = await API.post('/api/auth/resend-login-otp', {
-        challengeId: loginChallenge.challengeId,
-      });
-
-      if (response.data?.challengeId) {
-        setLoginChallenge((prev) => ({
-          ...prev,
-          challengeId: response.data.challengeId,
-        }));
-      }
-
-      notify('A new OTP has been sent to your email', 'success');
-    } catch (error) {
-      const msg = getAuthErrorMessage(error, 'Failed to resend OTP');
-      notify(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -271,11 +203,6 @@ function SignInPage() {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    console.log(`Login with ${provider}`);
-    navigate('/dashboard');
-  };
-
   return (
     <div className="signin-page page-animate">
       {/* Header */}
@@ -297,7 +224,7 @@ function SignInPage() {
       {/* Main Content */}
       <main className="signin-main">
         <div className="signin-card">
-          {!isLoginOtpStep && !isForgotStep && (
+          {!isForgotStep && (
             <>
               <h1 className="signin-title">Welcome Back</h1>
               <p className="signin-subtitle">Sign in to continue your fitness journey</p>
@@ -356,38 +283,6 @@ function SignInPage() {
                   {loading ? "Signing in..." : "Sign In"}
                 </button>
               </form>
-            </>
-          )}
-
-          {isLoginOtpStep && (
-            <>
-              <h1 className="signin-title">Enter OTP</h1>
-              <p className="signin-subtitle">We sent a 6-digit code to {loginChallenge.email}</p>
-              <form onSubmit={handleVerifyLoginOtp} className="signin-form">
-                <div className="form-group">
-                  <label htmlFor="loginOtpCode">Verification Code</label>
-                  <div className="input-wrapper otp-input-wrapper">
-                    <input
-                      type="text"
-                      id="loginOtpCode"
-                      name="loginOtpCode"
-                      placeholder="000000"
-                      value={loginOtpCode}
-                      onChange={(e) => setLoginOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button type="submit" className="signin-btn" disabled={loading}>
-                  {loading ? 'Verifying...' : 'Verify OTP'}
-                </button>
-              </form>
-
-              <div className="otp-actions">
-                <button type="button" className="text-action" onClick={handleResendLoginOtp} disabled={loading}>Resend OTP</button>
-                <button type="button" className="text-action" onClick={() => setLoginChallenge(null)} disabled={loading}>Back to sign in</button>
-              </div>
             </>
           )}
 
@@ -491,7 +386,7 @@ function SignInPage() {
 
           {/* (social login removed) */}
 
-          {!isLoginOtpStep && !isForgotStep && (
+          {!isForgotStep && (
             <p className="sign-up-link">
               Don't have an account? <a href="#signup" onClick={(e) => { e.preventDefault(); navigate('/signup') }}>Create account</a>
             </p>
