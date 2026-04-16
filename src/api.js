@@ -521,13 +521,41 @@ const demoAdapter = async (config) => {
   if (url === "/api/nutrition/search" && method === "post") {
     const q = (body.query || "").toLowerCase();
     const foods = [
+      // International foods
       { name: "Chicken Breast", serving_qty: 1, serving_unit: "piece", calories: 165, protein: 31, carbs: 0, fats: 3.6 },
       { name: "Oatmeal", serving_qty: 1, serving_unit: "cup", calories: 158, protein: 6, carbs: 27, fats: 3.2 },
       { name: "Apple", serving_qty: 1, serving_unit: "medium", calories: 95, protein: 0.5, carbs: 25, fats: 0.3 },
       { name: "Banana", serving_qty: 1, serving_unit: "medium", calories: 105, protein: 1.3, carbs: 27, fats: 0.4 },
+      // Nigerian Foods
+      { name: "Jollof Rice", serving_unit: "1 cup", calories: 320, protein: 6, carbs: 55, fats: 8 },
+      { name: "Fried Rice", serving_unit: "1 cup", calories: 350, protein: 7, carbs: 50, fats: 12 },
+      { name: "White Rice", serving_unit: "1 cup", calories: 205, protein: 4, carbs: 45, fats: 0.5 },
+      { name: "Coconut Rice", serving_unit: "1 cup", calories: 380, protein: 5, carbs: 52, fats: 15 },
+      { name: "Pounded Yam", serving_unit: "1 wrap", calories: 420, protein: 4, carbs: 95, fats: 1 },
+      { name: "Amala", serving_unit: "1 wrap", calories: 350, protein: 3, carbs: 80, fats: 0.5 },
+      { name: "Eba (Garri)", serving_unit: "1 wrap", calories: 360, protein: 2, carbs: 85, fats: 0.5 },
+      { name: "Semovita", serving_unit: "1 wrap", calories: 400, protein: 3, carbs: 88, fats: 1 },
+      { name: "Fufu", serving_unit: "1 wrap", calories: 380, protein: 2, carbs: 90, fats: 0.5 },
+      { name: "Egusi Soup", serving_unit: "1 bowl", calories: 280, protein: 12, carbs: 18, fats: 16 },
+      { name: "Okra Soup", serving_unit: "1 bowl", calories: 160, protein: 8, carbs: 12, fats: 9 },
+      { name: "Pepper Soup", serving_unit: "1 bowl", calories: 120, protein: 14, carbs: 5, fats: 5 },
+      { name: "Tomato Stew", serving_unit: "1 cup", calories: 180, protein: 4, carbs: 15, fats: 11 },
+      { name: "Gari", serving_unit: "1 cup", calories: 360, protein: 1, carbs: 88, fats: 0.5 },
+      { name: "Moin Moin", serving_unit: "1 piece", calories: 220, protein: 8, carbs: 22, fats: 10 },
+      { name: "Akara", serving_unit: "1 piece", calories: 190, protein: 7, carbs: 18, fats: 9 },
+      { name: "Boli (Roasted Plantain)", serving_unit: "1 medium", calories: 130, protein: 1, carbs: 32, fats: 0.3 },
+      { name: "Cassava Fufu", serving_unit: "1 wrap", calories: 310, protein: 1, carbs: 74, fats: 0.5 },
+      { name: "Suya (Spiced Meat Skewer)", serving_unit: "1 skewer", calories: 280, protein: 28, carbs: 5, fats: 15 },
+      { name: "Peppery Beef", serving_unit: "1 cup", calories: 320, protein: 32, carbs: 8, fats: 18 },
+      { name: "Chicken Stew", serving_unit: "1 cup", calories: 290, protein: 26, carbs: 10, fats: 16 },
+      { name: "Fish Stew", serving_unit: "1 cup", calories: 240, protein: 24, carbs: 8, fats: 12 },
+      { name: "Beans and Plantain", serving_unit: "1 serving", calories: 340, protein: 12, carbs: 58, fats: 6 },
+      { name: "Nigerian Salad", serving_unit: "1 bowl", calories: 180, protein: 4, carbs: 22, fats: 9 },
+      { name: "Plantain Chips", serving_unit: "1 handful", calories: 150, protein: 1, carbs: 20, fats: 7 },
+      { name: "Corn Meal Pap", serving_unit: "1 cup", calories: 280, protein: 4, carbs: 60, fats: 2 },
     ];
 
-    const results = foods.filter(f => f.name.toLowerCase().includes(q) || q === "").slice(0, 10);
+    const results = foods.filter(f => f.name.toLowerCase().includes(q) || q === "").slice(0, 15);
     return makeDemoResponse(config, { message: "Found", results }, 200);
   }
 

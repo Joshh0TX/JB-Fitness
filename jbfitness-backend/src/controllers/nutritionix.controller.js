@@ -4,6 +4,37 @@ import db from "../config/db.js";
 const USDA_SEARCH = "https://api.nal.usda.gov/fdc/v1/foods/search";
 const USDA_FOOD = "https://api.nal.usda.gov/fdc/v1/food";
 
+// Fallback Nigerian foods database when DB connection fails
+const NIGERIAN_FOODS_FALLBACK = [
+  { food_name: "Jollof Rice", serving_size: "1 cup", calories: 320, protein: 6, carbs: 55, fat: 8 },
+  { food_name: "Fried Rice", serving_size: "1 cup", calories: 350, protein: 7, carbs: 50, fat: 12 },
+  { food_name: "White Rice", serving_size: "1 cup", calories: 205, protein: 4, carbs: 45, fat: 0.5 },
+  { food_name: "Coconut Rice", serving_size: "1 cup", calories: 380, protein: 5, carbs: 52, fat: 15 },
+  { food_name: "Ofada Rice", serving_size: "1 cup", calories: 210, protein: 5, carbs: 44, fat: 1 },
+  { food_name: "Pounded Yam", serving_size: "1 wrap", calories: 420, protein: 4, carbs: 95, fat: 1 },
+  { food_name: "Amala", serving_size: "1 wrap", calories: 350, protein: 3, carbs: 80, fat: 0.5 },
+  { food_name: "Eba (Garri)", serving_size: "1 wrap", calories: 360, protein: 2, carbs: 85, fat: 0.5 },
+  { food_name: "Semovita", serving_size: "1 wrap", calories: 400, protein: 3, carbs: 88, fat: 1 },
+  { food_name: "Fufu", serving_size: "1 wrap", calories: 380, protein: 2, carbs: 90, fat: 0.5 },
+  { food_name: "Egusi Soup", serving_size: "1 bowl", calories: 280, protein: 12, carbs: 18, fat: 16 },
+  { food_name: "Okra Soup", serving_size: "1 bowl", calories: 160, protein: 8, carbs: 12, fat: 9 },
+  { food_name: "Pepper Soup", serving_size: "1 bowl", calories: 120, protein: 14, carbs: 5, fat: 5 },
+  { food_name: "Tomato Stew", serving_size: "1 cup", calories: 180, protein: 4, carbs: 15, fat: 11 },
+  { food_name: "Gari", serving_size: "1 cup", calories: 360, protein: 1, carbs: 88, fat: 0.5 },
+  { food_name: "Moin Moin", serving_size: "1 piece", calories: 220, protein: 8, carbs: 22, fat: 10 },
+  { food_name: "Akara", serving_size: "1 piece", calories: 190, protein: 7, carbs: 18, fat: 9 },
+  { food_name: "Boli (Roasted Plantain)", serving_size: "1 medium", calories: 130, protein: 1, carbs: 32, fat: 0.3 },
+  { food_name: "Cassava Fufu", serving_size: "1 wrap", calories: 310, protein: 1, carbs: 74, fat: 0.5 },
+  { food_name: "Suya (Spiced Meat Skewer)", serving_size: "1 skewer", calories: 280, protein: 28, carbs: 5, fat: 15 },
+  { food_name: "Peppery Beef", serving_size: "1 cup", calories: 320, protein: 32, carbs: 8, fat: 18 },
+  { food_name: "Chicken Stew", serving_size: "1 cup", calories: 290, protein: 26, carbs: 10, fat: 16 },
+  { food_name: "Fish Stew", serving_size: "1 cup", calories: 240, protein: 24, carbs: 8, fat: 12 },
+  { food_name: "Beans and Plantain", serving_size: "1 serving", calories: 340, protein: 12, carbs: 58, fat: 6 },
+  { food_name: "Nigerian Salad", serving_size: "1 bowl", calories: 180, protein: 4, carbs: 22, fat: 9 },
+  { food_name: "Plantain Chips", serving_size: "1 handful", calories: 150, protein: 1, carbs: 20, fat: 7 },
+  { food_name: "Corn Meal Pap", serving_size: "1 cup", calories: 280, protein: 4, carbs: 60, fat: 2 },
+];
+
 function findNutrientValue(nutrients = [], matchWords = []) {
   const lower = (s) => (s || "").toLowerCase();
   for (const n of nutrients) {
@@ -65,7 +96,19 @@ async function lookupFoodsByQuery(query) {
         connection.release();
       }
     } catch (dbError) {
-      console.warn("Nigerian foods database query failed:", dbError.message);
+      console.warn("Nigerian foods database query failed, using fallback:", dbError.message);
+      // Use fallback Nigerian foods list
+      foods = NIGERIAN_FOODS_FALLBACK.filter((f) =>
+        f.food_name.toLowerCase().includes(searchQuery)
+      ).map((f) => ({
+        name: f.food_name,
+        source: "Nigerian Foods (Fallback)",
+        serving_size: f.serving_size,
+        calories: Math.round(f.calories || 0),
+        protein: Math.round(f.protein || 0),
+        carbs: Math.round(f.carbs || 0),
+        fats: Math.round(f.fat || 0),
+      }));
     }
   }
 
