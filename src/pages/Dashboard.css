@@ -1268,6 +1268,52 @@
   gap: 24px;
 }
 
+.macro-grid.macro-grid--compact {
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.macro-grid--compact .macro-card--compact {
+  padding: 10px 8px;
+  border-radius: 12px;
+}
+
+.macro-grid--compact .macro-card--compact:hover {
+  transform: translateY(-2px);
+}
+
+.macro-grid--compact .macro-card-top {
+  margin-bottom: 4px;
+}
+
+.macro-grid--compact .macro-card h3 {
+  font-size: 12px;
+}
+
+.macro-grid--compact .macro-value {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.macro-grid--compact .macro-goal {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.macro-grid--compact .macro-unit {
+  font-size: 9px;
+}
+
+.macro-grid--compact .macro-progress {
+  margin-top: 6px;
+  height: 4px;
+}
+
+.macro-grid--compact .macro-progress-label {
+  margin-top: 4px;
+  font-size: 9px;
+}
+
 .macro-overview-card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
@@ -1285,6 +1331,42 @@
 .macro-donut-wrap {
   display: flex;
   justify-content: center;
+}
+
+.macro-donut-stack {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.macro-donut--calorie-ring {
+  width: clamp(200px, 26vw, 246px);
+  padding: 14px;
+}
+
+.macro-donut--calorie-ring.is-calorie-empty {
+  background: conic-gradient(#e0e0e0 0% 100%);
+}
+
+.macro-donut--calorie-ring .macro-donut--nested {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
+}
+
+.macro-donut--nested .macro-total-value {
+  font-size: 22px;
+}
+
+.macro-calorie-caption {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e65100;
+  letter-spacing: -0.2px;
 }
 
 .macro-donut {
@@ -1510,7 +1592,7 @@
     grid-template-columns: 1fr;
   }
 
-  .macro-grid {
+  .macro-grid:not(.macro-grid--compact) {
     grid-template-columns: 1fr;
   }
 
@@ -1520,8 +1602,12 @@
     padding: 16px;
   }
 
-  .macro-donut {
+  .macro-donut:not(.macro-donut--nested) {
     width: min(180px, 60vw);
+  }
+
+  .macro-donut--calorie-ring {
+    width: min(210px, 68vw);
   }
 
   .chart-legend {
@@ -1659,9 +1745,18 @@
     border-radius: 12px;
   }
 
-  .macro-donut {
+  .macro-donut:not(.macro-donut--nested) {
     width: min(156px, 62vw);
     padding: 12px;
+  }
+
+  .macro-donut--calorie-ring {
+    width: min(176px, 70vw);
+    padding: 10px;
+  }
+
+  .macro-donut--nested .macro-total-value {
+    font-size: 18px;
   }
 
   .macro-total-value {
@@ -1694,6 +1789,10 @@
   .macro-card {
     padding: 12px;
     border-radius: 12px;
+  }
+
+  .macro-grid--compact .macro-card--compact {
+    padding: 8px 6px;
   }
 
   .nutrition-breakdown .graph-content {
@@ -1913,7 +2012,7 @@
 }
 
 @media (max-width: 1024px) {
-  .macro-grid {
+  .macro-grid:not(.macro-grid--compact) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2117,6 +2216,14 @@
 [data-theme='dark'] .dashboard .macro-breakdown-row {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .dashboard .macro-calorie-caption {
+  color: #ffb74d;
+}
+
+[data-theme='dark'] .dashboard .macro-donut--calorie-ring.is-calorie-empty {
+  background: conic-gradient(#424242 0% 100%);
 }
 
 /* Chart legend */

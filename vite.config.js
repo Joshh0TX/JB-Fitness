@@ -9,12 +9,14 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['apple-touch-icon.png'],
       manifest: {
+        id: '/',
         name: 'JBFitness',
         short_name: 'JBFitness',
         description: 'Track workouts, nutrition, and daily fitness progress',
         theme_color: '#2e7d32',
         background_color: '#ffffff',
         display: 'standalone',
+        orientation: 'portrait-primary',
         start_url: '/',
         scope: '/',
         icons: [
@@ -37,8 +39,15 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
-      }
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // SPA: when offline, deep links still load the shell so React Router can run
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//],
+      },
+      // Set to true if you want to debug the service worker during `npm run dev`
+      devOptions: {
+        enabled: false,
+      },
     })
   ],
 })
