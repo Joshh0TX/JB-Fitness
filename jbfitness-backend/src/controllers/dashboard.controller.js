@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { checkAndAwardBadges } from "./badges.controller.js";
 
 export const getDashboard = async (req, res) => {
   try {
@@ -36,11 +37,15 @@ export const getDashboard = async (req, res) => {
       weeklyProgress[index] = row.calories;
     });
 
+    // Check for new badges
+    const newBadges = await checkAndAwardBadges(userId);
+
     res.json({
       calories: todayMetrics[0].calories,
       workouts: todayMetrics[0].workouts,
       water: todayMetrics[0].water,
-      weeklyProgress
+      weeklyProgress,
+      newBadges
     });
 
   } catch (error) {

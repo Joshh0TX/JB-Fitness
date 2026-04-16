@@ -14,6 +14,7 @@ import ContactSupport from './pages/ContactSupport'
 import About from './pages/About'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import Badges from './pages/Badges'
 import AppNotificationCenter from './components/AppNotificationCenter'
 import './App.css'
 
@@ -64,6 +65,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/nutrition" element={<Nutrition />} />
         <Route path="/workouts" element={<Workouts />} />
+        <Route path="/badges" element={<Badges />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/personal-info" element={<PersonalInfo />} />
         <Route path="/app-preferences" element={<AppPreferences />} />

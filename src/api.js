@@ -145,6 +145,88 @@ function isStepEligibleWorkoutTitle(title = "") {
   return /walk|run|jog|hike|treadmill|steps?|cardio|km|kilometer|mile|mi\b/.test(text);
 }
 
+function computeWorkoutSteps(workouts, startDate, endDate) {
+  const selected = (workouts || []).filter((w) => {
+    const day = w.day || w.created_at?.slice(0, 10);
+    if (!day) return false;
+    if (startDate && endDate) {
+      return day >= startDate && day <= endDate;
+    }
+    return true;
+  });
+
+  return selected.reduce((acc, workout) => {
+    const title = String(workout.title || "");
+    if (!isStepEligibleWorkoutTitle(title)) return acc;
+
+    const minutes = Number(workout.duration || 0);
+    const stepsFromTitle = parseStepsFromWorkoutTitle(title);
+    const distanceKm = parseDistanceKmFromWorkoutTitle(title);
+
+    if (stepsFromTitle > 0) {
+      return acc + stepsFromTitle;
+    }
+
+    if (distanceKm > 0) {
+      return acc + Math.round(distanceKm * 1312);
+    }
+
+    return acc + Math.round(minutes * 105);
+  }, 0);
+}
+
+function computeDemoBadgeTotals(workouts, water) {
+  const today = todayISO();
+  const weekDays = last7DaysISO();
+  const weekStart = weekDays[0];
+
+  const dailySteps = computeWorkoutSteps(workouts, today, today);
+  const weeklySteps = computeWorkoutSteps(workouts, weekStart, today);
+  const workoutCountToday = workouts.filter((w) => (w.day || w.created_at?.slice(0, 10)) === today).length;
+  const workoutCountWeek = workouts.filter((w) => {
+    const day = w.day || w.created_at?.slice(0, 10);
+    return day >= weekStart && day <= today;
+  }).length;
+  const totalSteps = computeWorkoutSteps(workouts);
+
+  const demoBadges = [
+    { name: "First Steps", description: "Walk your first 1,000 steps", icon: "👟", rarity: "common" },
+    { name: "Daily Walker", description: "Walk 5,000 steps in a day", icon: "🚶", rarity: "common" },
+    { name: "Step Master", description: "Walk 10,000 steps in a day", icon: "🏃", rarity: "rare" },
+    { name: "Century Club", description: "Walk 100,000 steps in a week", icon: "💯", rarity: "epic" },
+    { name: "Marathon Walker", description: "Walk 200,000 steps in a week", icon: "🏁", rarity: "legendary" },
+    { name: "Getting Started", description: "Complete your first workout", icon: "💪", rarity: "common" },
+    { name: "Weekly Warrior", description: "Complete 7 workouts in a week", icon: "⚔️", rarity: "rare" },
+    { name: "Calorie Conscious", description: "Burn 500 calories in a day", icon: "🔥", rarity: "common" },
+    { name: "Hydration Hero", description: "Drink 2 liters of water in a day", icon: "💧", rarity: "common" },
+  ];
+
+  return demoBadges.filter((badge) => {
+    switch (badge.name) {
+      case "First Steps":
+        return totalSteps >= 1000;
+      case "Daily Walker":
+        return dailySteps >= 5000;
+      case "Step Master":
+        return dailySteps >= 10000;
+      case "Century Club":
+        return weeklySteps >= 100000;
+      case "Marathon Walker":
+        return weeklySteps >= 200000;
+      case "Getting Started":
+        return totalSteps > 0 || workoutCountToday > 0 || workoutCountWeek > 0;
+      case "Weekly Warrior":
+        return workoutCountWeek >= 7;
+      case "Calorie Conscious":
+        return workouts.some((w) => Number(w.calories_burned || 0) >= 500);
+      case "Hydration Hero":
+        return water >= 2;
+      default:
+        return false;
+    }
+  });
+}
+
 function computeTodayWalkingActivity(workouts) {
   const today = todayISO();
   const walkingWorkouts = (workouts || []).filter((workout) => {
@@ -622,6 +704,21 @@ const demoAdapter = async (config) => {
     });
     
     return makeDemoResponse(config, result, 200);
+  }
+
+  if ((url === "/api/badges" || url === "api/badges") && method === "get") {
+    const workouts = getStore("demo.workouts", []);
+    const demoWater = getStore("demo.water", 0);
+    const badges = computeDemoBadgeTotals(workouts, demoWater).map((badge, index) => ({
+      id: index + 1,
+      name: badge.name,
+      description: badge.description,
+      icon: badge.icon,
+      rarity: badge.rarity,
+      points: badge.points || (badge.rarity === "legendary" ? 200 : badge.rarity === "epic" ? 100 : badge.rarity === "rare" ? 50 : 20),
+      earned_at: new Date().toISOString(),
+    }));
+    return makeDemoResponse(config, { badges }, 200);
   }
 
   // Dashboard

@@ -48,6 +48,7 @@ function Dashboard() {
   const [weeklyData, setWeeklyData] = useState([]);
   const [savedWorkouts, setSavedWorkouts] = useState([]);
   const [savedMeals, setSavedMeals] = useState([]);
+  const [newBadges, setNewBadges] = useState([]);
   const [weeklyWorkoutSummary, setWeeklyWorkoutSummary] = useState([]);
   const [walkingSummary, setWalkingSummary] = useState({
     steps: 0,
@@ -111,6 +112,15 @@ function Dashboard() {
         water: 0,
         weeklyProgress: []
       };
+
+      // Handle new badges
+      if (dashData.newBadges && dashData.newBadges.length > 0) {
+        setNewBadges(dashData.newBadges);
+        // Show notification for new badges
+        dashData.newBadges.forEach(badge => {
+          notify(`🏆 New badge earned: ${badge.name}!`, "success");
+        });
+      }
 
       // Set summary cards from dashboard data
       setSummaryData({
@@ -503,6 +513,9 @@ function Dashboard() {
           <button className="tab" onClick={() => navigate("/workouts")}>
             Workout
           </button>
+          <button className="tab" onClick={() => navigate("/badges")}>
+            Badges
+          </button>
         </div>
         <div className="header-right">
           <div className="profile-icon" onClick={() => navigate("/settings")}>
@@ -512,6 +525,23 @@ function Dashboard() {
       </header>
 
       <main className="dashboard-main">
+        {newBadges.length > 0 && (
+          <section className="new-badges-alert">
+            <h2>🏅 New achievements unlocked</h2>
+            <div className="badge-alert-list">
+              {newBadges.map((badge) => (
+                <div key={badge.id} className="badge-alert-item">
+                  <div className="badge-alert-icon">{badge.icon}</div>
+                  <div>
+                    <p className="badge-alert-title">{badge.name}</p>
+                    <p className="badge-alert-text">{badge.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="activity-tracker-section">
           <h2 className="section-title">Today's Walking Activity</h2>
           <div className="activity-fit-card">
