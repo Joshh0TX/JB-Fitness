@@ -149,7 +149,7 @@ async function runWithPoolFallback(execute) {
   }
 }
 
-async function runQuery(sql, params = [], client = pool) {
+async function runQuery(sql, params = [], client) {
   const normalized = normalizeSql(sql, params);
 
   if (normalized.kind === "show-columns-password") {

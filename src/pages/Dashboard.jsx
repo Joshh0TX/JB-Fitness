@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api.js";
 import Logo from "../components/Logo";
+import { notify } from "../components/appNotifications";
 import { useGoogleFitSteps } from "../hooks/useGoogleFitSteps.js";
 import "./Dashboard.css";
 
@@ -58,148 +59,175 @@ function Dashboard() {
   const [motionTrackingEnabled, setMotionTrackingEnabled] = useState(false);
   const [motionTrackingSupported, setMotionTrackingSupported] = useState(false);
 
+  // Food scanner states
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanStatus, setScanStatus] = useState("idle"); // idle, capturing, analyzing, done
+  const [scanError, setScanError] = useState("");
+  const [scanResults, setScanResults] = useState([]);
+  const [capturedImage, setCapturedImage] = useState("");
+  const [stream, setStream] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
   const googleFit = useGoogleFitSteps();
 
-  // 🔹 Fetch everything on page load
-  useEffect(() => {
+  const fetchDashboardData = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      navigate("/api/login");
+      navigate("/login");
       return;
     }
 
-    // 🔹 Get user initials from localStorage
     try {
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        const username = user.username || user.name || "User";
-        const initials = username
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2);
-        setUserInitials(initials || "JD");
-      }
+      // 1️⃣ Fetch dashboard summary (today's metrics, workouts count, water count)
+      const dashRes = await API.get("/api/dashboard", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // 2️⃣ Fetch daily nutrition summary
+      const dailyRes = await API.get("/api/meals/daily-summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // 3️⃣ Fetch weekly workout breakdown (calories per day)
+      const weeklyWorkoutRes = await API.get("/api/workouts/weekly-summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const walkingSummaryRes = await API.get("/api/workouts/activity-summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const dailyData = {
+        totalCalories: Number(dailyRes?.data?.totalCalories ?? 0),
+        totalProtein: Number(dailyRes?.data?.totalProtein ?? 0),
+        totalCarbs: Number(dailyRes?.data?.totalCarbs ?? 0),
+        totalFats: Number(dailyRes?.data?.totalFats ?? 0),
+      };
+
+      const dashData = dashRes.data ?? {
+        calories: 0,
+        workouts: 0,
+        water: 0,
+        weeklyProgress: []
+      };
+
+      // Set summary cards from dashboard data
+      setSummaryData({
+        calories: {
+          current: dailyData.totalCalories,
+          goal: 2200,
+          label: "Cal",
+        },
+        workouts: {
+          current: dashData.workouts ?? 0,
+          goal: 7,
+          label: "Workouts",
+        },
+      });
+
+      setDailySummary(dailyData);
+
+      // 4️⃣ Weekly chart data (nutrition calories)
+      const weeklyProgress = Array.isArray(dashData.weeklyProgress)
+        ? dashData.weeklyProgress
+        : [];
+      setWeeklyData(
+        weeklyProgress.map((cal, index) => ({
+          day:
+            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index] ??
+            `Day ${index + 1}`,
+          burned: cal,
+          consumed: cal,
+        }))
+      );
+
+      // 5️⃣ Weekly workout summary (calories burned from workouts per day)
+      const weeklyWorkoutData = (weeklyWorkoutRes.data ?? []).map((d) => {
+        let dayStr = normalizeDay(d?.day);
+        if (!dayStr) dayStr = toLocalISODate();
+        return {
+          day: dayStr,
+          totalCalories: Number(d.totalCalories ?? 0), // Ensure it's a number, not string
+          totalWorkouts: Number(d.totalWorkouts ?? 0)
+        };
+      });
+      setWeeklyWorkoutSummary(weeklyWorkoutData);
+      setWalkingSummary({
+        steps: Number(walkingSummaryRes?.data?.steps ?? 0),
+        caloriesBurned: Number(walkingSummaryRes?.data?.caloriesBurned ?? 0),
+        distanceKm: Number(walkingSummaryRes?.data?.distanceKm ?? 0),
+        minutesWalked: Number(walkingSummaryRes?.data?.minutesWalked ?? 0),
+      });
+
+      // 6️⃣ Saved workouts
+      const workoutsRes = await API.get("/api/workouts", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSavedWorkouts(workoutsRes.data ?? []);
+
+      // 7️⃣ Saved meals
+      const mealsRes = await API.get("/api/meals", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSavedMeals(mealsRes.data ?? []);
     } catch (error) {
-      console.error("Failed to parse user from localStorage:", error);
+      console.error("Failed to fetch dashboard data", error);
     }
+  };
 
-    const fetchData = async () => {
-      try {
-        // 1️⃣ Fetch dashboard summary (today's metrics, workouts count, water count)
-        const dashRes = await API.get("/api/dashboard", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  useEffect(() => {
+    fetchDashboardData();
 
-        // 2️⃣ Fetch daily nutrition summary
-        const dailyRes = await API.get("/api/meals/daily-summary", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        // 3️⃣ Fetch weekly workout breakdown (calories per day)
-        const weeklyWorkoutRes = await API.get("/api/workouts/weekly-summary", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const walkingSummaryRes = await API.get("/api/workouts/activity-summary", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const dailyData = {
-          totalCalories: Number(dailyRes?.data?.totalCalories ?? 0),
-          totalProtein: Number(dailyRes?.data?.totalProtein ?? 0),
-          totalCarbs: Number(dailyRes?.data?.totalCarbs ?? 0),
-          totalFats: Number(dailyRes?.data?.totalFats ?? 0),
-        };
-
-        const dashData = dashRes.data ?? {
-          calories: 0,
-          workouts: 0,
-          water: 0,
-          weeklyProgress: []
-        };
-
-        // Set summary cards from dashboard data
-        setSummaryData({
-          calories: {
-            current: dailyData.totalCalories,
-            goal: 2200,
-            label: "Cal",
-          },
-          workouts: {
-            current: dashData.workouts ?? 0,
-            goal: 7,
-            label: "Workouts",
-          },
-        });
-
-        setDailySummary(dailyData);
-
-        // 4️⃣ Weekly chart data (nutrition calories)
-        const weeklyProgress = Array.isArray(dashData.weeklyProgress)
-          ? dashData.weeklyProgress
-          : [];
-        setWeeklyData(
-          weeklyProgress.map((cal, index) => ({
-            day:
-              ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index] ??
-              `Day ${index + 1}`,
-            burned: cal,
-            consumed: cal,
-          }))
-        );
-
-        // 5️⃣ Weekly workout summary (calories burned from workouts per day)
-        const weeklyWorkoutData = (weeklyWorkoutRes.data ?? []).map((d) => {
-          let dayStr = normalizeDay(d?.day);
-          if (!dayStr) dayStr = toLocalISODate();
-          return {
-            day: dayStr,
-            totalCalories: Number(d.totalCalories ?? 0), // Ensure it's a number, not string
-            totalWorkouts: Number(d.totalWorkouts ?? 0)
-          };
-        });
-        setWeeklyWorkoutSummary(weeklyWorkoutData);
-        setWalkingSummary({
-          steps: Number(walkingSummaryRes?.data?.steps ?? 0),
-          caloriesBurned: Number(walkingSummaryRes?.data?.caloriesBurned ?? 0),
-          distanceKm: Number(walkingSummaryRes?.data?.distanceKm ?? 0),
-          minutesWalked: Number(walkingSummaryRes?.data?.minutesWalked ?? 0),
-        });
-
-        // 6️⃣ Saved workouts
-        const workoutsRes = await API.get("/api/workouts", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSavedWorkouts(workoutsRes.data ?? []);
-
-        // 7️⃣ Saved meals
-        const mealsRes = await API.get("/api/meals", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSavedMeals(mealsRes.data ?? []);
-      } catch (error) {
-        console.error("Failed to fetch dashboard data", error);
-      }
-    };
-
-    // Fetch initially
-    fetchData();
-
-    // Poll for fresh dashboard metrics while page is open
-    const refreshInterval = window.setInterval(fetchData, 30000);
-
-    // Refresh when workouts or water change elsewhere in the app
-    const onWorkout = () => fetchData();
-    window.addEventListener('workoutAdded', onWorkout);
+    const refreshInterval = window.setInterval(fetchDashboardData, 30000);
+    const onWorkout = () => fetchDashboardData();
+    window.addEventListener("workoutAdded", onWorkout);
 
     return () => {
-      window.removeEventListener('workoutAdded', onWorkout);
+      window.removeEventListener("workoutAdded", onWorkout);
       window.clearInterval(refreshInterval);
     };
   }, [navigate]);
+
+  useEffect(() => {
+    if (!scannerOpen) {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      setStream(null);
+      setCapturedImage("");
+      setScanStatus("idle");
+      setScanError("");
+      setScanResults([]);
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setScanError("Camera is not supported by this browser.");
+      return;
+    }
+
+    const initCamera = async () => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+        setStream(mediaStream);
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
+      } catch (err) {
+        console.error("Camera access error", err);
+        setScanError("Unable to access camera. Check permissions.");
+      }
+    };
+
+    initCamera();
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [scannerOpen]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -260,6 +288,89 @@ function Dashboard() {
     }
 
     setMotionTrackingEnabled(true);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      setScanError("Unable to render camera capture.");
+      return;
+    }
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    setCapturedImage(dataUrl);
+    setScanStatus("captured");
+    setScanError("");
+  };
+
+  const runImageScan = async () => {
+    if (!capturedImage) {
+      setScanError("Please capture an image first.");
+      return;
+    }
+
+    try {
+      setScanStatus("analyzing");
+      setScanError("");
+
+      const response = await API.post("/api/nutrition/scan", { imageData: capturedImage });
+      const results = response.data?.results || [];
+      setScanResults(results);
+      setScanStatus("done");
+
+      if (results.length === 0) {
+        setScanError(response.data?.message || "No foods were recognized.");
+      }
+    } catch (err) {
+      console.error("Scan request failed", err);
+      setScanError(err.response?.data?.message || "Failed to analyze image.");
+      setScanStatus("error");
+    }
+  };
+
+  const addScannedMeal = async (item) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      notify("Session expired. Please log in again.", "error");
+      navigate("/login");
+      return;
+    }
+
+    const nutrients = {
+      calories: Number(item.calories || 0),
+      protein: Number(item.protein || 0),
+      carbs: Number(item.carbs || 0),
+      fats: Number(item.fats || 0),
+    };
+
+    try {
+      await API.post(
+        "/api/meals",
+        {
+          name: `${item.name} (from camera scan)`,
+          calories: nutrients.calories,
+          protein: nutrients.protein,
+          carbs: nutrients.carbs,
+          fats: nutrients.fats,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      notify(`Added ${item.name} to today.`, "success");
+      setScannerOpen(false);
+      fetchDashboardData();
+    } catch (error) {
+      console.error("Failed to add scanned meal", error);
+      notify(error.response?.data?.message || "Failed to add meal", "error");
+    }
   };
 
   // 🔹 Utility
@@ -797,6 +908,98 @@ function Dashboard() {
     ))}
   </div>
 </div>
+
+        {/* Food camera floating button */}
+        <button
+          className="camera-fab"
+          onClick={() => setScannerOpen(true)}
+          title="Scan food with camera"
+        >
+          📷
+        </button>
+
+        {scannerOpen && (
+          <div className="scanner-modal">
+            <div className="scanner-content">
+              <div className="scanner-header">
+                <h3>Food Scanner</h3>
+                <button className="scanner-close" onClick={() => setScannerOpen(false)}>
+                  ✕
+                </button>
+              </div>
+
+              <div className="scanner-body">
+                {scanError && <p className="scanner-error">{scanError}</p>}
+
+                <div className="scanner-video-wrap">
+                  {!capturedImage ? (
+                    <video
+                      ref={videoRef}
+                      className="scanner-video"
+                      autoPlay
+                      playsInline
+                      muted
+                    />
+                  ) : (
+                    <img src={capturedImage} alt="Captured food" className="scanner-preview" />
+                  )}
+                  <canvas ref={canvasRef} style={{ display: "none" }} />
+                </div>
+
+                <div className="scanner-actions">
+                  <button
+                    className="scanner-btn"
+                    onClick={capturePhoto}
+                    disabled={scanStatus === "analyzing"}
+                  >
+                    Capture
+                  </button>
+                  <button
+                    className="scanner-btn"
+                    onClick={runImageScan}
+                    disabled={!capturedImage || scanStatus === "analyzing"}
+                  >
+                    {scanStatus === "analyzing" ? "Analyzing..." : "Analyze"}
+                  </button>
+                  <button
+                    className="scanner-btn scanner-btn-secondary"
+                    onClick={() => {
+                      setCapturedImage("");
+                      setScanResults([]);
+                      setScanStatus("idle");
+                    }}
+                  >
+                    Retake
+                  </button>
+                </div>
+
+                {scanResults.length > 0 && (
+                  <div className="scanner-results">
+                    <h4>Detected foods</h4>
+                    {scanResults.map((item, index) => (
+                      <div key={`${item.name}-${index}`} className="scanner-result-card">
+                        <span className="scanner-result-name">{item.name}</span>
+                        <span className="scanner-result-nutrients">
+                          {item.calories} cal • {item.protein}g protein • {item.carbs}g carbs • {item.fats}g fats
+                        </span>
+                        <button
+                          className="scanner-add-btn"
+                          onClick={() => addScannedMeal(item)}
+                        >
+                          Add to Today
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {scanStatus === "done" && scanResults.length === 0 && !scanError && (
+                  <p className="scanner-note">No recognized food items found. Try another photo or use text search.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
     </div>

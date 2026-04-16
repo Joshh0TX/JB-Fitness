@@ -18,6 +18,7 @@ import paymentRoutes from "./routes/payment.routes.js";
 // Import DB (just to confirm connection at startup)
 import db from "./config/db.js";
 import { sql, testConnection } from "./config/db-postgres.js";
+import { initNigerianFoods } from "./utils/initNigerianFoods.js";
 
 const app = express();
 
@@ -51,6 +52,9 @@ app.use(express.json()); // parse JSON bodies
 testConnection().catch(err => {
   console.error(" Postgres connection failed:", err.message);
 });
+
+/* Initialize Nigerian foods table */
+initNigerianFoods();
 
 /* Routes */
 app.use("/api/auth", authRoutes);

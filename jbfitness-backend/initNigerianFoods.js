@@ -12,10 +12,10 @@ const initDatabase = async () => {
       process.env.SUPABASE_DB_URL ||
       process.env.POSTGRES_URL;
 
-    const config = connectionString
+    let config = connectionString
       ? {
           connectionString,
-          ssl: { rejectUnauthorized: false },
+          ssl: process.env.PGSSL !== "false" ? { rejectUnauthorized: false } : false,
         }
       : {
           host: process.env.PGHOST,
@@ -23,13 +23,27 @@ const initDatabase = async () => {
           password: process.env.PGPASSWORD,
           database: process.env.PGDATABASE,
           port: Number(process.env.PGPORT || 5432),
-          ssl: { rejectUnauthorized: false },
+          ssl: process.env.PGSSL !== "false" ? { rejectUnauthorized: false } : false,
         };
 
     console.log("Connecting to database...");
     console.log(`Database: ${config.database || "from connection string"}`);
 
     pool = new Pool(config);
+    
+    // If SSL fails, retry without SSL
+    try {
+      await pool.query("SELECT 1");
+    } catch (sslError) {
+      if (sslError.message.includes("SSL")) {
+        console.warn("⚠️  SSL connection failed, retrying without SSL...");
+        await pool.end();
+        config.ssl = false;
+        pool = new Pool(config);
+      } else {
+        throw sslError;
+      }
+    }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS nigerian_foods (

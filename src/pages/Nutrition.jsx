@@ -175,7 +175,7 @@ function Nutrition() {
   const addMealToToday = async (meal, gramsInput) => {
     if (!token) {
       notify("Session expired. Please log in again.", "error");
-      navigate("/api/login");
+      navigate("/login");
       return;
     }
 

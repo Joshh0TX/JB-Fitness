@@ -376,53 +376,6 @@ const demoAdapter = async (config) => {
     }, 200);
   }
 
-  if (url.includes("request-password-reset-otp") && method === "post") {
-    const challengeId = `demo_reset_${Math.random().toString(36).slice(2)}`;
-    DEMO_RESET_OTPS.set(challengeId, "123456");
-    return makeDemoResponse(
-      config,
-      {
-        msg: "OTP sent to your email",
-        challengeId,
-        email: String(body.email || "demo@example.com"),
-        expiresInMs: 10 * 60 * 1000,
-      },
-      200
-    );
-  }
-
-  if (url.includes("resend-password-reset-otp") && method === "post") {
-    const challengeId = body.challengeId;
-    if (!challengeId || !DEMO_RESET_OTPS.has(challengeId)) {
-      return makeDemoResponse(config, { msg: "Password reset session expired. Please request a new OTP." }, 400);
-    }
-    const refreshedChallengeId = `demo_reset_${Math.random().toString(36).slice(2)}`;
-    DEMO_RESET_OTPS.delete(challengeId);
-    DEMO_RESET_OTPS.set(refreshedChallengeId, "123456");
-    return makeDemoResponse(
-      config,
-      {
-        msg: "A new OTP has been sent",
-        challengeId: refreshedChallengeId,
-        expiresInMs: 10 * 60 * 1000,
-      },
-      200
-    );
-  }
-
-  if (url.includes("reset-password-with-otp") && method === "post") {
-    const challengeId = body.challengeId;
-    const otp = String(body.otp || "");
-    if (!challengeId || !DEMO_RESET_OTPS.has(challengeId)) {
-      return makeDemoResponse(config, { msg: "Password reset session expired. Please request a new OTP." }, 400);
-    }
-    if (otp !== "123456") {
-      return makeDemoResponse(config, { msg: "Invalid OTP" }, 401);
-    }
-    DEMO_RESET_OTPS.delete(challengeId);
-    return makeDemoResponse(config, { msg: "Password reset successful. You can now sign in." }, 200);
-  }
-
   if ((url.includes("auth/reset-password") || url.endsWith("reset-password")) && method === "post") {
     return makeDemoResponse(config, { msg: "Password reset successfully. You can now sign in." }, 200);
   }

@@ -43,7 +43,7 @@ function Workouts({ setSummaryData }) {
   // 🔹 Fetch saved workouts + weekly summary
   useEffect(() => {
     if (!token) {
-      navigate('/api/login')
+      navigate('/login')
       return
     }
 
@@ -197,7 +197,7 @@ function Workouts({ setSummaryData }) {
 
     if (!token) {
       notify('Session expired. Please log in again.', 'error')
-      navigate('/api/login')
+      navigate('/login')
       return
     }
 
