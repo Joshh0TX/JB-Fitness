@@ -334,6 +334,17 @@ function Dashboard() {
         .join(", ")})`
     : null;
 
+  const dailyCalorieGoal = summaryData.calories.goal;
+  const totalCaloriesConsumed = dailySummary.totalCalories;
+  const calorieRingPercent =
+    dailyCalorieGoal > 0
+      ? Math.min((totalCaloriesConsumed / dailyCalorieGoal) * 100, 100)
+      : 0;
+  const calorieConicGradient =
+    dailyCalorieGoal > 0 && totalCaloriesConsumed > 0
+      ? `conic-gradient(#ff9800 0% ${calorieRingPercent.toFixed(2)}%, rgba(255, 152, 0, 0.2) ${calorieRingPercent.toFixed(2)}% 100%)`
+      : null;
+
   const stepGoal = 10000;
   const calorieGoal = 500;
   const distanceGoal = 8;
@@ -746,16 +757,24 @@ function Dashboard() {
   <h2 className="section-title">Today's Macro Distribution</h2>
 
   <div className="macro-overview-card">
-    <div className="macro-donut-wrap">
+    <div className="macro-donut-wrap macro-donut-stack">
       <div
-        className={`macro-donut ${totalMacroGrams === 0 ? "is-empty" : ""}`}
-        style={macroConicGradient ? { background: macroConicGradient } : undefined}
+        className={`macro-donut macro-donut--calorie-ring${!calorieConicGradient ? " is-calorie-empty" : ""}`}
+        style={calorieConicGradient ? { background: calorieConicGradient } : undefined}
       >
-        <div className="macro-label">
-          <p className="macro-label-title">Total</p>
-          <p className="macro-total-value">{totalMacroGrams}g</p>
+        <div
+          className={`macro-donut macro-donut--nested ${totalMacroGrams === 0 ? "is-empty" : ""}`}
+          style={macroConicGradient ? { background: macroConicGradient } : undefined}
+        >
+          <div className="macro-label">
+            <p className="macro-label-title">Total</p>
+            <p className="macro-total-value">{totalMacroGrams}g</p>
+          </div>
         </div>
       </div>
+      <p className="macro-calorie-caption">
+        {Math.round(totalCaloriesConsumed)} / {dailyCalorieGoal} cal
+      </p>
     </div>
 
     <div className="macro-breakdown">
@@ -774,9 +793,9 @@ function Dashboard() {
     </div>
   </div>
 
-  <div className="macro-grid">
+  <div className="macro-grid macro-grid--compact">
     {macroDistributionData.map((item) => (
-      <div key={item.key} className={`macro-card ${item.key}`}>
+      <div key={item.key} className={`macro-card macro-card--compact ${item.key}`}>
         <div className="macro-card-top">
           <h3>{item.label}</h3>
           <span className="macro-unit">grams</span>
