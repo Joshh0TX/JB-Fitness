@@ -6,10 +6,38 @@
   position: relative;
   overflow-x: hidden;
   transition: background 0.3s ease;
+  --chart-grid-stroke: rgba(0, 0, 0, 0.08);
+  --chart-zero-fill: #9e9e9e;
+  --chart-bar-today: #e64a19;
+  --chart-bar-other: #ff5722;
 }
 
 [data-theme='dark'] .dashboard {
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1f1f1f 100%);
+  --chart-grid-stroke: rgba(255, 255, 255, 0.12);
+  --chart-zero-fill: #9e9e9e;
+  --chart-bar-today: #ffab91;
+  --chart-bar-other: #ffcc80;
+}
+
+.dashboard .chart-grid-line {
+  stroke: var(--chart-grid-stroke);
+}
+
+.dashboard .chart-grid-line--dashed {
+  stroke-dasharray: 6 4;
+}
+
+.dashboard .chart-svg-zero-marker {
+  fill: var(--chart-zero-fill);
+}
+
+.dashboard .chart-svg-bar-value--today {
+  fill: var(--chart-bar-today);
+}
+
+.dashboard .chart-svg-bar-value--other {
+  fill: var(--chart-bar-other);
 }
 
 .dashboard::before {
@@ -360,6 +388,7 @@
 
 .graph {
   display: flex;
+  align-items: stretch;
   gap: 24px;
 }
 
@@ -368,13 +397,9 @@
   min-width: 0;
 }
 
-.nutrition-breakdown .graph {
-  max-width: 760px;
-  margin: 0 auto;
-}
-
+.nutrition-breakdown .graph,
 .workout-chart-section .graph {
-  max-width: 900px;
+  max-width: 880px;
   margin: 0 auto;
 }
 
@@ -382,11 +407,30 @@
   padding-bottom: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 8px;
   font-size: 12px;
   color: #666;
-  min-width: 50px;
+  min-width: 52px;
   font-weight: 500;
+  flex-shrink: 0;
+}
+
+.graph-y-axis .y-axis-unit {
+  font-size: 11px;
+  font-weight: 600;
+  color: #757575;
+  text-align: right;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.graph-y-axis .y-axis-ticks {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
 }
 
 .y-tick {
@@ -395,14 +439,34 @@
 
 .graph-content {
   position: relative;
-  height: 280px;
-  padding: 24px 0;
+  height: auto;
+  min-height: 220px;
+  padding: 20px 0 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.workout-chart-section .graph-content {
+  min-height: 240px;
+  padding: 20px 0 8px;
 }
 
 .graph-svg {
   width: 100%;
-  height: 100%;
+  height: auto;
+  display: block;
   margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.graph-svg--nutrition {
+  aspect-ratio: 700 / 220;
+  max-height: 280px;
+}
+
+.graph-svg--workout {
+  aspect-ratio: 700 / 240;
+  max-height: 300px;
 }
 
 .graph-x-axis {
@@ -1587,18 +1651,18 @@
   text-align: right;
 }
 
-/* Chart Legend */
-.chart-legend {
+/* Workout calories chart legend (scoped — avoids clashing with .graph-legend .legend-item) */
+.workout-chart-section .workout-chart-legend {
   display: flex;
   justify-content: center;
   gap: 32px;
-  margin-top: 24px;
-  padding-top: 24px;
+  margin-top: 20px;
+  padding: 20px 8px 0;
   border-top: 1px solid #f0f0f0;
   flex-wrap: wrap;
 }
 
-.legend-item {
+.workout-chart-section .workout-legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1607,10 +1671,11 @@
   color: #666;
 }
 
-.legend-color {
+.workout-chart-section .workout-chart-legend .legend-color {
   width: 12px;
   height: 12px;
   border-radius: 2px;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
@@ -1657,8 +1722,10 @@
     width: min(210px, 68vw);
   }
 
-  .chart-legend {
+  .workout-chart-section .workout-chart-legend {
     gap: 16px;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   /* Responsive fixes for small screens */
@@ -1667,7 +1734,11 @@
   }
 
   .graph-y-axis {
-    min-width: 40px;
+    min-width: 44px;
+    font-size: 11px;
+  }
+
+  .graph-y-axis .y-axis-unit {
     font-size: 10px;
   }
 
@@ -1676,13 +1747,21 @@
   }
 
   .nutrition-breakdown .graph-content {
-    height: 246px;
+    min-height: 200px;
     padding: 12px 0 4px;
   }
 
   .workout-chart-section .graph-content {
-    height: 284px;
-    padding: 18px 0 6px;
+    min-height: 220px;
+    padding: 16px 0 6px;
+  }
+
+  .graph-svg--nutrition {
+    max-height: 240px;
+  }
+
+  .graph-svg--workout {
+    max-height: 260px;
   }
 
   .nutrition-bars-labels .x-tick {
@@ -1843,12 +1922,20 @@
   }
 
   .nutrition-breakdown .graph-content {
-    height: 232px;
+    min-height: 190px;
     padding-top: 10px;
   }
 
   .workout-chart-section .graph-content {
-    height: 268px;
+    min-height: 210px;
+  }
+
+  .graph-svg--nutrition {
+    max-height: 220px;
+  }
+
+  .graph-svg--workout {
+    max-height: 240px;
   }
 
   .nutrition-bars-labels .bar-label {
@@ -2027,11 +2114,6 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.workout-chart-section .graph-content {
-  height: 320px;
-  padding: 28px 0 8px;
-}
-
 .workout-stats-badges {
   display: flex;
   gap: 10px;
@@ -2104,6 +2186,23 @@
 .x-tick-today .x-workout-count {
   background: rgba(255, 87, 34, 0.2);
   color: #e64a19;
+}
+
+@media (max-width: 420px) {
+  .workout-x-axis .x-workout-count {
+    font-size: 9px;
+    padding: 1px 4px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 360px) {
+  .workout-x-axis .x-workout-count {
+    display: none;
+  }
 }
 
 /* ===== DARK MODE STYLES ===== */
@@ -2273,12 +2372,12 @@
   background: conic-gradient(#424242 0% 100%);
 }
 
-/* Chart legend */
-[data-theme='dark'] .chart-legend {
+/* Workout chart legend (dark) */
+[data-theme='dark'] .workout-chart-section .workout-chart-legend {
   border-top-color: rgba(255, 255, 255, 0.12);
 }
 
-[data-theme='dark'] .legend-item {
+[data-theme='dark'] .workout-chart-section .workout-legend-item {
   color: #d0d0d0;
 }
 
@@ -2288,9 +2387,8 @@
   color: #aaaaaa;
 }
 
-/* SVG text elements in charts */
-[data-theme='dark'] svg text {
-  fill: #1a1a1a;
+[data-theme='dark'] .graph-y-axis .y-axis-unit {
+  color: #9e9e9e;
 }
 
 /* Buttons */

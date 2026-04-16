@@ -82,7 +82,7 @@ function AppPreferences() {
 
         {/* Theme Selection */}
         <div className="prefs-card">
-          <h2 className="card-title">🌅 Theme</h2>
+          <h2 className="card-title">Theme</h2>
           <p className="card-description">
             Choose your preferred theme for the application
           </p>
@@ -106,7 +106,7 @@ function AppPreferences() {
 
         {/* Notifications */}
         <div className="prefs-card">
-          <h2 className="card-title">🔔 Notifications</h2>
+          <h2 className="card-title"> Notifications</h2>
           <p className="card-description">
             Manage how you receive notifications
           </p>

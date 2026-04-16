@@ -413,6 +413,13 @@ function Dashboard() {
   })();
   const yTicks = [niceMax, Math.round(niceMax * 0.75), Math.round(niceMax * 0.5), Math.round(niceMax * 0.25), 0];
 
+  const workoutChartViewW = 700;
+  const workoutChartViewH = 240;
+  const workoutDaySlot = workoutChartViewW / 7;
+  const workoutBarWidth = Math.round(
+    Math.min(52, Math.max(28, workoutDaySlot * 0.52)),
+  );
+
   const weeklyTotalCalories = sevenDaysData.reduce((s, d) => s + (d.totalCalories ?? 0), 0);
   const weeklyTotalWorkouts = sevenDaysData.reduce((s, d) => s + (d.totalWorkouts ?? 0), 0);
 
@@ -689,26 +696,31 @@ function Dashboard() {
   <div className="graph-container">
     <div className="graph">
       <div className="graph-y-axis">
-        {[100, 75, 50, 25, 0].map((v) => (
-          <div key={v} className="y-tick">{v}%</div>
-        ))}
+        <span className="y-axis-unit">% of goal</span>
+        <div className="y-axis-ticks">
+          {[100, 75, 50, 25, 0].map((v) => (
+            <div key={v} className="y-tick">{v}%</div>
+          ))}
+        </div>
       </div>
 
       <div className="graph-content">
         <svg
-          className="graph-svg"
+          className="graph-svg graph-svg--nutrition"
           viewBox="0 0 700 220"
-          preserveAspectRatio="none"
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label="Today nutrition versus daily goals"
         >
           {/* grid lines */}
           {[20, 65, 110, 155, 200].map((y, i) => (
             <line
               key={i}
+              className="chart-grid-line"
               x1="0"
               y1={y}
               x2="700"
               y2={y}
-              stroke="rgba(0,0,0,0.08)"
               strokeWidth="1"
             />
           ))}
@@ -748,44 +760,48 @@ function Dashboard() {
   </div>
 </div>
 
-
-
         <div className="weekly-progress workout-chart-section">
-  <div className="section-header">
-    <h2 className="section-title">Calories Burned from Workouts</h2>
-    <div className="workout-stats-badges">
-      <span className="workout-cal-badge">
-        {weeklyTotalCalories.toLocaleString()} cal this week
-      </span>
-      <span className="workout-count-badge">
-        {weeklyTotalWorkouts} workout{weeklyTotalWorkouts !== 1 ? "s" : ""}
-      </span>
-    </div>
-  </div>
-  <div className="graph-container">
-    <div className="graph">
+          <div className="section-header">
+            <h2 className="section-title">Calories Burned from Workouts</h2>
+            <div className="workout-stats-badges">
+              <span className="workout-cal-badge">
+                {weeklyTotalCalories.toLocaleString()} cal this week
+              </span>
+              <span className="workout-count-badge">
+                {weeklyTotalWorkouts} workout{weeklyTotalWorkouts !== 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+          <div className="graph-container">
+            <div className="graph">
       <div className="graph-y-axis">
-        {yTicks.map((v) => (
-          <div key={v} className="y-tick">{v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}</div>
-        ))}
+        <span className="y-axis-unit">kcal</span>
+        <div className="y-axis-ticks">
+          {yTicks.map((v) => (
+            <div key={v} className="y-tick">
+              {v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}
+            </div>
+          ))}
+        </div>
       </div>
       <div className="graph-content">
         <svg
-          className="graph-svg"
-          viewBox="0 0 700 240"
-          preserveAspectRatio="none"
+          className="graph-svg graph-svg--workout"
+          viewBox={`0 0 ${workoutChartViewW} ${workoutChartViewH}`}
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label="Calories burned from workouts over the last seven days"
         >
           {/* Horizontal grid lines */}
           {[0, 60, 120, 180, 240].map((y, i) => (
             <line
               key={i}
+              className={`chart-grid-line ${i > 0 && i < 4 ? "chart-grid-line--dashed" : ""}`}
               x1="0"
               y1={y}
               x2="700"
               y2={y}
-              stroke="#e0e0e0"
               strokeWidth="1"
-              strokeDasharray={i > 0 && i < 4 ? "6 4" : "none"}
             />
           ))}
 
@@ -793,9 +809,8 @@ function Dashboard() {
           {sevenDaysData.map((d, i) => {
             const cal = d.totalCalories ?? 0;
             const barHeight = niceMax > 0 ? (cal / niceMax) * 210 : 0;
-            const barWidth = 52;
-            const dayWidth = 700 / 7;
-            const x = i * dayWidth + (dayWidth - barWidth) / 2;
+            const barWidth = workoutBarWidth;
+            const x = i * workoutDaySlot + (workoutDaySlot - barWidth) / 2;
             const y = 230 - barHeight;
             const today = toLocalISODate();
             const isToday = d.day === today;
@@ -824,12 +839,12 @@ function Dashboard() {
                 {/* Calorie label on top of bar */}
                 {cal > 0 && (
                   <text
+                    className={isToday ? "chart-svg-bar-value chart-svg-bar-value--today" : "chart-svg-bar-value chart-svg-bar-value--other"}
                     x={x + barWidth / 2}
                     y={y - 6}
                     textAnchor="middle"
                     fontSize="11"
                     fontWeight="700"
-                    fill={isToday ? "#e64a19" : "#ff5722"}
                   >
                     {cal}
                   </text>
@@ -837,12 +852,12 @@ function Dashboard() {
                 {/* Zero indicator for empty days */}
                 {cal === 0 && (
                   <text
+                    className="chart-svg-zero-marker"
                     x={x + barWidth / 2}
                     y={225}
                     textAnchor="middle"
                     fontSize="10"
                     fontWeight="500"
-                    fill="#bbb"
                   >
                     —
                   </text>
@@ -880,12 +895,12 @@ function Dashboard() {
     </div>
 
     {/* Chart legend */}
-    <div className="chart-legend">
-      <div className="legend-item">
+    <div className="workout-chart-legend">
+      <div className="workout-legend-item">
         <span className="legend-color" style={{ background: "linear-gradient(135deg, #ff7043, #e64a19)" }}></span>
         Today
       </div>
-      <div className="legend-item">
+      <div className="workout-legend-item">
         <span className="legend-color" style={{ background: "linear-gradient(135deg, #ff8a65, #ff5722)", opacity: 0.75 }}></span>
         Other days
       </div>
