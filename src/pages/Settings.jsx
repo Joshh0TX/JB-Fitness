@@ -20,26 +20,33 @@ function Settings() {
   const [isStartingPayment, setIsStartingPayment] = useState(false)
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false)
 
+  const deriveInitials = (value) => {
+    const text = String(value || '').trim()
+    if (!text) return '??'
+
+    const words = text.split(/\s+/).filter(Boolean)
+    if (words.length > 1) {
+      return `${words[0][0]}${words[1][0]}`.toUpperCase()
+    }
+
+    const letters = text.replace(/[^A-Za-z]/g, '')
+    return letters.slice(0, 2).toUpperCase() || text.slice(0, 2).toUpperCase()
+  }
+
   // 🔹 Fetch user data from localStorage on component load
   useEffect(() => {
     try {
       const userStr = localStorage.getItem('user')
       if (userStr) {
         const userData = JSON.parse(userStr)
-        const username = userData.username || userData.name || 'User'
+        const displayName = userData.name || userData.username || userData.email || 'User'
         setUser({
-          username: username,
+          username: displayName,
           email: userData.email || 'user@example.com'
         })
-        
-        // Calculate initials from username
-        const initials = username
-          .split(' ')
-          .map((n) => n[0])
-          .join('')
-          .toUpperCase()
-          .slice(0, 2)
-        setUserInitials(initials || 'JD')
+
+        const initials = deriveInitials(displayName)
+        setUserInitials(initials)
       }
     } catch (error) {
       console.error('Failed to parse user from localStorage:', error)
