@@ -99,7 +99,7 @@ function Badges() {
         goal: 120000,
         progress: stepsProgress,
         unit: "steps",
-        icon: "👣",
+        icon: "S",
         color: "#4CAF50",
         milestone: 120000
       },
@@ -111,7 +111,7 @@ function Badges() {
         goal: 500,
         progress: strengthProgress,
         unit: "reps",
-        icon: "💪",
+        icon: "I",
         color: "#FF6B6B",
         milestone: 500
       },
@@ -123,7 +123,7 @@ function Badges() {
         goal: 25,
         progress: cardioProgress,
         unit: "km",
-        icon: "🏃",
+        icon: "C",
         color: "#FFB84D",
         milestone: 25
       },
@@ -135,7 +135,7 @@ function Badges() {
         goal: 7,
         progress: consistencyProgress,
         unit: "days",
-        icon: "🔥",
+        icon: "X",
         color: "#9C27B0",
         milestone: 7
       }
@@ -147,7 +147,9 @@ function Badges() {
       const token = localStorage.getItem("token");
       
       // Fetch badges
-      const badgesRes = await API.get("/badges");
+      const badgesRes = await API.get("/api/badges", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setBadges(badgesRes.data.badges || []);
       
       // Fetch workouts
@@ -231,7 +233,7 @@ function Badges() {
 
         {/* Progress Milestones Section */}
         <div className="milestones-section">
-          <h2 className="section-title">🎯 Weekly Progress</h2>
+          <h2 className="section-title">Weekly Progress</h2>
           <div className="milestones-grid">
             {milestones.map((milestone) => (
               <div key={milestone.id} className="milestone-card" style={{ borderLeftColor: milestone.color }}>
@@ -275,7 +277,7 @@ function Badges() {
 
         {/* Earned Badges Section */}
         <div className="badges-section">
-          <h2 className="section-title">🏆 Earned Badges</h2>
+          <h2 className="section-title">Earned Badges</h2>
           {badges.length === 0 ? (
             <div className="no-badges">
               <p>No badges earned yet.</p>
