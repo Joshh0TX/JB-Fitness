@@ -111,3 +111,6 @@ function Badges() {
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
