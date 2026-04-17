@@ -144,9 +144,7 @@ function Dashboard() {
         : [];
       setWeeklyData(
         weeklyProgress.map((cal, index) => ({
-          day:
-            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index] ??
-            `Day ${index + 1}`,
+          day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index] ?? `Day ${index + 1}`,
           burned: cal,
           consumed: cal,
         }))
