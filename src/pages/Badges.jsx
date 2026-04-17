@@ -52,24 +52,42 @@ function Badges() {
 
   if (loading) {
     return (
-      <div className="badges-page">
-        <Logo />
-        <div className="loading">Loading badges...</div>
+      <div className="badges-page page-animate">
+        <div className="badges-header">
+          <button className="back-button" onClick={() => navigate("/dashboard")}>
+            Back
+          </button>
+          <Logo />
+          <div />
+        </div>
+
+        <div className="badges-loading">
+          Loading badges...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="badges-page">
-      <Logo />
+    <div className="badges-page page-animate">
+      <div className="badges-header">
+        <button className="back-button" onClick={() => navigate("/dashboard")}>Back</button>
+        <Logo />
+        <div />
+      </div>
 
       <div className="badges-container">
-        <h1>🏆 My Badges</h1>
+        <div className="badges-title-row">
+          <div>
+            <h1>Badges</h1>
+            <p className="badges-subtitle">View completed milestones and earned rewards for your activity.</p>
+          </div>
+        </div>
 
         {badges.length === 0 ? (
           <div className="no-badges">
-            <p>No badges earned yet!</p>
-            <p>Complete workouts, track your steps, and stay hydrated to earn badges.</p>
+            <p>No badges earned yet.</p>
+            <p>Complete workouts, track your steps, and stay consistent to unlock rewards.</p>
           </div>
         ) : (
           <div className="badges-grid">
@@ -79,53 +97,17 @@ function Badges() {
                 className="badge-card"
                 style={{ borderColor: getRarityColor(badge.rarity) }}
               >
-                <div className="badge-icon">{badge.icon}</div>
+                <div className="badge-card-icon" />
                 <div className="badge-info">
+                  <div className="badge-card-meta">
+                    <span className={`badge-chip badge-chip--${badge.rarity}`}>{badge.rarity}</span>
+                    <span className="badge-points">+{badge.points} pts</span>
+                  </div>
                   <h3>{badge.name}</h3>
                   <p className="badge-description">{badge.description}</p>
-                  <div className="badge-meta">
-                    <span className={`rarity ${badge.rarity}`}>
-                      {badge.rarity.toUpperCase()}
-                    </span>
-                    <span className="points">+{badge.points} pts</span>
-                  </div>
-                  <div className="earned-date">
-                    Earned {formatDate(badge.earned_at)}
-                  </div>
+                  <div className="earned-date">Earned {formatDate(badge.earned_at)}</div>
                 </div>
               </div>
             ))}
           </div>
         )}
-
-        <div className="badge-categories">
-          <h2>Badge Categories</h2>
-          <div className="categories-grid">
-            <div className="category-item">
-              <span className="category-icon">👟</span>
-              <span>Steps</span>
-            </div>
-            <div className="category-item">
-              <span className="category-icon">💪</span>
-              <span>Workouts</span>
-            </div>
-            <div className="category-item">
-              <span className="category-icon">🔥</span>
-              <span>Calories</span>
-            </div>
-            <div className="category-item">
-              <span className="category-icon">💧</span>
-              <span>Water</span>
-            </div>
-            <div className="category-item">
-              <span className="category-icon">🔥</span>
-              <span>Streaks</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default Badges;

@@ -118,7 +118,7 @@ function Dashboard() {
         setNewBadges(dashData.newBadges);
         // Show notification for new badges
         dashData.newBadges.forEach(badge => {
-          notify(`🏆 New badge earned: ${badge.name}!`, "success");
+          notify(`New badge earned: ${badge.name}success");
         });
       }
 
