@@ -13,6 +13,7 @@ import faqRoutes from "./modules/faq/faq.routes.js";
 import exerciseRoutes from "./modules/exercise/exercise.routes.js";
 import paymentRoutes from "./modules/payments/payments.routes.js";
 import nutritionRoutes from "./modules/nutrition/nutrition.routes.js";
+import stepsRoutes from "./modules/steps/steps.routes.js";
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use("/api/exercises", exerciseRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/badges", badgesRoutes);
 app.use("/api/faq", faqRoutes);
+app.use("/api/steps", stepsRoutes);
 
 app.get("/", (req, res) => res.json({ message: "JBFitness API is running" }));
 app.get("/test", (req, res) => res.send("Backend is working"));
