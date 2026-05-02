@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import prisma from "./config/db.js";
+import authMiddleware from "./middleware/authMiddleware.js";
 
 import authRoutes from "./modules/auth/auth.routes.js";
 import mealsRoutes from "./modules/meals/meals.routes.js";
@@ -34,10 +35,23 @@ app.use(cors({
 app.use(express.json());
 
 prisma.$connect()
-  .then(() => console.log(" Database connected"))
-  .catch((err) => console.error(" Database connection failed:", err.message));
+  .then(() => console.log("✅ Database connected"))
+  .catch((err) => console.error("❌ Database connection failed:", err.message));
 
+// Health checks (public)
+app.get("/", (req, res) => res.json({ message: "JBFitness API is running" }));
+app.get("/test", (req, res) => res.send("Backend is working"));
+
+// Public routes (no auth needed)
 app.use("/api/auth", authRoutes);
+app.use("/api/faq", faqRoutes);
+
+// Global auth protection for all other /api routes
+app.use("/api", (req, res, next) => {
+  return authMiddleware(req, res, next);
+});
+
+// Protected routes
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/workouts", workoutRoutes);
 app.use("/api/metrics", metricsRoutes);
@@ -47,12 +61,9 @@ app.use("/api/nutrition", nutritionRoutes);
 app.use("/api/exercises", exerciseRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/badges", badgesRoutes);
-app.use("/api/faq", faqRoutes);
 app.use("/api/steps", stepsRoutes);
 
-app.get("/", (req, res) => res.json({ message: "JBFitness API is running" }));
-app.get("/test", (req, res) => res.send("Backend is working"));
-
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ msg: "Server error" });
