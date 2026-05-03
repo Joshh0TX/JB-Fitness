@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import API from "../api.js";
-import { notify } from '../components/appNotifications';
+import API from "../../api.js";
+import { notify } from '../../components/appNotifications.js';
 
 function ForgotRequestForm({ onBack, onSuccess }) {
   const [email, setEmail] = useState('');

@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import LoginPage from './pages/LoginPage'
-import SignInPage from './pages/SignInPage'
+import SignInPage from './pages/SignInPage/SignInPage'
 import Dashboard from './pages/Dashboard'
 import Nutrition from './pages/Nutrition'
 import Workouts from './pages/Workouts'

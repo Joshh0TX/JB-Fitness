@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Logo from '../components/Logo';
+import Logo from '../../components/Logo';
 import LoginForm from './LoginForm';
 import ForgotRequestForm from './ForgetRequestForm';
 import ResetPasswordForm from './ResetPasswordForm';
