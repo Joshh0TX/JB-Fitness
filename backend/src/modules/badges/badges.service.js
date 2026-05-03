@@ -1,99 +1,144 @@
 import prisma from "../../config/db.js";
 
-const parseDistanceKmFromTitle = (title = "") => {
-  const match = String(title).match(/(\d+(?:\.\d+)?)\s*(km|kilometers?|mi|miles?)/i);
-  if (!match) return 0;
-  const distance = Number(match[1]);
-  if (!Number.isFinite(distance) || distance <= 0) return 0;
-  return String(match[2]).toLowerCase().startsWith("mi") ? distance * 1.60934 : distance;
+const PROTEIN_GOAL = 60;
+const CARBS_LIMIT = 250;
+
+const getDateRange = (period) => {
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+
+  if (period === "daily") {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return { start: today, end: tomorrow };
+  }
+
+  if (period === "weekly") {
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - 6);
+    return { start: weekStart, end: new Date() };
+  }
+
+  if (period === "monthly") {
+    const monthStart = new Date(today);
+    monthStart.setDate(today.getDate() - 29);
+    return { start: monthStart, end: new Date() };
+  }
+
+  return { start: today, end: new Date() };
 };
 
-const parseStepsFromTitle = (title = "") => {
-  const match = String(title).match(/(\d{3,6})\s*steps?/i);
-  if (!match) return 0;
-  const steps = Number(match[1]);
-  return Number.isFinite(steps) && steps > 0 ? Math.round(steps) : 0;
+const isCleanEatingDay = (meals) => {
+  const totalCarbs = meals.reduce((s, m) => s + (Number(m.carbs) || 0), 0);
+  const totalProtein = meals.reduce((s, m) => s + (Number(m.protein) || 0), 0);
+  return totalCarbs <= CARBS_LIMIT && totalProtein >= PROTEIN_GOAL;
 };
 
-const isStepEligibleWorkout = (title = "") =>
-  /walk|run|jog|hike|treadmill|steps?|cardio|km|kilometer|mile|mi\b/.test(String(title).toLowerCase());
+const calculateProgress = async (userId, badge) => {
+  const { start, end } = getDateRange(badge.period);
 
-const inferStepsFromWorkout = (workout = {}) => {
-  const title = String(workout.title || "");
-  const minutes = Number(workout.duration || 0);
-  const stepsFromTitle = parseStepsFromTitle(title);
-  const distanceKm = parseDistanceKmFromTitle(title);
-  if (!isStepEligibleWorkout(title)) return 0;
-  if (stepsFromTitle > 0) return stepsFromTitle;
-  if (distanceKm > 0) return Math.round(distanceKm * 1312);
-  if (minutes > 0) return Math.round(minutes * 105);
-  return 0;
-};
+  if (badge.category === "steps") {
+    const stepLogs = await prisma.step_logs.findMany({
+      where: { user_id: userId, date: { gte: start, lte: end } },
+    });
 
-const getWorkoutSteps = async (userId, startDate = null, endDate = null) => {
-  const workouts = await prisma.workouts.findMany({
-    where: {
-      user_id: userId,
-      ...(startDate && endDate && {
-        created_at: { gte: new Date(startDate), lte: new Date(endDate + "T23:59:59.999Z") },
-      }),
-    },
-    select: { title: true, duration: true },
-  });
-  return workouts.reduce((sum, w) => sum + inferStepsFromWorkout(w), 0);
-};
+    if (badge.name === "Small Small Waka" || badge.name === "Daily Waka Boss" || badge.name === "No Dey Tire") {
+      const todayLog = stepLogs[0];
+      const current = Number(todayLog?.steps || 0);
+      return { current, target: badge.target_value, percentage: Math.min((current / badge.target_value) * 100, 100) };
+    }
 
-const checkWorkoutStreak = async (userId, requiredStreak) => {
-  const workouts = await prisma.workouts.findMany({
-    where: {
-      user_id: userId,
-      created_at: { gte: new Date(Date.now() - 59 * 24 * 60 * 60 * 1000) },
-    },
-    select: { created_at: true },
-    orderBy: { created_at: "desc" },
-  });
+    if (badge.name === "Area Stepper" || badge.name === "Waka Specialist" || badge.name === "Odogwu Grinder") {
+      const current = stepLogs.reduce((s, l) => s + Number(l.steps || 0), 0);
+      return { current, target: badge.target_value, percentage: Math.min((current / badge.target_value) * 100, 100) };
+    }
 
-  const uniqueDays = [...new Set(workouts.map((w) => w.created_at.toISOString().slice(0, 10)))];
-  if (uniqueDays.length < requiredStreak) return false;
+    if (badge.name === "Consistent Sharp Guy" || badge.name === "No Excuse Machine") {
+      const current = stepLogs.filter(l => Number(l.steps) >= 10000).length;
+      return { current, target: badge.target_value, percentage: Math.min((current / badge.target_value) * 100, 100) };
+    }
 
-  let streak = 1;
-  for (let i = 1; i < uniqueDays.length; i++) {
-    const diff = (new Date(uniqueDays[i - 1]) - new Date(uniqueDays[i])) / 86400000;
-    if (diff === 1) {
-      streak++;
-      if (streak >= requiredStreak) return true;
-    } else {
-      streak = 1;
+    if (badge.name === "No Break Streak") {
+      const sorted = stepLogs
+        .filter(l => Number(l.steps) >= 10000)
+        .map(l => l.date.toISOString().slice(0, 10))
+        .sort();
+
+      let streak = 0;
+      let maxStreak = 0;
+      for (let i = 0; i < sorted.length; i++) {
+        if (i === 0) { streak = 1; continue; }
+        const diff = (new Date(sorted[i]) - new Date(sorted[i - 1])) / 86400000;
+        streak = diff === 1 ? streak + 1 : 1;
+        maxStreak = Math.max(maxStreak, streak);
+      }
+
+      const current = Math.max(streak, maxStreak);
+      return { current, target: badge.target_value, percentage: Math.min((current / badge.target_value) * 100, 100) };
     }
   }
-  return false;
-};
 
-const checkWaterStreak = async (userId, requiredStreak) => {
-  const waterDays = await prisma.metrics.findMany({
-    where: {
-      user_id: userId,
-      water_intake: { gte: 2000 },
-      date: { gte: new Date(Date.now() - 59 * 24 * 60 * 60 * 1000) },
-    },
-    select: { date: true },
-    orderBy: { date: "desc" },
-  });
+  if (badge.category === "nutrition") {
+    const meals = await prisma.meals.findMany({
+      where: { user_id: userId, created_at: { gte: start, lte: end } },
+    });
 
-  const uniqueDays = [...new Set(waterDays.map((m) => m.date.toISOString().slice(0, 10)))];
-  if (uniqueDays.length < requiredStreak) return false;
+    if (badge.name === "Clean Chop") {
+      const achieved = isCleanEatingDay(meals) ? 1 : 0;
+      return { current: achieved, target: 1, percentage: achieved * 100 };
+    }
 
-  let streak = 1;
-  for (let i = 1; i < uniqueDays.length; i++) {
-    const diff = (new Date(uniqueDays[i - 1]) - new Date(uniqueDays[i])) / 86400000;
-    if (diff === 1) {
-      streak++;
-      if (streak >= requiredStreak) return true;
-    } else {
-      streak = 1;
+    if (badge.name === "Better Chop Life" || badge.name === "Discipline Baba") {
+      const mealsByDay = {};
+      for (const meal of meals) {
+        const day = meal.created_at.toISOString().slice(0, 10);
+        if (!mealsByDay[day]) mealsByDay[day] = [];
+        mealsByDay[day].push(meal);
+      }
+
+      const cleanDays = Object.values(mealsByDay).filter(isCleanEatingDay).length;
+      return { current: cleanDays, target: badge.target_value, percentage: Math.min((cleanDays / badge.target_value) * 100, 100) };
     }
   }
-  return false;
+
+  return { current: 0, target: badge.target_value, percentage: 0 };
+};
+
+export const getBadgeProgressService = async (userId) => {
+  const badges = await prisma.badges.findMany({ orderBy: { id: "asc" } });
+  const earnedBadges = await prisma.user_badges.findMany({ where: { user_id: userId } });
+  const earnedIds = new Set(earnedBadges.map(b => b.badge_id));
+
+  const result = await Promise.all(badges.map(async (badge) => {
+    const progress = await calculateProgress(userId, badge);
+    const isEarned = earnedIds.has(badge.id);
+    const justEarned = !isEarned && progress.percentage >= 100;
+
+    if (justEarned) {
+      await prisma.user_badges.create({ data: { user_id: userId, badge_id: badge.id } });
+    }
+
+    return {
+      id: badge.id,
+      name: badge.name,
+      description: badge.description,
+      icon: badge.icon,
+      category: badge.category,
+      period: badge.period,
+      current: progress.current,
+      target: progress.target,
+      percentage: Math.round(progress.percentage),
+      earned: isEarned || justEarned,
+      earnedAt: isEarned ? earnedBadges.find(b => b.badge_id === badge.id)?.earned_at : justEarned ? new Date() : null,
+    };
+  }));
+
+  return {
+    daily: result.filter(b => b.period === "daily"),
+    weekly: result.filter(b => b.period === "weekly"),
+    monthly: result.filter(b => b.period === "monthly"),
+  };
 };
 
 export const getUserBadgesService = async (userId) => {
@@ -102,91 +147,4 @@ export const getUserBadgesService = async (userId) => {
     include: { badges: true },
     orderBy: { earned_at: "desc" },
   });
-};
-
-export const checkAndAwardBadgesService = async (userId) => {
-  try {
-    const earnedIds = await prisma.user_badges.findMany({
-      where: { user_id: userId },
-      select: { badge_id: true },
-    });
-
-    const earnedIdSet = earnedIds.map((b) => b.badge_id);
-
-    const availableBadges = await prisma.badges.findMany({
-      where: { id: { notIn: earnedIdSet.length ? earnedIdSet : [-1] } },
-    });
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(today.getDate() - 6);
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 29);
-    const todayStr = today.toISOString().slice(0, 10);
-
-    const newBadges = [];
-
-    for (const badge of availableBadges) {
-      let achieved = false;
-
-      switch (badge.condition_type) {
-        case "total":
-          if (badge.category === "steps") {
-            achieved = (await getWorkoutSteps(userId)) >= badge.condition_value;
-          } else if (badge.category === "workouts") {
-            achieved = (await prisma.workouts.count({ where: { user_id: userId } })) >= badge.condition_value;
-          }
-          break;
-
-        case "daily":
-          if (badge.category === "steps") {
-            achieved = (await getWorkoutSteps(userId, todayStr, todayStr)) >= badge.condition_value;
-          } else if (badge.category === "workouts") {
-            achieved = (await prisma.workouts.count({ where: { user_id: userId, created_at: { gte: today, lt: tomorrow } } })) >= badge.condition_value;
-          } else if (badge.category === "calories") {
-            const agg = await prisma.metrics.aggregate({ where: { user_id: userId, date: { gte: today, lt: tomorrow } }, _sum: { calories: true } });
-            achieved = (agg._sum.calories || 0) >= badge.condition_value;
-          } else if (badge.category === "water") {
-            const agg = await prisma.metrics.aggregate({ where: { user_id: userId, date: { gte: today, lt: tomorrow } }, _sum: { water_intake: true } });
-            achieved = (agg._sum.water_intake || 0) >= badge.condition_value;
-          }
-          break;
-
-        case "weekly":
-          if (badge.category === "steps") {
-            achieved = (await getWorkoutSteps(userId, sevenDaysAgo.toISOString().slice(0, 10), todayStr)) >= badge.condition_value;
-          } else if (badge.category === "workouts") {
-            achieved = (await prisma.workouts.count({ where: { user_id: userId, created_at: { gte: sevenDaysAgo } } })) >= badge.condition_value;
-          } else if (badge.category === "calories") {
-            const agg = await prisma.metrics.aggregate({ where: { user_id: userId, date: { gte: sevenDaysAgo } }, _sum: { calories: true } });
-            achieved = (agg._sum.calories || 0) >= badge.condition_value;
-          }
-          break;
-
-        case "monthly":
-          if (badge.category === "workouts") {
-            achieved = (await prisma.workouts.count({ where: { user_id: userId, created_at: { gte: thirtyDaysAgo } } })) >= badge.condition_value;
-          }
-          break;
-
-        case "streak":
-          if (badge.category === "workouts") achieved = await checkWorkoutStreak(userId, badge.condition_value);
-          else if (badge.category === "water") achieved = await checkWaterStreak(userId, badge.condition_value);
-          break;
-      }
-
-      if (achieved) {
-        await prisma.user_badges.create({ data: { user_id: userId, badge_id: badge.id } });
-        newBadges.push(badge);
-      }
-    }
-
-    return newBadges;
-  } catch (err) {
-    console.error("Check and award badges error:", err);
-    return [];
-  }
 };

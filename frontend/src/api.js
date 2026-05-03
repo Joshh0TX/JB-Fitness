@@ -9,7 +9,6 @@ const API = axios.create({
   baseURL: resolvedApiBase,
 });
 
-console.log("API BASE URL:", import.meta.env.VITE_API_BASE_URL);
 // Automatically attach token to every request
 API.interceptors.request.use(
   (config) => {
