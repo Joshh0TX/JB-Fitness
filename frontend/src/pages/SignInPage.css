@@ -491,6 +491,21 @@
   .signin-header {
     padding: 20px 24px;
   }
+  .signin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #ffffff;
+  position: relative;
+}
+.signin-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #66bb6a, #4caf50, #2e7d32);
+}
 
   .header-nav {
     gap: 20px;
@@ -505,6 +520,15 @@
     gap: 12px;
     text-align: center;
   }
+  .signin-main { padding: 20px; }
+  .signin-card {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 10px 0;
+  }
+  .signin-card::before { display: none; } /* Removes the card's old green line */
+
 }
 
 
