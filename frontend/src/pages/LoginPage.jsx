@@ -171,6 +171,8 @@ function LoginPage() {
                   onChange={handleChange}
                   required
                   minLength="8"
+                  onFocus={() => setShowPassword(true)}  
+                  onBlur={() => setShowPassword(false)}
                 />
                 {/* Replaced Text with Icon */}
                 <button 
@@ -198,6 +200,8 @@ function LoginPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
+                  onFocus={() => setShowPassword(true)}
+                  onBlur={() => setShowPassword(false)}
                 />
                 {/* Added the exact same toggle to the confirm field */}
                 <button 

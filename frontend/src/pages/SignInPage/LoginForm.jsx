@@ -61,7 +61,7 @@ function LoginForm({ onForgotClick }) {
           </div>
           <div className="input-wrapper">
             <span className="input-icon lock-icon"><LockIcon /></span>
-            <input type={showPassword ? "text" : "password"} id="password" name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} required />
+            <input type={showPassword ? "text" : "password"} id="password" name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} required onFocus={() => setShowPassword(true)}   onBlur={() => setShowPassword(false)} />
             <button type="button" className="password-toggle-btn" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <EyeOffIcon /> : <EyeIcon />}
             </button>

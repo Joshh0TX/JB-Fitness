@@ -73,7 +73,7 @@ function ResetPasswordForm({ initialEmail, initialChallengeId, onCancel, onSucce
           <label htmlFor="newPassword">New Password</label>
           <div className="input-wrapper">
             <span className="input-icon lock-icon"><LockIcon /></span>
-            <input type={showPassword ? "text" : "password"} id="newPassword" name="newPassword" placeholder="At least 6 characters" value={formData.newPassword} onChange={handleChange} required />
+            <input type={showPassword ? "text" : "password"} id="newPassword" name="newPassword" placeholder="At least 6 characters" value={formData.newPassword} onChange={handleChange} required onFocus={() => setShowPassword(true)}   onBlur={() => setShowPassword(false)}/>
             <button type="button" className="password-toggle-btn" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <EyeOffIcon /> : <EyeIcon />}
             </button>
@@ -84,7 +84,7 @@ function ResetPasswordForm({ initialEmail, initialChallengeId, onCancel, onSucce
           <label htmlFor="confirmPassword">Confirm New Password</label>
           <div className="input-wrapper">
             <span className="input-icon lock-icon"><LockIcon /></span>
-            <input type={showPassword ? "text" : "password"} id="confirmPassword" name="confirmPassword" placeholder="Re-enter new password" value={formData.confirmPassword} onChange={handleChange} required />
+            <input type={showPassword ? "text" : "password"} id="confirmPassword" name="confirmPassword" placeholder="Re-enter new password" value={formData.confirmPassword} onChange={handleChange} required onFocus={() => setShowPassword(true)}   onBlur={() => setShowPassword(false)}/>
             <button type="button" className="password-toggle-btn" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <EyeOffIcon /> : <EyeIcon />}
             </button>
