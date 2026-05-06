@@ -1,5 +1,5 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useLocation, useNavigate  } from 'react-router-dom'
+import { useEffect, useState, useRef } from 'react'
 import SettingsIcon from '../components/SettingsIcon'
 import Logo from '../components/Logo'
 import API from '../api'
@@ -19,6 +19,8 @@ function Settings() {
   })
   const [isStartingPayment, setIsStartingPayment] = useState(false)
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false)
+  const fileInputRef = useRef(null);
+  const [profileImage, setProfileImage] = useState(null)
 
   const deriveInitials = (value) => {
     const text = String(value || '').trim()
@@ -33,6 +35,10 @@ function Settings() {
     return letters.slice(0, 2).toUpperCase() || text.slice(0, 2).toUpperCase()
   }
 
+  useEffect(() => {
+    const savedImage = localStorage.getItem('profileImage');
+    if (savedImage) setProfileImage(savedImage);
+  }, []);
   // 🔹 Fetch user data from localStorage on component load
   useEffect(() => {
     try {
@@ -117,7 +123,11 @@ function Settings() {
       } catch (error) {
         console.error('Payment verification failed:', error)
         if (isMounted) {
-          notify(error?.response?.data?.message || 'Unable to verify payment. Please contact support if you were charged.', 'error')
+          // More professional error messaging
+          const msg = error?.response?.status === 404 
+            ? 'Transaction not found. If you were charged, please contact support.' 
+            : 'Unable to verify payment at this moment.';
+         notify(msg, 'error');
         }
       } finally {
         if (isMounted) {
@@ -159,37 +169,84 @@ function Settings() {
     }
   }
 
-  const handleSignOut = () => {
+    const handleSignOut = () => {
     if (window.confirm('Are you sure you want to sign out?')) {
-      navigate('/login')
+      // 1. Wipe the sensitive data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Note: We usually keep 'appPreferences' so the app 
+      // stays in Dark Mode even after they log out.
+
+      // 2. Use { replace: true } so they can't "Back Button" into the app
+      navigate('/login', { replace: true });
+    
+      notify('Signed out successfully', 'success');
     }
   }
 
-  return (
+  const handleAvatarClick = () => {
+    fileInputRef.current.click(); // Triggers the hidden file input
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+     const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setProfileImage(base64String); // Reflects immediately in UI
+        localStorage.setItem('profileImage', base64String); // Persists on refresh
+     };
+     reader.readAsDataURL(file);
+    }
+  };
+
+ return (
     <div className="settings-page page-animate">
-      {/* Header */}
+      {/* --- MATURED HEADER --- */}
       <header className="settings-header">
-        <button className="back-button" onClick={() => navigate('/dashboard')}>
-          <span className="back-arrow">←</span>
+        <button className="icon-btn-back" onClick={() => navigate('/dashboard')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
         <h1 className="settings-title">Settings</h1>
       </header>
 
-      {/* Main Content */}
       <main className="settings-main">
-        {/* Account Section */}
-        <div className="settings-card">
+        {/* --- ACCOUNT SECTION --- */}
+        <section className="settings-card">
           <h2 className="card-title">Account</h2>
           <div className="profile-section">
-            <div className="profile-avatar">
-              <span className="avatar-initials">{userInitials}</span>
-            </div>
-            <div className="profile-info">
-              <h3 className="profile-name">{user.username}</h3>
-              <p className="profile-email">{user.email}</p>
-              <a href="#edit" className="edit-profile-link">Edit Profile</a>
-            </div>
-          </div>
+  <div className="profile-avatar" onClick={handleAvatarClick} title="Change Profile Picture">
+    {profileImage ? (
+      <img src={profileImage} alt="Profile" className="avatar-img" />
+    ) : (
+      <span className="avatar-initials">{userInitials}</span>
+    )}
+    {/* Hidden File Input */}
+    <input 
+      type="file" 
+      ref={fileInputRef} 
+      onChange={handleFileChange} 
+      accept="image/*" 
+      style={{ display: 'none' }} 
+    />
+    <div className="avatar-overlay">
+      <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
+        <path d="M12 15c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3z"/>
+        <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+      </svg>
+    </div>
+  </div>
+  <div className="profile-info">
+    <h3 className="profile-name">{user.username}</h3>
+    <p className="profile-email">{user.email}</p>
+    <button className="edit-profile-btn" onClick={handleAvatarClick}>Change Photo</button>
+  </div>
+</div>
+          
           <div className="settings-list">
             {accountItems.map((item, index) => (
               <div
@@ -203,20 +260,24 @@ function Settings() {
                 </div>
                 <div className="item-right">
                   {item.status && <span className="item-status">{item.status}</span>}
-                  <span className="item-arrow">→</span>
+                  <svg className="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="9 18 15 12 9 6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Payments Section */}
-        <div className="settings-card">
+        {/* --- PAYMENTS SECTION --- */}
+        <section className="settings-card">
           <h2 className="card-title">Payments</h2>
           <div className="current-plan-section">
             <div className="plan-header">
               <h3 className="plan-subtitle">Current Plan</h3>
-              <span className="plan-badge">{subscription.status === 'active' ? 'Active' : 'Inactive'}</span>
+              <span className={`plan-badge status-${subscription.status}`}>
+                {subscription.status === 'active' ? 'Active' : 'Inactive'}
+              </span>
             </div>
             <div className="plan-details">
               <p className="plan-name">{subscription.planName}</p>
@@ -228,19 +289,21 @@ function Settings() {
                 onClick={handleChangePlan}
                 disabled={isStartingPayment || isVerifyingPayment}
               >
-                {isStartingPayment ? 'Redirecting to Paystack...' : isVerifyingPayment ? 'Verifying payment...' : 'Change Plan'}
+                {isStartingPayment ? 'Redirecting...' : isVerifyingPayment ? 'Verifying...' : 'Change Plan'}
               </button>
             </div>
           </div>
+
           <div className="payment-methods-section">
             <div className="payment-methods-header">
               <SettingsIcon type="card" />
               <span className="payment-label">Payment Methods</span>
             </div>
             <div className="payment-card-info">
-              <span className="card-number">**** 4242</span>
+              <span className="card-number">•••• 4242</span>
             </div>
           </div>
+
           <div className="settings-list">
             {paymentItems.map((item, index) => (
               <div key={index} className="settings-item">
@@ -249,15 +312,17 @@ function Settings() {
                   <span className="item-label">{item.label}</span>
                 </div>
                 <div className="item-right">
-                  <span className="item-arrow">→</span>
+                  <svg className="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="9 18 15 12 9 6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Help & Support Section */}
-        <div className="settings-card">
+        {/* --- HELP & SUPPORT SECTION --- */}
+        <section className="settings-card">
           <h2 className="card-title">Help & Support</h2>
           <div className="settings-list">
             {helpItems.map((item, index) => (
@@ -271,21 +336,26 @@ function Settings() {
                   <span className="item-label">{item.label}</span>
                 </div>
                 <div className="item-right">
-                  <span className="item-arrow">→</span>
+                  <svg className="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="9 18 15 12 9 6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
+
+        {/* --- SPACER FOR BOTTOM NAV --- */}
+        <div className="settings-bottom-spacer"></div>
       </main>
 
-      {/* Footer */}
+      {/* --- FOOTER --- */}
       <footer className="settings-footer">
-        <span className="version">Version 2.4.1</span>
+        <span className="version">Version 1.2</span>
         <button className="sign-out-btn" onClick={handleSignOut}>Sign Out</button>
       </footer>
     </div>
-  )
+  );
 }
 
 export default Settings

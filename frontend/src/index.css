@@ -1,3 +1,6 @@
+/* 1. IMPORT PREMIUM FONT */
+
+
 * {
   margin: 0;
   padding: 0;
@@ -7,24 +10,80 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
+/* 2. CORE THEME VARIABLES */
+:root {
+  /* Font Family */
+  --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Refined Easing (Slightly snappier for 2026) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  
+  /* Brand Colors (FUTO Green Core) */
+  --futo-green-primary: #2e7d32;
+  --futo-green-light: #4caf50;
+  --futo-orange: #ff7043;
+
+  /* Light Mode - Matured Grays */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8faf8; /* Hint of green in the gray */
+  --text-primary: #121412; /* Deep charcoal, not pure black */
+  --text-secondary: #64748b; /* Slate gray for labels */
+  --border-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Dark Mode - Deep & Professional */
+[data-theme='dark'] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #141414;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 3. GLOBAL BODY STYLES */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-primary);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff;
   overflow-x: hidden;
+  line-height: 1.5;
+  letter-spacing: -0.01em; /* Tighter for a designed look */
 }
 
-/* iOS: avoid auto-zoom on focus when font size is below 16px */
+/* 4. MATURED TYPOGRAPHY HIERARCHY */
+h1, h2, h3, h4 {
+  font-weight: 800; /* ExtraBold for headers */
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+/* Utility for high-impact numbers (Steps, Calories) */
+.text-value {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums; /* Prevents numbers from shifting */
+}
+
+/* Utility for labels (Distance, Km, Unit) */
+.text-label {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* 5. INPUT ACCESSIBILITY (iOS Fix) */
 @media (max-width: 768px) {
   input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
   select,
   textarea {
-    font-size: max(16px, 1em);
+    font-size: 16px; /* Prevents auto-zoom on Safari */
   }
 }
 
@@ -32,80 +91,44 @@ body {
   min-height: 100vh;
 }
 
-/* ----------------------------
-   Motion + modern UI primitives
-   ---------------------------- */
-
-:root {
-  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Light mode colors (default) */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f1f8e9;
-  --text-primary: #424242;
-  --text-secondary: #757575;
-  --border-color: rgba(66, 66, 66, 0.2);
-}
-
-/* Dark mode */
-[data-theme='dark'] {
-  --bg-primary: #1f1f1f;
-  --bg-secondary: #2d2d2d;
-  --text-primary: #ffffff;
-  --text-secondary: #aaaaaa;
-  --border-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Auto mode respects system preference */
-@media (prefers-color-scheme: dark) {
-  [data-theme='auto'] {
-    --bg-primary: #1f1f1f;
-    --bg-secondary: #2d2d2d;
-    --text-primary: #ffffff;
-    --text-secondary: #aaaaaa;
-    --border-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-@keyframes gradient-pan {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
+/* 6. ANIMATIONS - Refined for "Premium" Feel */
 @keyframes page-enter {
-  0% { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.99); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  0% { 
+    opacity: 0; 
+    transform: translateY(10px) scale(0.995); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
 }
 
 @keyframes fade-up {
-  0% { opacity: 0; transform: translate3d(0, 14px, 0); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+  0% { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 }
 
-/* Apply to page root wrappers so every route “feels” animated */
 .page-animate {
-  animation: page-enter 520ms var(--ease-out) both;
+  animation: page-enter 600ms var(--ease-out) both;
 }
 
-/* Stagger helper (use with inline style or nth-child delays in page CSS) */
 .fade-up {
-  animation: fade-up 560ms var(--ease-out) both;
+  animation: fade-up 700ms var(--ease-out) both;
   will-change: transform, opacity;
 }
 
+/* Smooth motion for Reduced Motion users */
 @media (prefers-reduced-motion: reduce) {
-  html:focus-within {
-    scroll-behavior: auto;
-  }
-
   *, *::before, *::after {
-    animation-duration: 0.001ms !important;
+    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }
-
-

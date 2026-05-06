@@ -1,0 +1,124 @@
+.new-badges-alert {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 26px;
+  margin-bottom: 30px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  animation: slide-down-fade 0.5s var(--ease-out) both;
+}
+
+[data-theme='dark'] .new-badges-alert {
+  background: rgba(30, 40, 30, 0.8);
+  border-color: rgba(76, 175, 80, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.badge-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.badge-alert-header h2 {
+  font-size: 1.35rem;
+  margin: 0;
+  color: #1b5e20;
+  font-weight: 800;
+}
+
+[data-theme='dark'] .badge-alert-header h2 {
+  color: #81c784;
+}
+
+.badge-count-pill {
+  background: #2e7d32;
+  color: white;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.badge-alert-list {
+  display: grid;
+  gap: 14px;
+}
+
+.badge-alert-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: #f8fcf4;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(138, 195, 99, 0.15);
+  transition: transform 0.2s ease;
+}
+
+[data-theme='dark'] .badge-alert-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.badge-alert-item:hover {
+  transform: scale(1.02);
+}
+
+.badge-alert-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-alert-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+}
+
+.badge-icon-glow {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, rgba(76, 175, 80, 0.4) 0%, transparent 70%);
+  filter: blur(5px);
+  z-index: 1;
+}
+
+.badge-alert-title {
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #2e7d32;
+  font-size: 1.1rem;
+}
+
+[data-theme='dark'] .badge-alert-title {
+  color: #a5d6a7;
+}
+
+.badge-alert-text {
+  margin: 0;
+  color: #4f4f4f;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+[data-theme='dark'] .badge-alert-text {
+  color: #cfcfcf;
+}
+
+@keyframes slide-down-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

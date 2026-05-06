@@ -1,0 +1,269 @@
+/* --- 1. GLOBAL THEME & VARIABLES --- */
+:root {
+  --futo-green-primary: #2e7d32;
+  --futo-green-light: #4caf50;
+  --futo-orange: #ff7043;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  --bg-gradient: linear-gradient(135deg, #f8fbf8 0%, #f1f4f1 100%);
+}
+
+[data-theme='dark'] {
+  --glass-bg: rgba(20, 20, 20, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --bg-gradient: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+}
+
+.dashboard {
+  min-height: 100vh;
+  background: var(--bg-gradient);
+  color: #1a1a1a;
+  font-family: 'Inter', -apple-system, sans-serif;
+  position: relative;
+}
+
+[data-theme='dark'] .dashboard { color: #ffffff; }
+
+/* --- UPDATED HEADER (BREATHING ROOM) --- */
+.dashboard-header {
+  display: flex;
+  flex-direction: column; /* Stacked by default for mobile */
+  gap: 16px; 
+  padding: 16px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Row 1: Logo & Profile */
+.header-identity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* Row 2: Navigation Tabs */
+.header-nav-row {
+  width: 100%;
+}
+
+.header-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 4px;
+  border-radius: 14px;
+  width: 100%; /* Spans full width on mobile */
+}
+
+.tab {
+  flex: 1; /* Tabs grow to fill the width equally */
+  padding: 10px 0;
+  text-align: center;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: #666;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.tab.active {
+  background: #ffffff;
+  color: var(--futo-green-primary);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+/* --- 3. RESPONSIVE GRID SYSTEM --- */
+.dashboard-main {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr; /* Single column for mobile */
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* 💻 LAPTOP "PRESENTATION" VIEW (1024px and up) */
+@media (min-width: 1024px) {
+  .dashboard-main {
+    padding: 40px 60px;
+    /* Creates a 400px fixed sidebar for stats and a flexible area for charts */
+    grid-template-columns: 400px 1fr; 
+    align-items: start;
+    gap: 48px;
+  }
+
+  /* Make the Hero stats "Follow" the user as they scroll through data */
+  .dashboard-hero-section {
+    position: sticky;
+    top: 110px; /* Adjusted to sit perfectly below the laptop header */
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    /* Subtle separation line for the sidebar look */
+    padding-right: 24px;
+    border-right: 1px solid var(--glass-border);
+  }
+
+  /* Presentation Mode: Expand charts into a side-by-side layout */
+  .dashboard-insights-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+    gap: 32px;
+  }
+
+  /* Give charts more "Stage Presence" on desktop */
+  .insight-card-wrapper {
+    min-height: 500px;
+    padding: 32px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .insight-card-wrapper:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Adjust Typography for the "Presentation" feel */
+  .section-title {
+    font-size: 28px;
+    margin-bottom: 32px;
+  }
+}
+
+/* 🖥️ ULTRA-WIDE SCREEN OPTIMIZATION */
+@media (min-width: 1600px) {
+  .dashboard-main {
+    max-width: 1800px;
+    padding: 60px 100px;
+  }
+}
+
+/* --- 4. TACTILE CARD STYLING --- */
+.activity-tracker-section,
+.summary-cards,
+.insight-card-wrapper {
+  background: #ffffff;
+  border-radius: 28px; /* Modern squircle */
+  padding: 24px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(0, 0, 0, 0.02);
+  animation: fade-up 0.6s var(--ease-out) both;
+}
+
+[data-theme='dark'] .activity-tracker-section,
+[data-theme='dark'] .summary-cards,
+[data-theme='dark'] .insight-card-wrapper {
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* --- PREMIUM AI FAB --- */
+.camera-fab {
+  position: fixed !important;
+  bottom: 105px;
+  right: 25px;
+  width: 130px; /* Wider "Pill" shape feels more premium than a circle */
+  height: 56px;
+  border-radius: 18px;
+  border: none;
+  background: var(--futo-green-primary);
+  color: white;
+  z-index: 9999;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Layered Shadow: Makes it look like it's floating high */
+  box-shadow: 
+    0 10px 15px -3px rgba(46, 125, 50, 0.3),
+    0 4px 6px -2px rgba(46, 125, 50, 0.1);
+  
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.fab-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+  position: relative;
+}
+
+.svg-icon {
+  width: 20px;
+  height: 20px;
+  stroke: white;
+}
+
+.fab-label {
+  font-family: var(--font-primary);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+/* --- THE "AI GLOW" EFFECT --- */
+.fab-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* --- HOVER & INTERACTION --- */
+.camera-fab:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(46, 125, 50, 0.4);
+}
+
+.camera-fab:hover .fab-glow {
+  opacity: 1;
+}
+
+.camera-fab:active {
+  transform: scale(0.95) translateY(0);
+}
+@media (max-width: 480px) {
+  .camera-fab {
+    bottom: 100px;
+    width: 60px; /* Shrink to square on mobile to save space */
+    padding: 0;
+  }
+  .fab-label {
+    display: none; /* Hide text on small phones, show only icon */
+  }
+}
+
+/* --- 6. ANIMATIONS --- */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Staggered load effect */
+.dashboard-hero-section > *:nth-child(1) { animation-delay: 0.1s; }
+.dashboard-hero-section > *:nth-child(2) { animation-delay: 0.2s; }
+.dashboard-hero-section > *:nth-child(3) { animation-delay: 0.3s; }
+.dashboard-insights-section > *:nth-child(1) { animation-delay: 0.4s; }
+.dashboard-insights-section > *:nth-child(2) { animation-delay: 0.5s; }
+
+/* Hide scrollbars but allow scrolling for chart wrappers */
+.insight-card-wrapper {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.insight-card-wrapper::-webkit-scrollbar { display: none; }

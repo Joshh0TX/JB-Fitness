@@ -1,0 +1,203 @@
+/* --- 1. IMMERSIVE OVERLAY --- */
+.vision-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- 2. THE WRAPPER (Responsive) --- */
+.vision-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100dvh; 
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent accidental bounce scrolling */
+}
+
+/* --- 3. THE MATURED CLOSE BUTTON --- */
+.vision-close-alt {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  transition: background 0.3s ease;
+}
+
+.vision-close-alt svg { width: 20px; height: 20px; }
+.vision-close-alt:hover { background: rgba(255, 255, 255, 0.3); }
+
+/* --- 4. VIEWPORT & CAMERA --- */
+.vision-viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.camera-feed, .image-freeze {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.camera-layer, 
+.preview-layer {
+  width: 100%;
+  height: 100%;    /* Force the layer to fill the viewport */
+  display: flex;   /* Help the video inside it expand */
+  flex-direction: column;
+  position: relative;
+}
+
+/* --- 5. RETICLE (Clean Focus UI) --- */
+.focus-reticle {
+  position: absolute;
+  inset: 20%;
+  pointer-events: none;
+}
+
+.reticle-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid rgba(255, 255, 255, 0.5);
+}
+
+.tl { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
+.tr { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 8px 0 0; }
+.bl { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 8px; }
+.br { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
+
+/* --- 6. CONTROLS --- */
+.vision-controls {
+  flex-shrink: 0; /* Prevents the control bar from squeezing the camera view */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px 24px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.shutter-trigger {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: transparent;
+  border: 4px solid #fff;
+  padding: 6px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.shutter-inner {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.shutter-trigger:active { transform: scale(0.9); }
+
+.vision-hint {
+  position: absolute;
+  top: -30px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+}
+
+/* --- 7. ANALYSIS ACTION --- */
+.decision-row {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vision-btn {
+  padding: 18px;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+}
+
+.vision-btn.primary { background: var(--futo-green-primary); color: white; }
+.vision-btn.ghost { background: rgba(255,255,255,0.1); color: white; backdrop-filter: blur(10px); }
+
+/* --- 8. RESULTS DRAWER --- */
+.vision-results-drawer {
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  padding: 12px 20px 30px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.drawer-handle { width: 40px; height: 5px; background: #ddd; border-radius: 10px; margin: 0 auto 20px; }
+
+.result-card-mini {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8f8f8;
+  border-radius: 16px;
+  margin-bottom: 10px;
+}
+
+.res-name { font-weight: 800; display: block; }
+.res-meta { font-size: 12px; color: #666; font-weight: 600; }
+
+.res-add-btn {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* --- LAPTOP: CARD MODE --- */
+@media (min-width: 1024px) {
+  .vision-overlay { background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); }
+  
+  .vision-wrapper {
+    width: 480px;
+    height: 500px; /* Centered card height */
+    border-radius: 32px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+  }
+}
+
+/* Dark Mode Results */
+[data-theme='dark'] .vision-results-drawer { background: #1a1a1a; }
+[data-theme='dark'] .result-card-mini { background: #262626; color: #fff; }

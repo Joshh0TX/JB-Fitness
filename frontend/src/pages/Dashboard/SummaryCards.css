@@ -1,0 +1,128 @@
+/* --- 1. UNIFIED CONTAINER --- */
+.summary-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Keep them side-by-side even on mid-screens */
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 0 4px;
+}
+
+/* --- 2. THE BLOCK - Re-introducing subtle boundaries --- */
+.summary-block {
+  background: var(--bg-secondary); /* Uses the soft gray/green from index.css */
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease;
+}
+
+.summary-block:hover {
+  transform: translateY(-2px);
+  border-color: rgba(46, 125, 50, 0.3);
+}
+
+/* --- 3. HEADER ALIGNMENT --- */
+.block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.block-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--futo-green-primary);
+  display: flex;
+  align-items: center;
+}
+
+.block-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+/* --- 4. DATA GROUPING --- */
+.block-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.value-group {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.value-large {
+  font-size: 2.2rem; /* Reduced from 3.2 to keep it tight */
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.value-unit {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.goal-info {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.goal-info strong {
+  color: var(--text-primary);
+}
+
+/* --- 5. MINIMAL PROGRESS --- */
+.progress-track-mini {
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+[data-theme='dark'] .progress-track-mini {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.progress-fill-mini {
+  height: 100%;
+  background: var(--futo-green-primary);
+  border-radius: 4px;
+  transition: width 1s var(--ease-out);
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 480px) {
+  .summary-container {
+    grid-template-columns: 1fr; /* Stack only on very small phones */
+    gap: 12px;
+  }
+  
+  .value-large {
+    font-size: 1.8rem;
+  }
+}
+
+/* --- LAPTOP PRESENTATION --- */
+@media (min-width: 1024px) {
+  .summary-block {
+    padding: 24px;
+    background: #ffffff; /* Brighter for laptop view */
+  }
+  
+  .value-large {
+    font-size: 2.5rem;
+  }
+}

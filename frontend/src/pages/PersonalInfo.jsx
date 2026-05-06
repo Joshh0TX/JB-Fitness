@@ -6,16 +6,8 @@ import './PersonalInfo.css'
 function PersonalInfo() {
   const navigate = useNavigate()
   const [user, setUser] = useState({
-    username: '',
-    email: '',
-    phone: '',
-    dateOfBirth: '',
-    gender: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: ''
+    username: '', email: '', phone: '', dateOfBirth: '',
+    gender: '', address: '', city: '', state: '', zipCode: '', country: ''
   })
   const [formData, setFormData] = useState(user)
   const [message, setMessage] = useState('')
@@ -23,10 +15,7 @@ function PersonalInfo() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!token) {
-        navigate('/login')
-        return
-      }
+      if (!token) { navigate('/login'); return; }
 
       try {
         const profileRes = await API.get('/api/users/me', {
@@ -53,32 +42,9 @@ function PersonalInfo() {
         const existing = JSON.parse(localStorage.getItem('user') || '{}')
         localStorage.setItem('user', JSON.stringify({ ...existing, ...userInfo }))
       } catch (error) {
-        console.error('Failed to fetch profile from server:', error)
-        try {
-          const userStr = localStorage.getItem('user')
-          if (userStr) {
-            const userData = JSON.parse(userStr)
-            const userInfo = {
-              username: userData.username || userData.name || '',
-              email: userData.email || '',
-              phone: userData.phone || '',
-              dateOfBirth: userData.dateOfBirth || '',
-              gender: userData.gender || '',
-              address: userData.address || '',
-              city: userData.city || '',
-              state: userData.state || '',
-              zipCode: userData.zipCode || '',
-              country: userData.country || ''
-            }
-            setUser(userInfo)
-            setFormData(userInfo)
-          }
-        } catch (localErr) {
-          console.error('Failed to parse user from localStorage:', localErr)
-        }
+        console.error('Failed to fetch profile:', error)
       }
-    }
-
+    };
     fetchProfile()
   }, [navigate, token])
 
@@ -88,16 +54,11 @@ function PersonalInfo() {
   }
 
   const handleSave = async () => {
-    if (!token) {
-      navigate('/login')
-      return
-    }
-
+    if (!token) { navigate('/login'); return; }
     try {
       const response = await API.put('/api/users/me', formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
-
       const saved = response?.data?.user || formData
       const normalizedSaved = {
         username: saved.username || saved.name || '',
@@ -111,207 +72,93 @@ function PersonalInfo() {
         zipCode: saved.zipCode || '',
         country: saved.country || ''
       }
-
-      const existing = JSON.parse(localStorage.getItem('user') || '{}')
-      localStorage.setItem('user', JSON.stringify({ ...existing, ...normalizedSaved }))
-
+      localStorage.setItem('user', JSON.stringify(normalizedSaved))
       setUser(normalizedSaved)
       setFormData(normalizedSaved)
       setMessage('Profile updated successfully!')
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {
-      console.error('Failed to save user:', error)
       setMessage(error?.response?.data?.message || 'Failed to save changes')
       setTimeout(() => setMessage(''), 3000)
     }
   }
 
-  const handleCancel = () => {
-    setFormData(user)
-  }
-
   return (
-    <div className="personal-info-page page-animate">
+    <div className="personal-info-page">
+      {/* --- MATURED HEADER --- */}
       <header className="personal-info-header">
-        <button
-          className="back-button"
-          onClick={() => navigate('/settings')}
-        >
-          <span className="back-arrow">←</span>
+        <button className="icon-btn-back" onClick={() => navigate('/settings')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
-        <h1 className="page-title">Personal Information</h1>
+        <h1 className="settings-title">Personal Info</h1>
       </header>
 
       <main className="personal-info-main">
-        <div className="info-card">
+        <section className="info-card">
           {message && <div className="message-alert">{message}</div>}
 
           <div className="info-section">
-            <h2 className="section-title">Basic Information</h2>
-                <div className="form-grid">
-                  <div className="form-item">
-                    <label htmlFor="username" className="form-label">
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      id="username"
-                      name="username"
-                      value={formData.username || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      placeholder=""
-                    />
-                  </div>
-                  <div className="form-item">
-                    <label htmlFor="email" className="form-label">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      placeholder=""
-                    />
-                  </div>
-                  <div className="form-item">
-                    <label htmlFor="phone" className="form-label">
-                      Phone
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      placeholder=""
-                    />
-                  </div>
-                  <div className="form-item">
-                    <label htmlFor="dateOfBirth" className="form-label">
-                      Date of Birth
-                    </label>
-                    <input
-                      type="date"
-                      id="dateOfBirth"
-                      name="dateOfBirth"
-                      value={formData.dateOfBirth || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="form-item">
-                    <label htmlFor="gender" className="form-label">
-                      Gender
-                    </label>
-                    <select
-                      id="gender"
-                      name="gender"
-                      value={formData.gender || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                      <option value="prefer-not-to-say">
-                        Prefer not to say
-                      </option>
-                    </select>
-                  </div>
-                </div>
+            <h2 className="card-title">Basic Details</h2>
+            <div className="form-grid">
+              <div className="form-item">
+                <label className="form-label">Full Name</label>
+                <input type="text" name="username" value={formData.username} onChange={handleInputChange} className="form-input" />
               </div>
-
-            <div className="info-section">
-                <h2 className="section-title">Address</h2>
-                <div className="form-grid">
-                  <div className="form-item full-width">
-                    <label htmlFor="address" className="form-label">
-                      Street Address
-                    </label>
-                    <input
-                      type="text"
-                      id="address"
-                      name="address"
-                      value={formData.address || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      placeholder=""
-                    />
-                  </div>
-                  <div className="form-item">
-                    <label htmlFor="city" className="form-label">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      value={formData.city || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      placeholder=""
-                    />
-                  </div>
-                  <div className="form-item">
-                    <label htmlFor="state" className="form-label">
-                      State
-                    </label>
-                    <input
-                      type="text"
-                      id="state"
-                      name="state"
-                      value={formData.state || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      placeholder=""
-                    />
-                  </div>
-                  <div className="form-item">
-                    <label htmlFor="zipCode" className="form-label">
-                      Zip Code
-                    </label>
-                    <input
-                      type="text"
-                      id="zipCode"
-                      name="zipCode"
-                      value={formData.zipCode || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      placeholder=""
-                    />
-                  </div>
-                  <div className="form-item">
-                    <label htmlFor="country" className="form-label">
-                      Country
-                    </label>
-                    <input
-                      type="text"
-                      id="country"
-                      name="country"
-                      value={formData.country || ''}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      placeholder=""
-                    />
-                  </div>
-                </div>
+              <div className="form-item">
+                <label className="form-label">Email Address</label>
+                <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="form-input" />
               </div>
-
-            <div className="form-actions">
-            <button className="save-button" onClick={handleSave}>
-              Save Changes
-            </button>
-            <button className="cancel-button" onClick={handleCancel}>
-              Cancel
-            </button>
+              <div className="form-item">
+                <label className="form-label">Phone Number</label>
+                <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="form-input" />
+              </div>
+              <div className="form-item">
+                <label className="form-label">Date of Birth</label>
+                <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleInputChange} className="form-input" />
+              </div>
+              <div className="form-item">
+                <label className="form-label">Gender</label>
+                <select name="gender" value={formData.gender} onChange={handleInputChange} className="form-input">
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
+
+          <div className="info-section">
+            <h2 className="card-title">Address & Location</h2>
+            <div className="form-grid">
+              <div className="form-item full-width">
+                <label className="form-label">Street Address</label>
+                <input type="text" name="address" value={formData.address} onChange={handleInputChange} className="form-input" />
+              </div>
+              <div className="form-item">
+                <label className="form-label">City</label>
+                <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="form-input" />
+              </div>
+              <div className="form-item">
+                <label className="form-label">State / Region</label>
+                <input type="text" name="state" value={formData.state} onChange={handleInputChange} className="form-input" />
+              </div>
+              <div className="form-item">
+                <label className="form-label">Country</label>
+                <input type="text" name="country" value={formData.country} onChange={handleInputChange} className="form-input" />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button className="btn-save-profile" onClick={handleSave}>Save Changes</button>
+            <button className="btn-cancel-profile" onClick={() => setFormData(user)}>Reset</button>
+          </div>
+        </section>
+        
+        <div className="settings-bottom-spacer"></div>
       </main>
     </div>
   )

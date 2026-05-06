@@ -27,17 +27,14 @@ function Nutrition() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // User initials for avatar
+  // States
   const [userInitials, setUserInitials] = useState("JD");
-
-  // ✅ States
   const [dailySummary, setDailySummary] = useState({
     totalCalories: 0,
     totalProtein: 0,
     totalCarbs: 0,
     totalFats: 0,
   });
-
   const [weeklySummary, setWeeklySummary] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -45,324 +42,190 @@ function Nutrition() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userMeals, setUserMeals] = useState([]);
-  
-  // Calendar history states
   const [showCalendar, setShowCalendar] = useState(false);
   const [historyDate, setHistoryDate] = useState(toLocalISODate());
-  const [allMeals, setAllMeals] = useState([]); // All meals for history
-  const [historyMeals, setHistoryMeals] = useState([]); // Meals for selected date
+  const [allMeals, setAllMeals] = useState([]);
+  const [historyMeals, setHistoryMeals] = useState([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // ✅ Get user initials on mount
   useEffect(() => {
     try {
-      const userStr = localStorage.getItem('user')
+      const userStr = localStorage.getItem('user');
       if (userStr) {
-        const user = JSON.parse(userStr)
-        const username = user.username || user.name || "User"
-        const initials = username
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2)
-        setUserInitials(initials || "JD")
+        const user = JSON.parse(userStr);
+        const username = user.username || user.name || "User";
+        const initials = username.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+        setUserInitials(initials || "JD");
       }
-    } catch (error) {
-      console.error("Failed to parse user from localStorage:", error)
-    }
-  }, [])
+    } catch (e) { console.error(e); }
+  }, []);
 
-  // ✅ Fetch initial daily & weekly summaries & user meals
   const fetchSummaries = async () => {
     if (!token) return;
-
     try {
       const [dailyRes, weeklyRes, mealsRes] = await Promise.all([
-        API.get("/api/meals/daily-summary", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        API.get("/api/meals/weekly-summary", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        API.get("/api/meals", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        API.get("/api/meals/daily-summary", { headers: { Authorization: `Bearer ${token}` } }),
+        API.get("/api/meals/weekly-summary", { headers: { Authorization: `Bearer ${token}` } }),
+        API.get("/api/meals", { headers: { Authorization: `Bearer ${token}` } }),
       ]);
 
-      const mealsData = mealsRes.data || [];
+      // SAFETY: Force data to be an array. If mealsRes.data is not an array, use []
+      const mealsData = Array.isArray(mealsRes.data) ? mealsRes.data : [];
+      
       setDailySummary({
         totalCalories: Number(dailyRes?.data?.totalCalories ?? 0),
         totalProtein: Number(dailyRes?.data?.totalProtein ?? 0),
         totalCarbs: Number(dailyRes?.data?.totalCarbs ?? 0),
         totalFats: Number(dailyRes?.data?.totalFats ?? 0),
       });
-      setWeeklySummary(weeklyRes.data);
-      setAllMeals(mealsData); // Store all meals for history
+
+      setWeeklySummary(Array.isArray(weeklyRes.data) ? weeklyRes.data : []);
+      setAllMeals(mealsData);
       
-      // Filter meals for today
       const todayStr = toLocalISODate();
-      const todayMeals = mealsData.filter((m) => getMealDate(m) === todayStr);
-      setUserMeals(todayMeals);
+      setUserMeals(mealsData.filter((m) => getMealDate(m) === todayStr));
     } catch (error) {
       console.error("Summary fetch error:", error);
-      setError("Failed to load nutrition data");
+      setAllMeals([]); // Default to empty array on crash
     }
   };
 
-  useEffect(() => {
-    fetchSummaries();
-  }, []);
+  useEffect(() => { fetchSummaries(); }, []);
 
-  const getResultKey = (result, index) => {
-    return String(result?.fdcId || `${result?.name || "food"}-${index}`);
-  };
-
+  const getResultKey = (result, index) => String(result?.fdcId || `${result?.name || "food"}-${index}`);
   const getSafeGrams = (value) => {
     const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      return 100;
-    }
-
-    return Math.min(2000, Math.round(parsed));
+    return (!Number.isFinite(parsed) || parsed <= 0) ? 100 : Math.min(2000, Math.round(parsed));
   };
+  const scaleNutrientByGrams = (basePer100g, grams) => Math.round(((Number(basePer100g) || 0) * getSafeGrams(grams)) / 100);
 
-  const scaleNutrientByGrams = (basePer100g, grams) => {
-    const base = Number(basePer100g) || 0;
-    const portion = getSafeGrams(grams);
-    return Math.round((base * portion) / 100);
-  };
-
-  // ✅ Search for meals via Nutritionix API
   const searchMeals = async (e) => {
     e.preventDefault();
-    
-    if (!searchQuery.trim()) {
-      setError("Please enter a food item");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setSearchResults([]);
-
+    if (!searchQuery.trim()) { setError("Please enter a food item"); return; }
+    setLoading(true); setError(""); setSearchResults([]);
     try {
-      const response = await API.post("/api/nutrition/search", {
-        query: searchQuery,
-      });
-
-      if (response.data.results && response.data.results.length > 0) {
+      const response = await API.post("/api/nutrition/search", { query: searchQuery });
+      if (response.data.results?.length > 0) {
         setSearchResults(response.data.results);
         const initialGrams = {};
-        response.data.results.forEach((result, index) => {
-          initialGrams[getResultKey(result, index)] = 100;
-        });
+        response.data.results.forEach((r, i) => { initialGrams[getResultKey(r, i)] = 100; });
         setGramsByResult(initialGrams);
-      } else {
-        setError("No foods found. Try a different search.");
-      }
-    } catch (err) {
-      console.error("Search error:", err);
-      setError(
-        err.response?.data?.message ||
-          "Failed to search for meals. Try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+      } else { setError("No foods found."); }
+    } catch (err) { setError("Search failed. Try again."); } finally { setLoading(false); }
   };
 
-  // ✅ Add meal from search results to today
   const addMealToToday = async (meal, gramsInput) => {
-    if (!token) {
-      notify("Session expired. Please log in again.", "error");
-      navigate("/login");
-      return;
-    }
-
+    if (!token) { navigate("/login"); return; }
     const grams = getSafeGrams(gramsInput);
-    const calories = scaleNutrientByGrams(meal.calories, grams);
-    const protein = scaleNutrientByGrams(meal.protein, grams);
-    const carbs = scaleNutrientByGrams(meal.carbs, grams);
-    const fats = scaleNutrientByGrams(meal.fats, grams);
-
     try {
-      await API.post(
-        "/api/meals",
-        {
-          name: `${meal.name} (${grams}g)`,
-          calories,
-          protein,
-          carbs,
-          fats,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      notify(`${meal.name} (${grams}g) added to today!`, "success");
-
-      // 🔄 Refresh all data
-      setSearchQuery("");
-      setSearchResults([]);
-      fetchSummaries();
-    } catch (error) {
-      console.error("Add meal error:", error);
-      notify(error.response?.data?.message || "Failed to add meal", "error");
-    }
+      await API.post("/api/meals", {
+        name: `${meal.name} (${grams}g)`,
+        calories: scaleNutrientByGrams(meal.calories, grams),
+        protein: scaleNutrientByGrams(meal.protein, grams),
+        carbs: scaleNutrientByGrams(meal.carbs, grams),
+        fats: scaleNutrientByGrams(meal.fats, grams),
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      notify(`${meal.name} added!`, "success");
+      setSearchQuery(""); setSearchResults([]); fetchSummaries();
+    } catch (e) { notify("Failed to add meal", "error"); }
   };
 
-  // ✅ Delete a meal
   const deleteMeal = async (mealId) => {
-    if (!token) return;
-
-    if (!window.confirm("Are you sure you want to delete this meal?")) return;
-
+    if (!token || !window.confirm("Delete this meal?")) return;
     try {
-      await API.delete(`/api/meals/${mealId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      await API.delete(`/api/meals/${mealId}`, { headers: { Authorization: `Bearer ${token}` } });
       notify("Meal deleted", "success");
       fetchSummaries();
-    } catch (error) {
-      console.error("Delete error:", error);
-      notify("Failed to delete meal", "error");
-    }
+    } catch (e) { notify("Delete failed", "error"); }
   };
 
-  // ✅ Handle history date selection from calendar
   const handleHistoryDateSelect = (dateStr) => {
     setHistoryDate(dateStr);
-    const mealsThatDay = allMeals.filter((m) => getMealDate(m) === dateStr);
-    setHistoryMeals(mealsThatDay);
+    setHistoryMeals(allMeals.filter((m) => getMealDate(m) === dateStr));
   };
 
-  // Build object showing which dates have meal data
+  // ✅ Crash-proof loop: only runs if allMeals is a valid list
   const mealsByDate = {};
-  allMeals.forEach((m) => {
-    const mealDate = getMealDate(m);
-    if (mealDate) {
-      mealsByDate[mealDate] = true;
-    }
-  });
+  if (Array.isArray(allMeals)) {
+    allMeals.forEach((m) => {
+      const mealDate = getMealDate(m);
+      if (mealDate) {
+        mealsByDate[mealDate] = true;
+      }
+    });
+  }
 
   return (
-    <div className="nutrition-page">
+    <div className={`nutrition-page ${isInitialLoad ? 'loading' : ''}`}>
+      {/* --- REFINED HEADER --- */}
       <header className="nutrition-header">
-        <button className="back-button" onClick={() => navigate("/dashboard")}>
-          ←
+        <button className="icon-btn-back" onClick={() => navigate("/dashboard")} aria-label="Go back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
-        <h1>Nutrition</h1>
+        <h1 className="page-title">Nutrition</h1>
         <div className="header-right">
-          <div className="profile-icon" onClick={() => navigate("/settings")}>
-            <span>{userInitials}</span>
+          <div className="profile-initials-circle" onClick={() => navigate("/settings")}>
+            {userInitials}
           </div>
         </div>
       </header>
 
-      <main className="nutrition-main">
-        {/* Daily Summary */}
-        <section className="daily-summary-section">
-          <h2>Today's Summary</h2>
-          <div className="summary-grid">
-            <div className="summary-card">
-              <p className="label">Calories</p>
-              <p className="value">{dailySummary.totalCalories}</p>
-            </div>
-            <div className="summary-card">
-              <p className="label">Protein</p>
-              <p className="value">{dailySummary.totalProtein}g</p>
-            </div>
-            <div className="summary-card">
-              <p className="label">Carbs</p>
-              <p className="value">{dailySummary.totalCarbs}g</p>
-            </div>
-            <div className="summary-card">
-              <p className="label">Fats</p>
-              <p className="value">{dailySummary.totalFats}g</p>
+      <main className="nutrition-content">
+        {/* --- MACRO OVERVIEW CARD --- */}
+        <section className="stats-hero-section">
+          <div className="main-stat-card">
+            <span className="stat-label">Daily Calories</span>
+            <h2 className="stat-value">{dailySummary.totalCalories} <small>kcal</small></h2>
+            <div className="macro-progress-row">
+              <div className="macro-pill"><strong>P</strong> {dailySummary.totalProtein}g</div>
+              <div className="macro-pill"><strong>C</strong> {dailySummary.totalCarbs}g</div>
+              <div className="macro-pill"><strong>F</strong> {dailySummary.totalFats}g</div>
             </div>
           </div>
         </section>
 
-        {/* Search Section */}
-        <section className="search-section">
-          <h2>Add Meal</h2>
-          <form onSubmit={searchMeals} className="search-form">
+        {/* --- SEARCH COMPONENT --- */}
+        <section className="search-container">
+          <form onSubmit={searchMeals} className="modern-search-bar">
             <input
               type="text"
-              placeholder="Search for a food (e.g., chicken breast, oatmeal, apple)"
+              placeholder="Search food database..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
             />
-            <button type="submit" className="search-btn" disabled={loading}>
-              {loading ? "Searching..." : "Search"}
+            <button type="submit" disabled={loading}>
+              {loading ? <div className="spinner-small"></div> : "Search"}
             </button>
           </form>
 
-          {error && <p className="error-message">{error}</p>}
+          {error && <div className="error-toast">{error}</div>}
 
-          {/* Search Results */}
           {searchResults.length > 0 && (
-            <div className="search-results">
-              <h3>Found {searchResults.length} result(s)</h3>
-              <div className="results-grid">
-                {searchResults.map((result, index) => (
-                  <div key={index} className="result-card">
-                    <h4>{result.name}</h4>
-                    <p className="serving">
-                      {result.serving_size || `${result.serving_qty || 100} ${result.serving_unit || "g"}`}
-                    </p>
-
-                    <div className="grams-input-row">
-                      <label htmlFor={`grams-${index}`} className="grams-label">Amount eaten (g)</label>
-                      <input
-                        id={`grams-${index}`}
-                        type="number"
-                        min="1"
-                        max="2000"
-                        step="1"
-                        className="grams-input"
-                        value={gramsByResult[getResultKey(result, index)] ?? 100}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const key = getResultKey(result, index);
-                          setGramsByResult((prev) => ({
-                            ...prev,
-                            [key]: value === "" ? "" : getSafeGrams(value),
-                          }));
-                        }}
-                      />
+            <div className="results-dropdown">
+              <div className="results-header">Results ({searchResults.length})</div>
+              <div className="results-scroll">
+                {searchResults.map((result, i) => (
+                  <div key={i} className="result-item-card">
+                    <div className="res-meta">
+                      <h4>{result.name}</h4>
+                      <p>{result.serving_size || '100g'}</p>
                     </div>
-
-                    <p className="nutrition-base-note">Nutrition shown for entered grams (base per 100g)</p>
-
-                    <div className="nutrition-info">
-                      <span className="nutrition-item">
-                        <strong>{scaleNutrientByGrams(result.calories, gramsByResult[getResultKey(result, index)] ?? 100)}</strong> cal
-                      </span>
-                      <span className="nutrition-item">
-                        <strong>{scaleNutrientByGrams(result.protein, gramsByResult[getResultKey(result, index)] ?? 100)}g</strong> protein
-                      </span>
-                      <span className="nutrition-item">
-                        <strong>{scaleNutrientByGrams(result.carbs, gramsByResult[getResultKey(result, index)] ?? 100)}g</strong> carbs
-                      </span>
-                      <span className="nutrition-item">
-                        <strong>{scaleNutrientByGrams(result.fats, gramsByResult[getResultKey(result, index)] ?? 100)}g</strong> fats
-                      </span>
+                    <div className="res-actions">
+                      <div className="gram-selector">
+                        <input
+                          type="number"
+                          value={gramsByResult[getResultKey(result, i)] ?? 100}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setGramsByResult(p => ({ ...p, [getResultKey(result, i)]: val === "" ? "" : getSafeGrams(val) }));
+                          }}
+                        />
+                        <span>g</span>
+                      </div>
+                      <button className="btn-add-mini" onClick={() => addMealToToday(result, gramsByResult[getResultKey(result, i)] ?? 100)}>
+                        Add +
+                      </button>
                     </div>
-
-                    <button
-                      className="add-result-btn"
-                      onClick={() => addMealToToday(result, gramsByResult[getResultKey(result, index)] ?? 100)}
-                    >
-                      Add to Today
-                    </button>
                   </div>
                 ))}
               </div>
@@ -370,56 +233,44 @@ function Nutrition() {
           )}
         </section>
 
-        {/* Today's Meals / History */}
-        <section className="todays-meals-section">
-          <div className="meals-section-header">
-            <h2>{historyDate === toLocalISODate() ? "Today's Meals" : "Previously Consumed on " + new Date(historyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ({showCalendar ? historyMeals.length : userMeals.length})</h2>
-            <button 
-              className={`history-btn ${showCalendar ? 'active' : ''}`} 
-              onClick={() => setShowCalendar(!showCalendar)}
-              title="View previously consumed meals"
-            >
-              📅 Previously Consumed
+        {/* --- LOGGED MEALS SECTION --- */}
+        <section className="meal-log-section">
+          <div className="log-header">
+            <h3>{historyDate === toLocalISODate() ? "Today's Log" : "Log: " + historyDate}</h3>
+            <button className="history-toggle-btn" onClick={() => setShowCalendar(true)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              History
             </button>
           </div>
 
-          {showCalendar && (
-            <HistoryCalendarModal 
-              isOpen={showCalendar}
-              onClose={() => setShowCalendar(false)}
-              selectedDate={historyDate}
-              onDateSelect={handleHistoryDateSelect}
-              hasDataByDate={mealsByDate}
-            />
-          )}
-
-          {/* Display either today's meals or history meals */}
-          {(showCalendar ? historyMeals.length === 0 : userMeals.length === 0) ? (
-            <p className="no-meals">No meals added yet. Search above to add!</p>
-          ) : (
-            <div className="meals-list">
-              {(showCalendar ? historyMeals : userMeals).map((meal) => (
-                <div key={meal.id} className="meal-item">
-                  <div className="meal-info">
-                    <h4>{meal.name}</h4>
-                    <div className="meal-macros">
-                      <span>{meal.calories} cal</span>
-                      <span>{meal.protein}g protein</span>
-                      <span>{meal.carbs}g carbs</span>
-                      <span>{meal.fats}g fats</span>
-                    </div>
+          <div className="meal-list-container">
+            {(showCalendar ? historyMeals : userMeals).length === 0 ? (
+              <div className="empty-state">No entries for this date.</div>
+            ) : (
+              (showCalendar ? historyMeals : userMeals).map((meal) => (
+                <div key={meal.id} className="meal-log-item">
+                  <div className="meal-details">
+                    <p className="m-name">{meal.name}</p>
+                    <p className="m-macros">{meal.calories} kcal • P: {meal.protein}g • C: {meal.carbs}g • F: {meal.fats}g</p>
                   </div>
-                  <button
-                    className="delete-btn"
-                    onClick={() => deleteMeal(meal.id)}
-                  >
-                    ✕
+                  <button className="btn-delete-meal" onClick={() => deleteMeal(meal.id)}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   </button>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </section>
+
+        {showCalendar && (
+          <HistoryCalendarModal 
+            isOpen={showCalendar}
+            onClose={() => setShowCalendar(false)}
+            selectedDate={historyDate}
+            onDateSelect={handleHistoryDateSelect}
+            hasDataByDate={mealsByDate}
+          />
+        )}
       </main>
     </div>
   );

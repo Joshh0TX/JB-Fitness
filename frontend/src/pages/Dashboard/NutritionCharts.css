@@ -1,0 +1,171 @@
+/* --- 1. SECTION LAYOUT --- */
+.nutrition-section {
+  width: 100%;
+  margin-bottom: 48px;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Stacked on mobile */
+  gap: 20px;
+}
+
+/* --- 2. ANCHORED DONUT BLOCK --- */
+.nutrition-main-block {
+  padding: 10px 0; /* Open layout on mobile */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.donut-wrapper {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+.macro-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.donut-track {
+  fill: transparent;
+  stroke: var(--border-color);
+  stroke-width: 8;
+}
+
+.donut-segment {
+  fill: transparent;
+  stroke-width: 8;
+  stroke-linecap: butt; /* Use 'butt' for segmented donuts, 'round' for single arcs */
+  transition: stroke-dasharray 1s var(--ease-out);
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.center-val {
+  font-size: 2.8rem;
+  line-height: 1;
+}
+
+.center-label {
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+/* --- 3. ANCHORED LEGEND --- */
+.macro-legend-anchored {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 360px;
+}
+
+.legend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.legend-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.legend-item .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.legend-val {
+  font-size: 1.1rem;
+}
+
+/* --- 4. CAPSULE BAR CHART --- */
+.bar-chart-block {
+  padding: 10px 0;
+}
+
+.block-sub-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.capsule-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bar-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.bar-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.bar-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.capsule-track {
+  width: 100%;
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.capsule-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1s var(--ease-out);
+}
+
+/* --- 5. LAPTOP VIEW (Anchored Cards) --- */
+@media (min-width: 1024px) {
+  .nutrition-grid {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+  }
+
+  .nutrition-main-block, .bar-chart-block {
+    background: var(--bg-primary);
+    padding: 32px;
+    border-radius: 28px;
+    border: 1px solid var(--border-color);
+  }
+}
+
+[data-theme='dark'] .nutrition-main-block,
+[data-theme='dark'] .bar-chart-block {
+    background: #1e1e1e;
+}
