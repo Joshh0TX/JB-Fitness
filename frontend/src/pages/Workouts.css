@@ -376,7 +376,7 @@
 [data-theme='dark'] .tactile-counter button { background: #2a2a2a; color: #fff; }
 [data-theme='dark'] .workout-result-item { border-color: #2a2a2a; }
 [data-theme='dark'] .btn-del { background: rgba(255, 77, 77, 0.1); }
-* Dark Mode Adjustment */
+/* Dark Mode Adjustment */
 [data-theme='dark'] .history-btn-small {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
