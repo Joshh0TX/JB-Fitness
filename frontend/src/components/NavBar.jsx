@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "./Navbar.css";
+import "./NavBar.css";
 
-const Navbar = () => {
+const NavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -80,4 +80,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default NavBar;
