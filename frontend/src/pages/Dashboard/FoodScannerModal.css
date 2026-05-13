@@ -154,13 +154,25 @@
 
 /* --- 8. RESULTS DRAWER --- */
 .vision-results-drawer {
-  background: #fff;
-  border-radius: 24px 24px 0 0;
-  padding: 12px 20px 30px;
-  max-height: 40vh;
-  overflow-y: auto;
-}
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  width: 90%;
+  max-width: 380px;
 
+  background: #fff;
+  border-radius: 24px;
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+
+  z-index: 999;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+
+  animation: popIn 0.25s ease;
+}
 .drawer-handle { width: 40px; height: 5px; background: #ddd; border-radius: 10px; margin: 0 auto 20px; }
 
 .result-card-mini {
@@ -201,3 +213,21 @@
 /* Dark Mode Results */
 [data-theme='dark'] .vision-results-drawer { background: #1a1a1a; }
 [data-theme='dark'] .result-card-mini { background: #262626; color: #fff; }
+
+@keyframes popIn {
+  from {
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+.vision-results-backdrop {
+  backdrop-filter: blur(6px);
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 998;
+} 

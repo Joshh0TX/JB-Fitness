@@ -122,18 +122,20 @@ const FoodScannerModal = ({ onClose, refreshData }) => {
 
         {/* RESULTS DRAWER */}
         {scanResults.length > 0 && (
-          <div className="vision-results-drawer">
-            <div className="drawer-handle"></div>
-            <div className="results-list">
-              {scanResults.map((item, index) => (
-                <div key={index} className="result-card-mini">
-                  <div className="res-info">
-                    <span className="res-name">{item.name}</span>
-                    <span className="res-meta">{item.calories} kcal • {item.protein}g P</span>
+          <div className="vision-results-backdrop">
+            <div className="vision-results-drawer">
+              <div className="drawer-handle"></div>
+              <div className="results-list">
+                {scanResults.map((item, index) => (
+                  <div key={index} className="result-card-mini">
+                    <div className="res-info">
+                      <span className="res-name">{item.name}</span>
+                      <span className="res-meta">{item.calories} kcal • {item.protein}g P</span>
+                    </div>
+                    <button className="res-add-btn" onClick={() => handleAdd(item)}>Add</button>
                   </div>
-                  <button className="res-add-btn" onClick={() => handleAdd(item)}>Add</button>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
