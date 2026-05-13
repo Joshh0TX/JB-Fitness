@@ -5,7 +5,7 @@ import "./FoodScannerModal.css";
 const FoodScannerModal = ({ onClose, refreshData }) => {
   const {
     videoRef, canvasRef, scanStatus, scanError, scanResults, capturedImage,
-    initCamera, stopCamera, capturePhoto, runImageScan, addMeal,
+    initCamera, stopCamera, capturePhoto,  addMeal,
     setCapturedImage, setScanResults, setScanStatus
   } = useFoodScanner(refreshData);
 
@@ -13,6 +13,45 @@ const FoodScannerModal = ({ onClose, refreshData }) => {
     initCamera();
     return () => stopCamera();
   }, []);
+
+  const runImageScan = async () => {
+  try {
+    setScanStatus("analyzing");
+
+    // 1. Convert captured image to file/base64
+    const imageBase64 = capturedImage; 
+    // (usually already base64 from canvas)
+
+    // 2. Send to backend
+    const res = await fetch("https://jbfitness-backend.onrender.com/api/ai-scan/scan-food", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        image: imageBase64
+      })
+    });
+
+    const data = await res.json();
+
+    // 3. Convert backend response into UI format
+    const formatted = [
+      {
+        name: data.food,
+        calories: 0,   // you can improve later
+        protein: 0
+      }
+    ];
+
+    setScanResults(formatted);
+    setScanStatus("done");
+
+  } catch (err) {
+    console.log(err);
+    setScanStatus("error");
+  }
+};
 
   const handleAdd = async (item) => {
     const success = await addMeal(item);

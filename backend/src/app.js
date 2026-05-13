@@ -15,6 +15,7 @@ import exerciseRoutes from "./modules/exercise/exercise.routes.js";
 import paymentRoutes from "./modules/payments/payments.routes.js";
 import nutritionRoutes from "./modules/nutrition/nutrition.routes.js";
 import stepsRoutes from "./modules/steps/steps.routes.js";
+import aiScanRoutes from "./modules/aiscan/foodRoute.js";
 
 const app = express();
 
@@ -62,7 +63,7 @@ app.use("/api/exercises", exerciseRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/badges", badgesRoutes);
 app.use("/api/steps", stepsRoutes);
-
+app.use("/api/aiscan", aiScanRoutes);
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
