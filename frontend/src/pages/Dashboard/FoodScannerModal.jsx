@@ -26,7 +26,7 @@ const runImageScan = async () => {
     setDebugMessage("Sending image to backend...");
 
     const res = await fetch(
-      "https://jbfitness-backend.onrender.com/api/ai-scan/scan-food",
+      "https://jbfitness-backend.onrender.com/api/aiscan/scan-food",
       {
         method: "POST",
         headers: {
