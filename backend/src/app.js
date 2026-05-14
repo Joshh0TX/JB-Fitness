@@ -48,6 +48,9 @@ app.get("/test", (req, res) => res.send("Backend is working"));
 app.use("/api/auth", authRoutes);
 app.use("/api/faq", faqRoutes);
 
+//Ai scan route (no auth, for now - can add later if needed)
+app.use("/api/aiscan", aiScanRoutes);
+
 // Global auth protection for all other /api routes
 app.use("/api", (req, res, next) => {
   return authMiddleware(req, res, next);
@@ -64,7 +67,7 @@ app.use("/api/exercises", exerciseRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/badges", badgesRoutes);
 app.use("/api/steps", stepsRoutes);
-app.use("/api/aiscan", aiScanRoutes);
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
