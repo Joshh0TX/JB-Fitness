@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useFoodScanner from "./useFoodScanner";
 import "./FoodScannerModal.css";
 
@@ -8,47 +8,76 @@ const FoodScannerModal = ({ onClose, refreshData }) => {
     initCamera, stopCamera, capturePhoto,  addMeal,
     setCapturedImage, setScanResults, setScanStatus
   } = useFoodScanner(refreshData);
+  const [debugMessage, setDebugMessage] = useState("");
 
   useEffect(() => {
     initCamera();
     return () => stopCamera();
   }, []);
 
-  const runImageScan = async () => {
+
+const runImageScan = async () => {
   try {
     setScanStatus("analyzing");
+    setDebugMessage("Starting scan...");
 
-    // 1. Convert captured image to file/base64
-    const imageBase64 = capturedImage; 
-    // (usually already base64 from canvas)
+    const imageBase64 = capturedImage.split(",")[1];
 
-    // 2. Send to backend
-    const res = await fetch("https://jbfitness-backend.onrender.com/api/ai-scan/scan-food", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        image: imageBase64
-      })
-    });
+    setDebugMessage("Sending image to backend...");
+
+    const res = await fetch(
+      "https://jbfitness-backend.onrender.com/api/ai-scan/scan-food",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          image: imageBase64
+        })
+      }
+    );
+
+    setDebugMessage(`Backend status: ${res.status}`);
+
+    if (!res.ok) {
+      const text = await res.text();
+
+      setDebugMessage(`Backend Error: ${text}`);
+
+      setScanStatus("error");
+      return;
+    }
 
     const data = await res.json();
 
-    // 3. Convert backend response into UI format
+    setDebugMessage(`Response: ${JSON.stringify(data)}`);
+
+    if (!data.food) {
+      setDebugMessage("No food detected");
+
+      setScanStatus("error");
+      return;
+    }
+
     const formatted = [
       {
         name: data.food,
-        calories: 0,   // you can improve later
+        calories: 0,
         protein: 0
       }
     ];
 
     setScanResults(formatted);
+
+    setDebugMessage("Food detected successfully");
+
     setScanStatus("done");
 
   } catch (err) {
-    console.log(err);
+
+    setDebugMessage(`Frontend Error: ${err.message}`);
+
     setScanStatus("error");
   }
 };
@@ -119,6 +148,11 @@ const FoodScannerModal = ({ onClose, refreshData }) => {
             </div>
           )}
         </div>
+        {debugMessage && (
+          <div className="debug-box">
+            {debugMessage}
+          </div>
+        )}
 
         {/* RESULTS DRAWER */}
         {scanResults.length > 0 && (
