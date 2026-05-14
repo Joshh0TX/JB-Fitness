@@ -52,7 +52,15 @@ app.use("/api/faq", faqRoutes);
 app.use("/api/aiscan", aiScanRoutes);
 
 // Global auth protection for all other /api routes
-app.use("/api", (req, res, next) => {
+app.use((req, res, next) => {
+  if (
+    req.originalUrl.startsWith("/api/auth") ||
+    req.originalUrl.startsWith("/api/faq") ||
+    req.originalUrl.startsWith("/api/aiscan")
+  ) {
+    return next();
+  }
+
   return authMiddleware(req, res, next);
 });
 
