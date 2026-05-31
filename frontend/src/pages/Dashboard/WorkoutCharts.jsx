@@ -1,6 +1,7 @@
 import React from "react";
 import "./WorkoutCharts.css";
 
+//added sumn
 const WorkoutCharts = ({ weeklyWorkoutSummary }) => {
   const toLocalISODate = (input = new Date()) => {
     const date = input instanceof Date ? input : new Date(input);
