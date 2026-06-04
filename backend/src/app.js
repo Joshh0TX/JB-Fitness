@@ -11,7 +11,7 @@ import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import badgesRoutes from "./modules/badges/badges.routes.js";
 import usersRoutes from "./modules/users/users.routes.js";
 import faqRoutes from "./modules/faq/faq.routes.js";
-import exerciseRoutes from "./modules/exercise/exercise.routes.js";
+import exerciseRoutes from "./modules/exercise/exercises.routes.js";
 import paymentRoutes from "./modules/payments/payments.routes.js";
 import nutritionRoutes from "./modules/nutrition/nutrition.routes.js";
 import stepsRoutes from "./modules/steps/steps.routes.js";

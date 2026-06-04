@@ -103,6 +103,18 @@ model workouts {
   @@index([user_id], map: "idx_workouts_user_id")
 }
 
+model Exercise {
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
+  type         String
+  muscle       String
+  difficulty   String
+  equipment    String?
+  instructions String?
+
+  @@map("exercises")
+}
+
 model step_logs {
   id         BigInt    @id @default(autoincrement())
   user_id    BigInt
