@@ -36,78 +36,81 @@ function Badges() {
   };
 
   const calculateMilestones = (workouts, stepsData) => {
-    const safeWorkouts = Array.isArray(workouts) ? workouts : [];
-    const monday = getMonthWeekBounds();
-    const totalSteps = stepsData.steps || 0;
+  const safeWorkouts = Array.isArray(workouts) ? workouts : [];
+  const monday = getMonthWeekBounds();
+  const totalSteps = stepsData.steps || 0;
 
-    let totalReps = 0;
-    let totalCardioDistance = 0;
-    let strengthDays = new Set();
-    let consistencyCount = 0;
+  let totalReps = 0;
+  let totalCardioDistance = 0;
+  let consistencyCount = 0;
 
-    safeWorkouts.forEach(w => {
-      const wDate = new Date(w.date || w.created_at || new Date());
-      const title = (w.title || "").toLowerCase();
+  safeWorkouts.forEach(w => {
+    const wDate = new Date(w.date || w.created_at || new Date());
+    const title = (w.title || "").toLowerCase();
 
-      if (wDate >= monday) {
-        consistencyCount++;
-        const isCardio = ["walk", "run", "jog", "cycling", "swim"].some(k => title.includes(k));
+    if (wDate >= monday) {
+      consistencyCount++;
 
-        if (!isCardio && w.reps) {
-          totalReps += parseInt(w.reps) || 0;
-          strengthDays.add(wDate.toISOString().split('T')[0]);
-        }
+      const isCardio = ["walk", "run", "jog", "cycling", "swim"].some(k => title.includes(k));
 
-        const isDistanceCardio = ["running", "cycling", "swimming"].some(k => title.includes(k));
-        if (isDistanceCardio && w.distance) {
-          totalCardioDistance += parseFloat(w.distance) || 0;
+      // Parse reps from title e.g. "Push ups (10 reps)"
+      if (!isCardio) {
+        const repsMatch = title.match(/\((\d+)\s*reps?\)/);
+        if (repsMatch) {
+          totalReps += parseInt(repsMatch[1]) || 0;
         }
       }
-    });
 
-    return [
-      {
-        id: "steps",
-        name: "Step Master",
-        desc: "Walk 120,000 steps this week",
-        current: totalSteps,
-        goal: 120000,
-        unit: "steps",
-        color: "#4CAF50",
-        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 4v16M17 4v16M9 4v16M5 4v16" strokeLinecap="round"/></svg>
-      },
-      {
-        id: "strength",
-        name: "Iron Grinder",
-        desc: "500 reps of strength training",
-        current: totalReps,
-        goal: 500,
-        unit: "reps",
-        color: "#FF6B6B",
-        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 7h12M6 17h12M2 12h20" strokeLinecap="round"/></svg>
-      },
-      {
-        id: "cardio",
-        name: "Cardio Conqueror",
-        desc: "25km of cardio activities",
-        current: totalCardioDistance,
-        goal: 25,
-        unit: "km",
-        color: "#FFB84D",
-        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      },
-      {
-        id: "consistency",
-        name: "7-Day Streak",
-        desc: "Work out every day this week",
-        current: consistencyCount,
-        goal: 7,
-        unit: "days",
-        color: "#9C27B0",
-        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      const isDistanceCardio = ["running", "cycling", "swimming"].some(k => title.includes(k));
+      if (isDistanceCardio && w.distance) {
+        totalCardioDistance += parseFloat(w.distance) || 0;
       }
-    ];
-  };
+    }
+  });
+
+  return [
+    {
+      id: "steps",
+      name: "Step Master",
+      desc: "Walk 120,000 steps this week",
+      current: totalSteps,
+      goal: 120000,
+      unit: "steps",
+      color: "#4CAF50",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 4v16M17 4v16M9 4v16M5 4v16" strokeLinecap="round"/></svg>
+    },
+    {
+      id: "strength",
+      name: "Iron Grinder",
+      desc: "500 reps of strength training",
+      current: totalReps,
+      goal: 500,
+      unit: "reps",
+      color: "#FF6B6B",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 7h12M6 17h12M2 12h20" strokeLinecap="round"/></svg>
+    },
+    {
+      id: "cardio",
+      name: "Cardio Conqueror",
+      desc: "25km of cardio activities",
+      current: totalCardioDistance,
+      goal: 25,
+      unit: "km",
+      color: "#FFB84D",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    },
+    {
+      id: "consistency",
+      name: "7-Day Streak",
+      desc: "Work out every day this week",
+      current: consistencyCount,
+      goal: 7,
+      unit: "days",
+      color: "#9C27B0",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    }
+  ];
+};
 
   const fetchData = async () => {
     try {

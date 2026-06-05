@@ -38,10 +38,11 @@ const syncToDB = async (steps) => {
 };
 
 export default function useMotionTracker() {
+  const [dbSteps, setDbSteps] = useState(() => loadStepsFromStorage());
   const [displaySteps, setDisplaySteps] = useState(() => loadStepsFromStorage());
   const [motionTrackingEnabled, setMotionTrackingEnabled] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const sessionStepsRef = useRef(loadStepsFromStorage());
+  const sessionStepsRef = useRef(0); // only NEW steps this session
   const lastSyncedStepsRef = useRef(0);
 
   useEffect(() => {
@@ -55,9 +56,6 @@ export default function useMotionTracker() {
         localStorage.removeItem(TRACKING_KEY);
       } else {
         setMotionTrackingEnabled(true);
-        // Sync existing localStorage steps to DB on resume
-        const existing = loadStepsFromStorage();
-        if (existing > 0) syncToDB(existing);
       }
     }
   }, []);
@@ -66,34 +64,38 @@ export default function useMotionTracker() {
   useEffect(() => {
     if (!motionTrackingEnabled) return;
     const interval = setInterval(() => {
-      const current = sessionStepsRef.current;
-      setDisplaySteps(current);
-      saveToStorage(current);
+      const total = dbSteps + sessionStepsRef.current;
+      setDisplaySteps(total);
+      saveToStorage(total);
     }, 30 * 1000);
     return () => clearInterval(interval);
-  }, [motionTrackingEnabled]);
+  }, [motionTrackingEnabled, dbSteps]);
 
   // Sync to DB every 60 seconds
   useEffect(() => {
     if (!motionTrackingEnabled) return;
     const interval = setInterval(async () => {
-      const current = sessionStepsRef.current;
-      if (current <= lastSyncedStepsRef.current) return;
-      const success = await syncToDB(current);
-      if (success) lastSyncedStepsRef.current = current;
+      const newSteps = sessionStepsRef.current - lastSyncedStepsRef.current;
+      if (newSteps <= 0) return;
+      const total = dbSteps + sessionStepsRef.current;
+      const success = await syncToDB(total);
+      if (success) {
+        lastSyncedStepsRef.current = sessionStepsRef.current;
+        saveToStorage(total);
+      }
     }, 60 * 1000);
     return () => clearInterval(interval);
-  }, [motionTrackingEnabled]);
+  }, [motionTrackingEnabled, dbSteps]);
 
   // Sync on page hide/close
   useEffect(() => {
     if (!motionTrackingEnabled) return;
 
     const syncOnExit = () => {
-      const current = sessionStepsRef.current;
-      if (current <= 0) return;
-      saveToStorage(current);
-      syncToDB(current);
+      const total = dbSteps + sessionStepsRef.current;
+      if (total <= 0) return;
+      saveToStorage(total);
+      syncToDB(total);
     };
 
     const onVisibilityChange = () => {
@@ -106,7 +108,7 @@ export default function useMotionTracker() {
       window.removeEventListener("beforeunload", syncOnExit);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [motionTrackingEnabled]);
+  }, [motionTrackingEnabled, dbSteps]);
 
   // Motion detection
   useEffect(() => {
@@ -149,8 +151,6 @@ export default function useMotionTracker() {
         if (state === "granted") {
           localStorage.setItem(TRACKING_KEY, "true");
           setMotionTrackingEnabled(true);
-          const existing = loadStepsFromStorage();
-          if (existing > 0) syncToDB(existing);
         }
       } catch (err) {
         console.error(err);
@@ -158,8 +158,6 @@ export default function useMotionTracker() {
     } else {
       localStorage.setItem(TRACKING_KEY, "true");
       setMotionTrackingEnabled(true);
-      const existing = loadStepsFromStorage();
-      if (existing > 0) syncToDB(existing);
     }
   };
 
