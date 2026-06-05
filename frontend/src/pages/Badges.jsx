@@ -10,7 +10,15 @@ function Badges() {
   const [badges, setBadges] = useState([]);
   const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userInitials, setUserInitials] = useState("JD");
+  const [userInitials] = useState(() => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const name = user.username || user.name || "U";
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  } catch {
+    return "U";
+  }
+});
 
   useEffect(() => {
     const token = localStorage.getItem("token");
