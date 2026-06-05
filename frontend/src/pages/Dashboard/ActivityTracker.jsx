@@ -20,8 +20,11 @@ const ActivityTracker = ({
   // 🔹 Calculation Logic
   const fitSteps = googleFit.connected ? googleFit.steps : 0;
   const sessionSteps = googleFit.connected ? 0 : motionSteps;
-  const mergedSteps = googleFit.connected ? fitSteps : (walkingSummary?.steps || 0) + sessionSteps;
-
+  const mergedSteps = googleFit.connected 
+  ? fitSteps 
+  : motionTrackingEnabled 
+    ? motionSteps  // motionSteps already includes DB steps
+    : (walkingSummary?.steps || 0); // fallback when tracking is off
   const mergedDistanceKm = mergedSteps / 1312;
   const mergedMinutesWalked = googleFit.connected ? mergedSteps / 105 : (walkingSummary?.minutesWalked || 0) + sessionSteps / 105;
   const mergedCaloriesBurned = googleFit.connected ? mergedSteps * 0.04 : (walkingSummary?.caloriesBurned || 0) + sessionSteps * 0.04;
