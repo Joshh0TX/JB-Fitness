@@ -27,6 +27,16 @@ const saveToStorage = (steps) => {
   } catch {}
 };
 
+const syncToDB = async (steps) => {
+  try {
+    await API.post("/api/steps/log", { steps, date: getTodayKey() });
+    return true;
+  } catch (err) {
+    console.error("Failed to sync steps:", err);
+    return false;
+  }
+};
+
 export default function useMotionTracker() {
   const [displaySteps, setDisplaySteps] = useState(() => loadStepsFromStorage());
   const [motionTrackingEnabled, setMotionTrackingEnabled] = useState(false);
@@ -38,14 +48,16 @@ export default function useMotionTracker() {
     const supported = "DeviceMotionEvent" in window;
     setIsSupported(supported);
 
-    // Auto-resume tracking if it was enabled before reload
     if (supported && loadTrackingState()) {
       const permissionAPI = window.DeviceMotionEvent?.requestPermission;
       if (typeof permissionAPI === "function") {
-        // iOS requires user gesture — can't auto-resume, so just show the button
+        // iOS requires user gesture — clear flag, show button again
         localStorage.removeItem(TRACKING_KEY);
       } else {
         setMotionTrackingEnabled(true);
+        // Sync existing localStorage steps to DB on resume
+        const existing = loadStepsFromStorage();
+        if (existing > 0) syncToDB(existing);
       }
     }
   }, []);
@@ -61,22 +73,15 @@ export default function useMotionTracker() {
     return () => clearInterval(interval);
   }, [motionTrackingEnabled]);
 
-  // Sync to DB every 5 minutes
+  // Sync to DB every 60 seconds
   useEffect(() => {
     if (!motionTrackingEnabled) return;
     const interval = setInterval(async () => {
-      const newSteps = sessionStepsRef.current - lastSyncedStepsRef.current;
-      if (newSteps <= 0) return;
-      try {
-        await API.post("/api/steps/log", {
-          steps: sessionStepsRef.current,
-          date: getTodayKey(),
-        });
-        lastSyncedStepsRef.current = sessionStepsRef.current;
-      } catch (err) {
-        console.error("Failed to sync steps:", err);
-      }
-    }, 5 * 60 * 1000);
+      const current = sessionStepsRef.current;
+      if (current <= lastSyncedStepsRef.current) return;
+      const success = await syncToDB(current);
+      if (success) lastSyncedStepsRef.current = current;
+    }, 60 * 1000);
     return () => clearInterval(interval);
   }, [motionTrackingEnabled]);
 
@@ -84,19 +89,11 @@ export default function useMotionTracker() {
   useEffect(() => {
     if (!motionTrackingEnabled) return;
 
-    const syncOnExit = async () => {
+    const syncOnExit = () => {
       const current = sessionStepsRef.current;
       if (current <= 0) return;
       saveToStorage(current);
-      try {
-        await API.post("/api/steps/log", {
-          steps: current,
-          date: getTodayKey(),
-        });
-        lastSyncedStepsRef.current = current;
-      } catch (err) {
-        console.error("Exit sync failed:", err);
-      }
+      syncToDB(current);
     };
 
     const onVisibilityChange = () => {
@@ -152,6 +149,8 @@ export default function useMotionTracker() {
         if (state === "granted") {
           localStorage.setItem(TRACKING_KEY, "true");
           setMotionTrackingEnabled(true);
+          const existing = loadStepsFromStorage();
+          if (existing > 0) syncToDB(existing);
         }
       } catch (err) {
         console.error(err);
@@ -159,6 +158,8 @@ export default function useMotionTracker() {
     } else {
       localStorage.setItem(TRACKING_KEY, "true");
       setMotionTrackingEnabled(true);
+      const existing = loadStepsFromStorage();
+      if (existing > 0) syncToDB(existing);
     }
   };
 

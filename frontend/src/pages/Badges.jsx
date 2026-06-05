@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api.js";
 import Logo from "../components/Logo";
@@ -11,26 +11,18 @@ function Badges() {
   const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userInitials] = useState(() => {
-  try {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const name = user.username || user.name || "U";
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-  } catch {
-    return "U";
-  }
-});
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const name = user.username || user.name || "U";
+      return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+    } catch {
+      return "U";
+    }
+  });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) { navigate("/login"); return; }
-
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      const name = user.username || user.name || "User";
-      setUserInitials(name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2));
-    }
-
     fetchData();
   }, [navigate]);
 
@@ -44,12 +36,10 @@ function Badges() {
   };
 
   const calculateMilestones = (workouts, stepsData) => {
-    // SAFETY: Ensure workouts is an array to prevent crash
     const safeWorkouts = Array.isArray(workouts) ? workouts : [];
     const monday = getMonthWeekBounds();
-    
     const totalSteps = stepsData.steps || 0;
-    
+
     let totalReps = 0;
     let totalCardioDistance = 0;
     let strengthDays = new Set();
@@ -58,17 +48,16 @@ function Badges() {
     safeWorkouts.forEach(w => {
       const wDate = new Date(w.date || w.created_at || new Date());
       const title = (w.title || "").toLowerCase();
-      
-      // Filter for this week only
+
       if (wDate >= monday) {
         consistencyCount++;
         const isCardio = ["walk", "run", "jog", "cycling", "swim"].some(k => title.includes(k));
-        
+
         if (!isCardio && w.reps) {
           totalReps += parseInt(w.reps) || 0;
           strengthDays.add(wDate.toISOString().split('T')[0]);
         }
-        
+
         const isDistanceCardio = ["running", "cycling", "swimming"].some(k => title.includes(k));
         if (isDistanceCardio && w.distance) {
           totalCardioDistance += parseFloat(w.distance) || 0;
@@ -126,9 +115,9 @@ function Badges() {
       const [bRes, wRes, sRes] = await Promise.all([
         API.get("/api/badges", { headers: { Authorization: `Bearer ${token}` } }),
         API.get("/api/workouts", { headers: { Authorization: `Bearer ${token}` } }),
-        API.get("/api/workouts/activity-summary", { headers: { Authorization: `Bearer ${token}` } })
+        API.get("/api/steps/today", { headers: { Authorization: `Bearer ${token}` } })
       ]);
-      
+
       setBadges(Array.isArray(bRes.data.badges) ? bRes.data.badges : []);
       setMilestones(calculateMilestones(wRes.data, sRes.data));
     } catch (error) {
@@ -157,7 +146,6 @@ function Badges() {
           <div className="loading-shimmer-achievements">Calculating your glory...</div>
         ) : (
           <>
-            {/* --- MILESTONES HERO --- */}
             <section className="milestones-hero">
               <div className="section-intro">
                 <h2>Weekly Milestones</h2>
@@ -186,7 +174,6 @@ function Badges() {
               </div>
             </section>
 
-            {/* --- BADGES GRID --- */}
             <section className="badges-collection">
               <h2 className="section-title">Your Collection</h2>
               {badges.length === 0 ? (
@@ -205,8 +192,8 @@ function Badges() {
                         <h3>{badge.name}</h3>
                         <p>{badge.description}</p>
                         <div className="medal-footer">
-                           <span>+{badge.points} pts</span>
-                           <small>{formatDate(badge.earned_at)}</small>
+                          <span>+{badge.points} pts</span>
+                          <small>{formatDate(badge.earned_at)}</small>
                         </div>
                       </div>
                     </div>
