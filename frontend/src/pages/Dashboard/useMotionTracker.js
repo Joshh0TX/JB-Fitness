@@ -3,17 +3,23 @@ import API from "../../api";
 
 const getTodayKey = () => new Date().toISOString().split("T")[0];
 const STORAGE_KEY = `motionSteps_${getTodayKey()}`;
+const TRACKING_KEY = "motionTrackingEnabled";
 
-const loadFromStorage = () => {
+const loadStepsFromStorage = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? Number(saved) : 0;
   } catch { return 0; }
 };
 
+const loadTrackingState = () => {
+  try {
+    return localStorage.getItem(TRACKING_KEY) === "true";
+  } catch { return false; }
+};
+
 const saveToStorage = (steps) => {
   try {
-    // Clear previous day's keys
     Object.keys(localStorage)
       .filter(k => k.startsWith("motionSteps_") && k !== STORAGE_KEY)
       .forEach(k => localStorage.removeItem(k));
@@ -22,14 +28,26 @@ const saveToStorage = (steps) => {
 };
 
 export default function useMotionTracker() {
-  const [displaySteps, setDisplaySteps] = useState(() => loadFromStorage());
+  const [displaySteps, setDisplaySteps] = useState(() => loadStepsFromStorage());
   const [motionTrackingEnabled, setMotionTrackingEnabled] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const sessionStepsRef = useRef(loadFromStorage()); // start from saved value
+  const sessionStepsRef = useRef(loadStepsFromStorage());
   const lastSyncedStepsRef = useRef(0);
 
   useEffect(() => {
-    setIsSupported("DeviceMotionEvent" in window);
+    const supported = "DeviceMotionEvent" in window;
+    setIsSupported(supported);
+
+    // Auto-resume tracking if it was enabled before reload
+    if (supported && loadTrackingState()) {
+      const permissionAPI = window.DeviceMotionEvent?.requestPermission;
+      if (typeof permissionAPI === "function") {
+        // iOS requires user gesture — can't auto-resume, so just show the button
+        localStorage.removeItem(TRACKING_KEY);
+      } else {
+        setMotionTrackingEnabled(true);
+      }
+    }
   }, []);
 
   // Update display + localStorage every 30 seconds
@@ -62,7 +80,7 @@ export default function useMotionTracker() {
     return () => clearInterval(interval);
   }, [motionTrackingEnabled]);
 
-  // Sync to DB + localStorage on page hide/close
+  // Sync on page hide/close
   useEffect(() => {
     if (!motionTrackingEnabled) return;
 
@@ -131,11 +149,15 @@ export default function useMotionTracker() {
     if (typeof permissionAPI === "function") {
       try {
         const state = await permissionAPI();
-        if (state === "granted") setMotionTrackingEnabled(true);
+        if (state === "granted") {
+          localStorage.setItem(TRACKING_KEY, "true");
+          setMotionTrackingEnabled(true);
+        }
       } catch (err) {
         console.error(err);
       }
     } else {
+      localStorage.setItem(TRACKING_KEY, "true");
       setMotionTrackingEnabled(true);
     }
   };
