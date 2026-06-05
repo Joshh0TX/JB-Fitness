@@ -70,14 +70,14 @@ export default function useDashboardData() {
         totalWorkouts: Number(d.totalWorkouts ?? 0),
       })));
 
-      // 4. Activity Summary
-      const walkRes = await API.get("/api/workouts/activity-summary", { headers: { Authorization: `Bearer ${token}` } });
-      setWalkingSummary({
-        steps: Number(walkRes?.data?.steps ?? 0),
-        caloriesBurned: Number(walkRes?.data?.caloriesBurned ?? 0),
-        distanceKm: Number(walkRes?.data?.distanceKm ?? 0),
-        minutesWalked: Number(walkRes?.data?.minutesWalked ?? 0),
-      });
+      // 4. Today's Steps
+const stepsRes = await API.get("/api/steps/today", { headers: { Authorization: `Bearer ${token}` } });
+setWalkingSummary({
+  steps: Number(stepsRes?.data?.steps ?? 0),
+  caloriesBurned: Math.round(Number(stepsRes?.data?.steps ?? 0) * 0.04),
+  distanceKm: Number((Number(stepsRes?.data?.steps ?? 0) / 1312).toFixed(2)),
+  minutesWalked: Math.round(Number(stepsRes?.data?.steps ?? 0) / 105),
+});
 
       setLoading(false);
     } catch (err) {

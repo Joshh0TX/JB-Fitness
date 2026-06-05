@@ -28,6 +28,7 @@ model metrics {
   id                 BigInt   @id @default(autoincrement())
   user_id            BigInt
   date               DateTime @db.Date
+  steps              Int @default(0)
   calories           Int?     @default(0)
   water_intake       Int?     @default(0)
   workouts_completed Int?     @default(0)

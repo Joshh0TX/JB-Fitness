@@ -1,13 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import API from "../../api";
+
+const getTodayKey = () => new Date().toISOString().split("T")[0];
 
 export default function useMotionTracker() {
-  const [motionSteps, setMotionSteps] = useState(0);
+  const [displaySteps, setDisplaySteps] = useState(0);
   const [motionTrackingEnabled, setMotionTrackingEnabled] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const sessionStepsRef = useRef(0);
 
   useEffect(() => {
     setIsSupported("DeviceMotionEvent" in window);
   }, []);
+
+  // Save to DB every 5 minutes silently
+  useEffect(() => {
+    if (!motionTrackingEnabled) return;
+
+    const interval = setInterval(async () => {
+      if (sessionStepsRef.current === 0) return;
+      try {
+        await API.post("/api/steps/log", {
+          steps: sessionStepsRef.current,
+          date: getTodayKey(),
+        });
+        setDisplaySteps(sessionStepsRef.current);
+      } catch (err) {
+        console.error("Failed to sync steps:", err);
+      }
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [motionTrackingEnabled]);
 
   useEffect(() => {
     if (!motionTrackingEnabled || !isSupported) return;
@@ -28,10 +52,9 @@ export default function useMotionTracker() {
       if (previousMagnitude !== null) {
         const delta = magnitude - previousMagnitude;
         const now = Date.now();
-        // The "Step" detection threshold
         if (delta > 1.15 && now - lastStepTimestamp > 320) {
           lastStepTimestamp = now;
-          setMotionSteps((prev) => prev + 1);
+          sessionStepsRef.current += 1;
         }
       }
       previousMagnitude = magnitude;
@@ -48,11 +71,18 @@ export default function useMotionTracker() {
       try {
         const state = await permissionAPI();
         if (state === "granted") setMotionTrackingEnabled(true);
-      } catch (err) { console.error(err); }
+      } catch (err) {
+        console.error(err);
+      }
     } else {
       setMotionTrackingEnabled(true);
     }
   };
 
-  return { motionSteps, motionTrackingEnabled, isSupported, enableTracking };
+  return {
+    motionSteps: displaySteps,
+    motionTrackingEnabled,
+    isSupported,
+    enableTracking,
+  };
 }

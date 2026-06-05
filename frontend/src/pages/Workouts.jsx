@@ -186,7 +186,7 @@ function Workouts({ setSummaryData }) {
           <form onSubmit={searchExercises} className="modern-search-bar">
             <input
               type="text"
-              placeholder="Search exercises (e.g. Push ups)"
+              placeholder="Search exercises (e.g. Pushups)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
