@@ -1,142 +1,168 @@
-import React from "react";
-import { useGoogleFitSteps } from "../../hooks/useGoogleFitSteps";
-import "./ActivityTracker.css";
+import { useState, useEffect, useRef } from "react";
+import API from "../../api";
 
-const ActivityTracker = ({ 
-  walkingSummary, 
-  motionSteps, 
-  motionTrackingEnabled, 
-  motionTrackingSupported, 
-  enableMotionTracking 
-}) => {
-  const googleFit = useGoogleFitSteps();
+const getTodayKey = () => new Date().toISOString().split("T")[0];
+const STORAGE_KEY = `motionSteps_${getTodayKey()}`;
+const TRACKING_KEY = "motionTrackingEnabled";
 
-  // 🔹 Goals & Thresholds
-  const stepGoal = 10000;
-  const calorieGoal = 500;
-  const distanceGoal = 8;
-  const minutesGoal = 60;
-
-  // 🔹 Calculation Logic
-  const fitSteps = googleFit.connected ? googleFit.steps : 0;
-  const sessionSteps = googleFit.connected ? 0 : motionSteps;
-  const mergedSteps = googleFit.connected 
-  ? fitSteps 
-  : motionTrackingEnabled 
-    ? motionSteps  // motionSteps already includes DB steps
-    : (walkingSummary?.steps || 0); // fallback when tracking is off
-  const mergedDistanceKm = mergedSteps / 1312;
-  const mergedMinutesWalked = googleFit.connected ? mergedSteps / 105 : (walkingSummary?.minutesWalked || 0) + sessionSteps / 105;
-  const mergedCaloriesBurned = googleFit.connected ? mergedSteps * 0.04 : (walkingSummary?.caloriesBurned || 0) + sessionSteps * 0.04;
-
-  const calculateProgress = (current, goal) => Math.min((current / goal) * 100, 100);
-  
-  // 🔹 SVG Ring Math (Circumference = 2 * PI * r)
-  const stepProgress = calculateProgress(mergedSteps, stepGoal);
-  const distanceProgress = calculateProgress(mergedDistanceKm, distanceGoal);
-
-  // Outer circle radius 45 -> Circumference ~282
-  const strokeDashSteps = (stepProgress * 282.7) / 100;
-  // Inner circle radius 36 -> Circumference ~226
-  const strokeDashDist = (distanceProgress * 226.2) / 100;
-
-  return (
-    <section className="activity-tracker-clean">
-      <div className="activity-header">
-        <h2 className="activity-title">Daily Activity</h2>
-        <div className={`status-pill ${motionTrackingEnabled ? "is-live" : ""}`}>
-          {motionTrackingEnabled ? "Live Tracking" : "Synced"}
-        </div>
-      </div>
-
-      <div className="activity-visual-center">
-        {/* SHARP SVG DOUBLE RINGS */}
-        <div className="rings-wrapper">
-          <svg viewBox="0 0 100 100" className="activity-svg">
-            {/* Outer Track & Bar (Steps) */}
-            <circle className="ring-track" cx="50" cy="50" r="45" />
-            <circle 
-              className="ring-bar ring-steps" 
-              cx="50" cy="50" r="45" 
-              style={{ strokeDasharray: `${strokeDashSteps} 282.7` }}
-            />
-            
-            {/* Inner Track & Bar (Distance) */}
-            <circle className="ring-track" cx="50" cy="50" r="36" />
-            <circle 
-              className="ring-bar ring-dist" 
-              cx="50" cy="50" r="36" 
-              style={{ strokeDasharray: `${strokeDashDist} 226.2` }}
-            />
-          </svg>
-          
-          <div className="rings-inner-text">
-            <span className="main-count">{Math.round(mergedSteps).toLocaleString()}</span>
-            <span className="count-label">STEPS</span>
-          </div>
-        </div>
-
-        {/* MINIMALIST STATS GRID (No borders, matured typography) */}
-        <div className="stats-minimal-grid">
-          <div className="stat-node">
-            <svg className="node-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <div className="node-data">
-              <span className="node-val">{Math.round(mergedCaloriesBurned)}</span>
-              <span className="node-unit">kcal</span>
-            </div>
-          </div>
-
-          <div className="stat-node">
-            <svg className="node-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <div className="node-data">
-              <span className="node-val">{mergedDistanceKm.toFixed(1)}</span>
-              <span className="node-unit">km</span>
-            </div>
-          </div>
-
-          <div className="stat-node">
-            <svg className="node-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
-              <polyline points="12 6 12 12 16 14" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <div className="node-data">
-              <span className="node-val">{Math.round(mergedMinutesWalked)}</span>
-              <span className="node-unit">min</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="activity-actions">
-        {googleFit.isAvailable && (
-          <div className="sync-section">
-            {googleFit.connected ? (
-              <div className="fit-badge">
-                <img src="https://www.gstatic.com/images/branding/product/1x/gfit_512dp.png" alt="" />
-                <span>Google Fit Active</span>
-                <button onClick={googleFit.manualSync} className="sync-icon-btn">↺</button>
-              </div>
-            ) : (
-              <button className="connect-link-btn" onClick={googleFit.connect}>
-                Connect Google Fit
-              </button>
-            )}
-          </div>
-        )}
-
-        {!googleFit.connected && motionTrackingSupported && !motionTrackingEnabled && (
-          <button className="live-sensor-btn" onClick={enableMotionTracking}>
-            Start Session Tracking
-          </button>
-        )}
-      </div>
-    </section>
-  );
+const loadStepsFromStorage = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? Number(saved) : 0;
+  } catch { return 0; }
 };
 
-export default ActivityTracker;
+const loadTrackingState = () => {
+  try {
+    return localStorage.getItem(TRACKING_KEY) === "true";
+  } catch { return false; }
+};
+
+const saveToStorage = (steps) => {
+  try {
+    Object.keys(localStorage)
+      .filter(k => k.startsWith("motionSteps_") && k !== STORAGE_KEY)
+      .forEach(k => localStorage.removeItem(k));
+    localStorage.setItem(STORAGE_KEY, String(steps));
+  } catch {}
+};
+
+const syncToDB = async (steps) => {
+  try {
+    await API.post("/api/steps/log", { steps, date: getTodayKey() });
+    return true;
+  } catch (err) {
+    console.error("Failed to sync steps:", err);
+    return false;
+  }
+};
+
+export default function useMotionTracker() {
+  const [displaySteps, setDisplaySteps] = useState(() => loadStepsFromStorage());
+  const [motionTrackingEnabled, setMotionTrackingEnabled] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
+  const sessionStepsRef = useRef(0);
+  const lastSyncedStepsRef = useRef(0);
+
+  useEffect(() => {
+    const supported = "DeviceMotionEvent" in window;
+    setIsSupported(supported);
+
+    if (supported && loadTrackingState()) {
+      const permissionAPI = window.DeviceMotionEvent?.requestPermission;
+      if (typeof permissionAPI === "function") {
+        localStorage.removeItem(TRACKING_KEY);
+      } else {
+        setMotionTrackingEnabled(true);
+      }
+    }
+  }, []);
+
+  // Update display + localStorage every 30 seconds
+  useEffect(() => {
+    if (!motionTrackingEnabled) return;
+    const interval = setInterval(() => {
+      const total = loadStepsFromStorage() + sessionStepsRef.current;
+      setDisplaySteps(total);
+      saveToStorage(total);
+    }, 30 * 1000);
+    return () => clearInterval(interval);
+  }, [motionTrackingEnabled]);
+
+  // Sync to DB every 60 seconds
+  useEffect(() => {
+    if (!motionTrackingEnabled) return;
+    const interval = setInterval(async () => {
+      const newSteps = sessionStepsRef.current - lastSyncedStepsRef.current;
+      if (newSteps <= 0) return;
+      const total = loadStepsFromStorage() + sessionStepsRef.current;
+      const success = await syncToDB(total);
+      if (success) {
+        lastSyncedStepsRef.current = sessionStepsRef.current;
+        saveToStorage(total);
+      }
+    }, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [motionTrackingEnabled]);
+
+  // Sync on page hide/close
+  useEffect(() => {
+    if (!motionTrackingEnabled) return;
+
+    const syncOnExit = () => {
+      const total = loadStepsFromStorage() + sessionStepsRef.current;
+      if (total <= 0) return;
+      saveToStorage(total);
+      syncToDB(total);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") syncOnExit();
+    };
+
+    window.addEventListener("beforeunload", syncOnExit);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", syncOnExit);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [motionTrackingEnabled]);
+
+  // Motion detection
+  useEffect(() => {
+    if (!motionTrackingEnabled || !isSupported) return;
+
+    let previousMagnitude = null;
+    let lastStepTimestamp = 0;
+
+    const onMotion = (event) => {
+      const accel = event?.accelerationIncludingGravity;
+      if (!accel) return;
+
+      const magnitude = Math.sqrt(
+        Math.pow(Number(accel.x ?? 0), 2) +
+        Math.pow(Number(accel.y ?? 0), 2) +
+        Math.pow(Number(accel.z ?? 0), 2)
+      );
+
+      if (previousMagnitude !== null) {
+        const delta = magnitude - previousMagnitude;
+        const now = Date.now();
+        if (delta > 1.15 && now - lastStepTimestamp > 320) {
+          lastStepTimestamp = now;
+          sessionStepsRef.current += 1;
+        }
+      }
+      previousMagnitude = magnitude;
+    };
+
+    window.addEventListener("devicemotion", onMotion, { passive: true });
+    return () => window.removeEventListener("devicemotion", onMotion);
+  }, [motionTrackingEnabled, isSupported]);
+
+  const enableTracking = async () => {
+    if (!isSupported) return;
+    const permissionAPI = window.DeviceMotionEvent?.requestPermission;
+    if (typeof permissionAPI === "function") {
+      try {
+        const state = await permissionAPI();
+        if (state === "granted") {
+          localStorage.setItem(TRACKING_KEY, "true");
+          setMotionTrackingEnabled(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      localStorage.setItem(TRACKING_KEY, "true");
+      setMotionTrackingEnabled(true);
+    }
+  };
+
+  return {
+    motionSteps: displaySteps,
+    motionTrackingEnabled,
+    isSupported,
+    enableTracking,
+  };
+}
