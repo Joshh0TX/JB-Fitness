@@ -1,168 +1,95 @@
-import { useState, useEffect, useRef } from "react";
-import API from "../../api";
+import React from "react";
+import "./ActivityTracker.css";
 
-const getTodayKey = () => new Date().toISOString().split("T")[0];
-const STORAGE_KEY = `motionSteps_${getTodayKey()}`;
-const TRACKING_KEY = "motionTrackingEnabled";
+const ActivityTracker = ({
+  walkingSummary = {},
+  motionSteps = 0,
+  motionTrackingEnabled = false,
+  motionTrackingSupported = false,
+  enableMotionTracking = () => {},
+}) => {
+  const roundedSteps = Math.max(0, Math.round(motionSteps));
+  const goalSteps = 10000;
+  const progress = Math.min(roundedSteps / goalSteps, 1);
+  const distance = walkingSummary.distanceKm ?? 0;
+  const calories = walkingSummary.caloriesBurned ?? 0;
+  const minutes = walkingSummary.minutesWalked ?? 0;
 
-const loadStepsFromStorage = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? Number(saved) : 0;
-  } catch { return 0; }
+  return (
+    <section className="activity-tracker-clean">
+      <div className="activity-header">
+        <div>
+          <h2 className="activity-title">Activity Tracker</h2>
+          <p className="count-label">
+            {motionTrackingSupported
+              ? "Live step tracking is available"
+              : "Motion sensors are not supported on this device"}
+          </p>
+        </div>
+        <span className={`status-pill ${motionTrackingEnabled ? "is-live" : ""}`}>
+          {motionTrackingEnabled ? "Live" : "Paused"}
+        </span>
+      </div>
+
+      <div className="activity-visual-center">
+        <div className="rings-wrapper">
+          <svg className="activity-svg" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="52" className="ring-track" />
+            <circle
+              cx="60"
+              cy="60"
+              r="52"
+              className="ring-bar ring-steps"
+              strokeDasharray={`${Math.PI * 2 * 52 * progress} ${Math.PI * 2 * 52}`}
+              strokeDashoffset="0"
+            />
+          </svg>
+          <div className="rings-inner-text">
+            <p className="main-count">{roundedSteps.toLocaleString()}</p>
+            <p className="count-label">steps today</p>
+          </div>
+        </div>
+
+        <div className="stats-minimal-grid">
+          <div className="stat-node">
+            <div className="node-data">
+              <span className="node-val">{distance.toFixed(1)}</span>
+              <span className="node-unit">km</span>
+            </div>
+            <span className="node-unit">Distance</span>
+          </div>
+          <div className="stat-node">
+            <div className="node-data">
+              <span className="node-val">{calories}</span>
+              <span className="node-unit">kcal</span>
+            </div>
+            <span className="node-unit">Burned</span>
+          </div>
+          <div className="stat-node">
+            <div className="node-data">
+              <span className="node-val">{minutes}</span>
+              <span className="node-unit">min</span>
+            </div>
+            <span className="node-unit">Active</span>
+          </div>
+        </div>
+
+        <div className="activity-actions">
+          {motionTrackingSupported ? (
+            <button
+              type="button"
+              className={`live-sensor-btn ${motionTrackingEnabled ? "enabled" : ""}`}
+              onClick={enableMotionTracking}
+            >
+              {motionTrackingEnabled ? "Motion tracking active" : "Enable motion tracking"}
+            </button>
+          ) : (
+            <span className="fit-badge">Motion tracking unavailable</span>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 };
 
-const loadTrackingState = () => {
-  try {
-    return localStorage.getItem(TRACKING_KEY) === "true";
-  } catch { return false; }
-};
-
-const saveToStorage = (steps) => {
-  try {
-    Object.keys(localStorage)
-      .filter(k => k.startsWith("motionSteps_") && k !== STORAGE_KEY)
-      .forEach(k => localStorage.removeItem(k));
-    localStorage.setItem(STORAGE_KEY, String(steps));
-  } catch {}
-};
-
-const syncToDB = async (steps) => {
-  try {
-    await API.post("/api/steps/log", { steps, date: getTodayKey() });
-    return true;
-  } catch (err) {
-    console.error("Failed to sync steps:", err);
-    return false;
-  }
-};
-
-export default function useMotionTracker() {
-  const [displaySteps, setDisplaySteps] = useState(() => loadStepsFromStorage());
-  const [motionTrackingEnabled, setMotionTrackingEnabled] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-  const sessionStepsRef = useRef(0);
-  const lastSyncedStepsRef = useRef(0);
-
-  useEffect(() => {
-    const supported = "DeviceMotionEvent" in window;
-    setIsSupported(supported);
-
-    if (supported && loadTrackingState()) {
-      const permissionAPI = window.DeviceMotionEvent?.requestPermission;
-      if (typeof permissionAPI === "function") {
-        localStorage.removeItem(TRACKING_KEY);
-      } else {
-        setMotionTrackingEnabled(true);
-      }
-    }
-  }, []);
-
-  // Update display + localStorage every 30 seconds
-  useEffect(() => {
-    if (!motionTrackingEnabled) return;
-    const interval = setInterval(() => {
-      const total = loadStepsFromStorage() + sessionStepsRef.current;
-      setDisplaySteps(total);
-      saveToStorage(total);
-    }, 30 * 1000);
-    return () => clearInterval(interval);
-  }, [motionTrackingEnabled]);
-
-  // Sync to DB every 60 seconds
-  useEffect(() => {
-    if (!motionTrackingEnabled) return;
-    const interval = setInterval(async () => {
-      const newSteps = sessionStepsRef.current - lastSyncedStepsRef.current;
-      if (newSteps <= 0) return;
-      const total = loadStepsFromStorage() + sessionStepsRef.current;
-      const success = await syncToDB(total);
-      if (success) {
-        lastSyncedStepsRef.current = sessionStepsRef.current;
-        saveToStorage(total);
-      }
-    }, 60 * 1000);
-    return () => clearInterval(interval);
-  }, [motionTrackingEnabled]);
-
-  // Sync on page hide/close
-  useEffect(() => {
-    if (!motionTrackingEnabled) return;
-
-    const syncOnExit = () => {
-      const total = loadStepsFromStorage() + sessionStepsRef.current;
-      if (total <= 0) return;
-      saveToStorage(total);
-      syncToDB(total);
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") syncOnExit();
-    };
-
-    window.addEventListener("beforeunload", syncOnExit);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
-      window.removeEventListener("beforeunload", syncOnExit);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [motionTrackingEnabled]);
-
-  // Motion detection
-  useEffect(() => {
-    if (!motionTrackingEnabled || !isSupported) return;
-
-    let previousMagnitude = null;
-    let lastStepTimestamp = 0;
-
-    const onMotion = (event) => {
-      const accel = event?.accelerationIncludingGravity;
-      if (!accel) return;
-
-      const magnitude = Math.sqrt(
-        Math.pow(Number(accel.x ?? 0), 2) +
-        Math.pow(Number(accel.y ?? 0), 2) +
-        Math.pow(Number(accel.z ?? 0), 2)
-      );
-
-      if (previousMagnitude !== null) {
-        const delta = magnitude - previousMagnitude;
-        const now = Date.now();
-        if (delta > 1.15 && now - lastStepTimestamp > 320) {
-          lastStepTimestamp = now;
-          sessionStepsRef.current += 1;
-        }
-      }
-      previousMagnitude = magnitude;
-    };
-
-    window.addEventListener("devicemotion", onMotion, { passive: true });
-    return () => window.removeEventListener("devicemotion", onMotion);
-  }, [motionTrackingEnabled, isSupported]);
-
-  const enableTracking = async () => {
-    if (!isSupported) return;
-    const permissionAPI = window.DeviceMotionEvent?.requestPermission;
-    if (typeof permissionAPI === "function") {
-      try {
-        const state = await permissionAPI();
-        if (state === "granted") {
-          localStorage.setItem(TRACKING_KEY, "true");
-          setMotionTrackingEnabled(true);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
-      localStorage.setItem(TRACKING_KEY, "true");
-      setMotionTrackingEnabled(true);
-    }
-  };
-
-  return {
-    motionSteps: displaySteps,
-    motionTrackingEnabled,
-    isSupported,
-    enableTracking,
-  };
-}
+export default ActivityTracker;
